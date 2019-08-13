@@ -426,12 +426,13 @@ function LevelsTweakData:init()
 	self.arm_cro = {}
 	self.arm_cro.name_id = "heist_arm_hl"
 	self.arm_cro.briefing_id = "heist_arm_briefing"
-	self.arm_cro.briefing_dialog = "Play_pln_firestarter_stage3_brief"
+	self.arm_cro.briefing_dialog = "pln_at1_brf_01"
 	self.arm_cro.world_name = "narratives/armadillo/arm_cro"
-	self.arm_cro.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.arm_cro.intro_event = "Play_pln_at1_intro_01"
 	self.arm_cro.outro_event = {
-		"Play_pln_firestarter_stage3_end_a",
-		"Play_pln_firestarter_stage3_end_b"
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03"
 	}
 	self.arm_cro.music = "heist"
 	self.arm_cro.package = "packages/narr_arm_cro"
@@ -439,12 +440,13 @@ function LevelsTweakData:init()
 	self.arm_und = {}
 	self.arm_und.name_id = "heist_arm_hl"
 	self.arm_und.briefing_id = "heist_arm_briefing"
-	self.arm_und.briefing_dialog = "Play_pln_firestarter_stage3_brief"
+	self.arm_und.briefing_dialog = "pln_at1_brf_01"
 	self.arm_und.world_name = "narratives/armadillo/arm_und"
-	self.arm_und.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.arm_und.intro_event = "Play_pln_at1_intro_01"
 	self.arm_und.outro_event = {
-		"Play_pln_firestarter_stage3_end_a",
-		"Play_pln_firestarter_stage3_end_b"
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03"
 	}
 	self.arm_und.music = "heist"
 	self.arm_und.package = "packages/narr_arm_und"
@@ -452,12 +454,13 @@ function LevelsTweakData:init()
 	self.arm_bri = {}
 	self.arm_bri.name_id = "heist_arm_hl"
 	self.arm_bri.briefing_id = "heist_arm_briefing"
-	self.arm_bri.briefing_dialog = "Play_pln_firestarter_stage3_brief"
+	self.arm_bri.briefing_dialog = "pln_at1_brf_01"
 	self.arm_bri.world_name = "narratives/armadillo/arm_bri"
-	self.arm_bri.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.arm_bri.intro_event = "Play_pln_at1_intro_01"
 	self.arm_bri.outro_event = {
-		"Play_pln_firestarter_stage3_end_a",
-		"Play_pln_firestarter_stage3_end_b"
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03"
 	}
 	self.arm_bri.music = "heist"
 	self.arm_bri.package = "packages/narr_arm_bri"
@@ -465,12 +468,13 @@ function LevelsTweakData:init()
 	self.arm_hcm = {}
 	self.arm_hcm.name_id = "heist_arm_hl"
 	self.arm_hcm.briefing_id = "heist_arm_briefing"
-	self.arm_hcm.briefing_dialog = "Play_pln_firestarter_stage3_brief"
+	self.arm_hcm.briefing_dialog = "pln_at1_brf_01"
 	self.arm_hcm.world_name = "narratives/armadillo/arm_hcm"
-	self.arm_hcm.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.arm_hcm.intro_event = "Play_pln_at1_intro_01"
 	self.arm_hcm.outro_event = {
-		"Play_pln_firestarter_stage3_end_a",
-		"Play_pln_firestarter_stage3_end_b"
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03"
 	}
 	self.arm_hcm.music = "heist"
 	self.arm_hcm.package = "packages/narr_arm_hcm"
@@ -478,12 +482,13 @@ function LevelsTweakData:init()
 	self.arm_par = {}
 	self.arm_par.name_id = "heist_arm_hl"
 	self.arm_par.briefing_id = "heist_arm_briefing"
-	self.arm_par.briefing_dialog = "Play_pln_firestarter_stage3_brief"
+	self.arm_par.briefing_dialog = "pln_at1_brf_01"
 	self.arm_par.world_name = "narratives/armadillo/arm_par"
-	self.arm_par.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.arm_par.intro_event = "Play_pln_at1_intro_01"
 	self.arm_par.outro_event = {
-		"Play_pln_firestarter_stage3_end_a",
-		"Play_pln_firestarter_stage3_end_b"
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03"
 	}
 	self.arm_par.music = "heist"
 	self.arm_par.package = "packages/narr_arm_par"
@@ -491,12 +496,13 @@ function LevelsTweakData:init()
 	self.arm_fac = {}
 	self.arm_fac.name_id = "heist_arm_hl"
 	self.arm_fac.briefing_id = "heist_arm_briefing"
-	self.arm_fac.briefing_dialog = "Play_pln_firestarter_stage3_brief"
+	self.arm_fac.briefing_dialog = "pln_at1_brf_01"
 	self.arm_fac.world_name = "narratives/armadillo/arm_fac"
-	self.arm_fac.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.arm_fac.intro_event = "Play_pln_at1_intro_01"
 	self.arm_fac.outro_event = {
-		"Play_pln_firestarter_stage3_end_a",
-		"Play_pln_firestarter_stage3_end_b"
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03"
 	}
 	self.arm_fac.music = "heist"
 	self.arm_fac.package = "packages/narr_arm_fac"
@@ -517,7 +523,7 @@ function LevelsTweakData:init()
 	self.test01 = {}
 	self.test01.name_id = "heist_test01_hl"
 	self.test01.briefing_id = "heist_test01"
-	self.test01.world_name = "wip/family"
+	self.test01.world_name = "tests/enemy_sounds"
 	self.test01.intro_event = "nothing"
 	self.test01.outro_event = "nothing"
 	self.test01.music = "heist"
@@ -535,7 +541,7 @@ function LevelsTweakData:init()
 	self.test03 = {}
 	self.test03.name_id = "heist_test03_hl"
 	self.test03.briefing_id = "heist_test03"
-	self.test03.world_name = "wip/scrap"
+	self.test03.world_name = "tests/enemy_test"
 	self.test03.intro_event = "nothing"
 	self.test03.outro_event = "nothing"
 	self.test03.music = "heist"
@@ -1060,7 +1066,8 @@ function LevelsTweakData:init()
 		"escape_garage",
 		"escape_overpass_night",
 		"escape_cafe_day",
-		"escape_park_day"
+		"escape_park_day",
+		"election_day_3"
 	}
 end
 function LevelsTweakData:get_level_index()
