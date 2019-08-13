@@ -237,7 +237,7 @@ function NetworkAccountSTEAM._on_join_request(lobby_id, friend_id)
 			return
 		end
 		Global.game_settings.single_player = false
-		managers.network.matchmake:join_server_with_check(lobby_id)
+		managers.network.matchmake:join_server_with_check(lobby_id, true)
 	end
 end
 function NetworkAccountSTEAM._on_server_request(ip, pw)

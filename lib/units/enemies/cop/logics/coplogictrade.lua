@@ -20,19 +20,12 @@ function CopLogicTrade.enter(data, new_logic_name, enter_params)
 	data.unit:brain():set_update_enabled_state(true)
 	managers.groupai:state():on_hostage_state(true, data.key)
 	managers.secret_assignment:unregister_unit(data.unit, true)
-	my_data._destroy_clbk_key = "trade_destroy_clbk"
-	data.unit:base():add_destroy_listener(my_data._destroy_clbk_key, callback(CopLogicTrade, CopLogicTrade, "on_enemy_destroyed", data))
 	data.unit:brain():set_attention_settings({peaceful = true})
-end
-function CopLogicTrade:on_enemy_destroyed(data)
-	local my_data = data.internal_data
-	my_data._destroy_clbk_key = "nil"
-	managers.trade:change_hostage()
 end
 local is_win32 = SystemInfo:platform() == Idstring("WIN32")
 function CopLogicTrade.hostage_trade(unit, enable, trade_success)
 	local wp_id = "wp_hostage_trade"
-	print("RC: hostage_trade", enable, trade_success)
+	print("[CopLogicTrade.hostage_trade]", unit, enable, trade_success)
 	if enable then
 		local text = managers.localization:text("debug_trade_hostage")
 		managers.hud:add_waypoint(wp_id, {
@@ -67,10 +60,6 @@ end
 function CopLogicTrade.exit(data, new_logic_name, enter_params)
 	CopLogicBase.exit(data, new_logic_name, enter_params)
 	local my_data = data.internal_data
-	if my_data._destroy_clbk_key then
-		data.unit:base():remove_destroy_listener(my_data._destroy_clbk_key)
-		my_data._destroy_clbk_key = nil
-	end
 	if my_data._trade_enabled then
 		my_data._trade_enabled = false
 		data.unit:network():send("hostage_trade", false, false)
@@ -85,11 +74,6 @@ function CopLogicTrade.on_trade(data, trading_unit)
 		return
 	end
 	managers.trade:on_hostage_traded(trading_unit)
-	local my_data = data.internal_data
-	if my_data._destroy_clbk_key then
-		data.unit:base():remove_destroy_listener(my_data._destroy_clbk_key)
-		my_data._destroy_clbk_key = nil
-	end
 	if data.unit:base().butcher then
 		CopLogicTrade.butchers_traded = CopLogicTrade.butchers_traded + 1
 		if CopLogicTrade.butchers_traded >= 3 then
@@ -178,4 +162,7 @@ function CopLogicTrade._get_all_paths(data)
 end
 function CopLogicTrade._set_verified_paths(data, verified_paths)
 	data.internal_data.flee_path = verified_paths.flee_path
+end
+function CopLogicTrade.pre_destroy(data)
+	managers.trade:change_hostage()
 end

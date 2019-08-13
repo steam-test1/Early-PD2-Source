@@ -178,6 +178,9 @@ function ChatGui:set_params(params)
 		self:set_leftbottom(params.left, params.bottom)
 	end
 end
+function ChatGui:enabled()
+	return self._enabled
+end
 function ChatGui:set_enabled(enabled)
 	if not enabled then
 		self:_loose_focus()
@@ -574,6 +577,7 @@ function ChatGui:mouse_wheel_down(x, y)
 	return self:scroll_down()
 end
 function ChatGui:open_page()
+	self:_on_focus()
 end
 function ChatGui:close_page()
 	self:_loose_focus()
@@ -597,6 +601,7 @@ function ChatGui:_on_focus()
 	self._input_panel:key_release(callback(self, self, "key_release"))
 	self._enter_text_set = false
 	self._input_panel:child("input_bg"):animate(callback(self, self, "_animate_input_bg"))
+	self:set_layer(2000)
 	self:update_caret()
 end
 function ChatGui:_loose_focus()
@@ -618,6 +623,7 @@ function ChatGui:_loose_focus()
 	local text = self._input_panel:child("input_text")
 	text:stop()
 	self._input_panel:child("input_bg"):stop()
+	self:set_layer(20)
 	self:update_caret()
 end
 function ChatGui:_shift()

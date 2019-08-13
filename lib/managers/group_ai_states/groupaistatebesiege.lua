@@ -2671,21 +2671,21 @@ function GroupAIStateBesiege:_voice_deathguard_start(group)
 end
 function GroupAIStateBesiege:_voice_open_fire_start(group)
 	for u_key, unit_data in pairs(group.units) do
-		if self:chk_say_enemy_chatter(unit_data.unit, unit_data.m_pos, "aggressive") then
+		if unit_data.char_tweak.chatter.aggressive and self:chk_say_enemy_chatter(unit_data.unit, unit_data.m_pos, "aggressive") then
 		else
 		end
 	end
 end
 function GroupAIStateBesiege:_voice_move_in_start(group)
 	for u_key, unit_data in pairs(group.units) do
-		if self:chk_say_enemy_chatter(unit_data.unit, unit_data.m_pos, "go_go") then
+		if unit_data.char_tweak.chatter.go_go and self:chk_say_enemy_chatter(unit_data.unit, unit_data.m_pos, "go_go") then
 		else
 		end
 	end
 end
 function GroupAIStateBesiege:_voice_move_complete(group)
 	for u_key, unit_data in pairs(group.units) do
-		if self:chk_say_enemy_chatter(unit_data.unit, unit_data.m_pos, "ready") then
+		if unit_data.char_tweak.chatter.ready and self:chk_say_enemy_chatter(unit_data.unit, unit_data.m_pos, "ready") then
 		else
 		end
 	end

@@ -394,7 +394,7 @@ function MoneyManager:on_sell_weapon(category, slot)
 	local amount = self:get_weapon_slot_sell_value(category, slot)
 	self:_add_to_total(amount, {no_offshore = true})
 end
-function MoneyManager:get_weapon_part_sell_value(part_id)
+function MoneyManager:get_weapon_part_sell_value(part_id, global_value)
 	local part = tweak_data.weapon.factory.parts[part_id]
 	local mod_price = 1000
 	if part then

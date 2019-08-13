@@ -15,7 +15,7 @@ function MenuSceneGui:_setup_controller_input()
 	self._ws:connect_controller(managers.menu:active_menu().input:get_controller(), true)
 	self._panel:axis_move(callback(self, self, "_axis_move"))
 end
-function MenuSceneGui:_destroy_controller_unput()
+function MenuSceneGui:_destroy_controller_input()
 	self._ws:disconnect_all_controllers()
 	if alive(self._panel) then
 		self._panel:axis_move(nil)
@@ -46,7 +46,7 @@ function MenuSceneGui:update(t, dt)
 	end
 end
 function MenuSceneGui:close()
-	self:_destroy_controller_unput()
+	self:_destroy_controller_input()
 	if alive(self._panel) then
 		self._ws:panel():remove(self._panel)
 		self._panel = nil
