@@ -3,13 +3,13 @@ function GuiTweakData:init()
 	self.suspicion_to_visibility = {}
 	self.suspicion_to_visibility[1] = {}
 	self.suspicion_to_visibility[1].name_id = "bm_menu_concealment_low"
-	self.suspicion_to_visibility[1].max_index = 3
+	self.suspicion_to_visibility[1].max_index = 9
 	self.suspicion_to_visibility[2] = {}
 	self.suspicion_to_visibility[2].name_id = "bm_menu_concealment_medium"
-	self.suspicion_to_visibility[2].max_index = 7
+	self.suspicion_to_visibility[2].max_index = 20
 	self.suspicion_to_visibility[3] = {}
 	self.suspicion_to_visibility[3].name_id = "bm_menu_concealment_high"
-	self.suspicion_to_visibility[3].max_index = 10
+	self.suspicion_to_visibility[3].max_index = 30
 	self.crime_net = {}
 	self.crime_net.controller = {}
 	self.crime_net.controller.snap_distance = 50
@@ -24,8 +24,8 @@ function GuiTweakData:init()
 	self.crime_net.debug_options = {}
 	self.crime_net.debug_options.regions = false
 	self.crime_net.debug_options.mass_spawn = false
-	self.crime_net.debug_options.mass_spawn_limit = 60
-	self.crime_net.debug_options.mass_spawn_timer = 0.01
+	self.crime_net.debug_options.mass_spawn_limit = 100
+	self.crime_net.debug_options.mass_spawn_timer = 0.04
 	self.crime_net.locations = {}
 	self.mouse_pointer = {}
 	self.mouse_pointer.controller = {}
@@ -911,62 +911,62 @@ function GuiTweakData:init()
 	self.crime_net.map_start_positions = {
 		{
 			max_level = 10,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 20,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 30,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 40,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 50,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 60,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 70,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 80,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 90,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		},
 		{
 			max_level = 100,
-			x = 1026,
-			y = 510,
+			x = 789,
+			y = 418,
 			zoom = 4
 		}
 	}
@@ -975,72 +975,57 @@ function GuiTweakData:init()
 			{
 				{
 					dots = {
-						{1537, 505},
-						{1623, 910},
-						{1831, 415},
-						{1717, 460},
-						{1463, 595},
-						{1643, 550},
-						{1823, 595},
-						{1279, 640},
-						{1459, 685},
-						{1639, 640},
-						{1819, 685},
-						{1316, 730},
-						{1496, 775},
-						{1676, 730},
-						{1856, 775},
-						{1241, 820},
-						{1421, 865},
-						{1601, 820},
-						{1781, 865},
-						{701, 865},
-						{743, 595},
-						{923, 550},
-						{739, 685},
-						{919, 640},
-						{776, 775},
-						{956, 730},
-						{881, 820},
-						{1870, 325},
-						{1519, 145},
-						{1879, 145},
-						{1247, 190},
-						{1427, 235},
-						{1607, 190},
-						{1787, 235},
-						{1330, 280},
-						{1510, 325},
-						{1690, 280},
-						{1111, 415},
-						{1291, 370},
-						{1471, 415},
-						{1651, 370},
-						{1177, 505},
-						{1357, 460},
-						{1103, 595},
-						{1283, 550},
-						{1067, 235},
-						{1150, 325},
-						{887, 190},
-						{970, 280},
-						{790, 325},
-						{751, 415},
-						{931, 370},
-						{637, 460},
-						{817, 505},
-						{997, 460},
-						{167, 190},
-						{347, 235},
-						{610, 280},
-						{571, 370},
-						{457, 505},
-						{277, 460},
-						{250, 280},
-						{430, 325},
-						{211, 370},
-						{391, 415},
-						{596, 730}
+						{1540, 900},
+						{1570, 545},
+						{1369, 600},
+						{1549, 645},
+						{1729, 600},
+						{1354, 745},
+						{1534, 700},
+						{1714, 745},
+						{1290, 800},
+						{1470, 845},
+						{1650, 800},
+						{750, 845},
+						{820, 900},
+						{850, 545},
+						{829, 645},
+						{1009, 600},
+						{814, 700},
+						{994, 745},
+						{930, 800},
+						{1649, 445},
+						{1520, 145},
+						{1294, 245},
+						{1474, 200},
+						{1654, 245},
+						{1163, 345},
+						{1343, 300},
+						{1523, 345},
+						{1703, 300},
+						{1109, 400},
+						{1289, 445},
+						{1469, 400},
+						{1030, 500},
+						{1210, 545},
+						{1390, 500},
+						{1114, 200},
+						{754, 200},
+						{934, 245},
+						{983, 300},
+						{649, 600},
+						{803, 345},
+						{749, 400},
+						{929, 445},
+						{670, 500},
+						{574, 245},
+						{214, 245},
+						{394, 200},
+						{263, 300},
+						{443, 345},
+						{389, 400},
+						{490, 545},
+						{570, 800}
 					},
 					weight = 100
 				},
@@ -3339,15 +3324,15 @@ end
 function GuiTweakData:_create_location_spawning_dots()
 	local map_w = 2048
 	local map_h = 1024
-	local border_w = 50
+	local border_w = 125
 	local border_h = 50
 	local start_y = 50
-	local start_x = 0
+	local start_x = -50
 	local step_x = 180
-	local step_y = 90
+	local step_y = 100
 	local random_x = 0
 	local random_y = 0
-	local random_step_x = 80
+	local random_step_x = 75
 	local zig_y = 45
 	local zig = true
 	for y = border_h + start_y, map_h - 2 * border_h + start_y, step_y do
@@ -3396,35 +3381,6 @@ function GuiTweakData:_create_location_spawning_dots()
 	self.crime_net.locations = new_locations
 end
 function GuiTweakData:create_narrative_locations(locations)
-	local regions = {
-		street = true,
-		dock = true,
-		professional = true
-	}
-	local contacts = {
-		vlad = true,
-		the_elephant = true,
-		hector = true,
-		bain = true
-	}
-	local difficulties = {
-		normal = true,
-		hard = true,
-		overkill = true,
-		overkill_145 = true
-	}
-	for region in pairs(regions) do
-		locations[region] = locations[region] or {}
-		for contact in pairs(contacts) do
-			locations[region][contact] = locations[region][contact] or {}
-			for difficulty in pairs(difficulties) do
-				locations[region][contact][difficulty] = locations[region][contact][difficulty] or {}
-				for _, location in ipairs(locations) do
-					table.insert(locations[region][contact][difficulty], location[1])
-				end
-			end
-		end
-	end
 end
 function GuiTweakData:print_locations()
 	if Application:production_build() then

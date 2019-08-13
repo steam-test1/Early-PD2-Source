@@ -166,6 +166,16 @@ function MissionManager:client_run_mission_element(id, unit)
 		end
 	end
 end
+function MissionManager:client_run_mission_element_end_screen(id, unit)
+	for name, data in pairs(self._scripts) do
+		if data:element(id) then
+			if data:element(id).client_on_executed_end_screen then
+				data:element(id):client_on_executed_end_screen(unit)
+			end
+			return
+		end
+	end
+end
 function MissionManager:server_run_mission_element_trigger(id, unit)
 	for name, data in pairs(self._scripts) do
 		local element = data:element(id)

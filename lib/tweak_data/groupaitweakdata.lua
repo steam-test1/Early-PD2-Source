@@ -910,27 +910,42 @@ function GroupAITweakData:_init_task_data()
 	else
 		self.besiege.assault.force = {
 			0,
-			10,
-			12
+			5,
+			7
 		}
 		self.besiege.assault.force_pool = {
 			0,
-			60,
-			100
+			20,
+			50
 		}
 	end
-	self.besiege.assault.force_balance_mul = {
-		1,
-		1.1,
-		1.2,
-		1.3
-	}
-	self.besiege.assault.force_pool_balance_mul = {
-		1,
-		1.1,
-		1.2,
-		1.3
-	}
+	if is_console then
+		self.besiege.assault.force_balance_mul = {
+			1,
+			1.1,
+			1.2,
+			1.3
+		}
+		self.besiege.assault.force_pool_balance_mul = {
+			1,
+			1.1,
+			1.2,
+			1.3
+		}
+	else
+		self.besiege.assault.force_balance_mul = {
+			1,
+			1.5,
+			2,
+			2.25
+		}
+		self.besiege.assault.force_pool_balance_mul = {
+			1,
+			1.5,
+			2,
+			3
+		}
+	end
 	self.besiege.assault.groups = {
 		CS_swats = {
 			0,

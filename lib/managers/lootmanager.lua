@@ -183,8 +183,7 @@ end
 function LootManager:get_real_value(carry_id, value)
 	local has_active_job = managers.job:has_active_job()
 	local job_stars = has_active_job and managers.job:current_job_stars() or 1
-	local carry_tweak_data = tweak_data.carry[self:_multiplier_by_id(carry_id)]
-	local mul_value = carry_tweak_data[job_stars]
+	local mul_value = tweak_data:get_value("carry", self:_multiplier_by_id(carry_id), job_stars)
 	return value * mul_value
 end
 function LootManager:get_real_total_value()

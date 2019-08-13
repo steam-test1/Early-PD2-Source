@@ -543,6 +543,11 @@ function MenuSceneManager:update_menu_character_text(i)
 		managers.menu_component:update_contract_character(i)
 	end
 end
+function MenuSceneManager:set_lobby_character_menu_state(i, state)
+	if managers.menu_component then
+		managers.menu_component:update_contract_character_menu_state(i, state)
+	end
+end
 function MenuSceneManager:set_lobby_character_out_fit(i, outfit_string)
 	local outfit = managers.blackmarket:unpack_outfit_from_string(outfit_string)
 	print("MenuSceneManager:set_lobby_character_out_fit", i, outfit_string, inspect(outfit))

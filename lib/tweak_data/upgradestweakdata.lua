@@ -36,7 +36,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.marked_enemy_extra_damage = {true}
 	self.values.player.marked_enemy_damage_mul = 1.15
 	self.values.cable_tie.interact_speed_multiplier = {0.5}
-	self.values.cable_tie.quantity = {8}
+	self.values.cable_tie.quantity = {3}
 	self.values.cable_tie.can_cable_tie_doors = {true}
 	self.values.temporary.combat_medic_damage_multiplier = {
 		{1.25, 10},
@@ -49,12 +49,13 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.civ_calming_alerts = {true}
 	self.values.player.civ_intimidation_mul = {10}
 	self.values.team.pistol.recoil_multiplier = {0.75}
+	self.values.team.weapon.recoil_multiplier = {0.5}
 	self.values.player.assets_cost_multiplier = {0.5}
 	self.values.player.additional_assets = {true}
 	self.values.player.stamina_multiplier = {2}
 	self.values.team.stamina.multiplier = {1.5}
 	self.values.player.intimidate_enemies = {true}
-	self.values.player.intimidate_range_mul = {2}
+	self.values.player.intimidate_range_mul = {1.5}
 	self.values.player.intimidate_aura = {700}
 	self.values.player.civilian_reviver = {true}
 	self.values.player.civilian_gives_ammo = {true}
@@ -64,8 +65,8 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.doctor_bag.amount_increase = {2}
 	self.values.player.convert_enemies = {true}
 	self.values.player.convert_enemies_max_minions = {1, 2}
-	self.values.player.convert_enemies_health_multiplier = {0.1}
-	self.values.player.convert_enemies_damage_multiplier = {4.5}
+	self.values.player.convert_enemies_health_multiplier = {0.65}
+	self.values.player.convert_enemies_damage_multiplier = {1.43}
 	self.values.player.xp_multiplier = {1.1}
 	self.values.team.xp.multiplier = {1.1}
 	self.values.pistol.reload_speed_multiplier = {1.33}
@@ -81,7 +82,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.doctor_bag.interaction_speed_multiplier = {0.8}
 	self.values.team.stamina.passive_multiplier = {1.15, 1.3}
 	self.values.player.passive_intimidate_range_mul = {1.25}
-	self.values.player.passive_convert_enemies_health_multiplier = {0.5}
+	self.values.player.passive_convert_enemies_health_multiplier = {0.25}
 	self.values.player.passive_convert_enemies_damage_multiplier = {1.05}
 	self.values.player.convert_enemies_interaction_speed_multiplier = {0.33}
 	self.values.player.empowered_intimidation_mul = {3}
@@ -139,7 +140,7 @@ function UpgradesTweakData:_init_pd2_values()
 	}
 	self.values.weapon.passive_damage_multiplier = {1.05}
 	self.values.assault_rifle.enter_steelsight_speed_multiplier = {2}
-	self.values.assault_rifle.zoom_increase = {1}
+	self.values.assault_rifle.zoom_increase = {2}
 	self.values.player.crafting_weapon_multiplier = {0.9}
 	self.values.player.crafting_mask_multiplier = {0.9}
 	self.values.trip_mine.quantity_1 = {1}
@@ -232,19 +233,32 @@ function UpgradesTweakData:_init_pd2_values()
 end
 function UpgradesTweakData:init()
 	self.level_tree = {}
+	self.level_tree[1] = {
+		name_id = "body_armor",
+		upgrades = {
+			"body_armor2",
+			"ak74"
+		}
+	}
 	self.level_tree[2] = {
 		name_id = "Angst",
 		upgrades = {"colt_1911", "mac10"}
 	}
 	self.level_tree[4] = {
 		name_id = "Angst",
-		upgrades = {"new_m4", "ak74"}
+		upgrades = {"new_m4"}
 	}
 	self.level_tree[6] = {
 		name_id = "Angst",
 		upgrades = {
 			"new_raging_bull",
 			"b92fs"
+		}
+	}
+	self.level_tree[7] = {
+		name_id = "body_armor",
+		upgrades = {
+			"body_armor1"
 		}
 	}
 	self.level_tree[8] = {
@@ -261,10 +275,9 @@ function UpgradesTweakData:init()
 		}
 	}
 	self.level_tree[12] = {
-		name_id = "body_armor",
+		name_id = "body_armor3",
 		upgrades = {
-			"body_armor1",
-			"body_armor2"
+			"body_armor3"
 		}
 	}
 	self.level_tree[13] = {
@@ -289,9 +302,9 @@ function UpgradesTweakData:init()
 		}
 	}
 	self.level_tree[21] = {
-		name_id = "body_armor3",
+		name_id = "body_armor4",
 		upgrades = {
-			"body_armor3"
+			"body_armor4"
 		}
 	}
 	self.level_tree[26] = {
@@ -312,9 +325,9 @@ function UpgradesTweakData:init()
 		}
 	}
 	self.level_tree[31] = {
-		name_id = "body_armor4",
+		name_id = "body_armor5",
 		upgrades = {
-			"body_armor4"
+			"body_armor5"
 		}
 	}
 	self.level_tree[33] = {
@@ -338,62 +351,38 @@ function UpgradesTweakData:init()
 			"rep_upgrade4"
 		}
 	}
-	self.level_tree[41] = {
-		name_id = "body_armor5",
-		upgrades = {
-			"body_armor5"
-		}
-	}
 	self.level_tree[50] = {
 		name_id = "lvl_50",
-		announcements = {
-			"menu_es_jobs_available"
-		},
 		upgrades = {
 			"rep_upgrade5"
 		}
 	}
 	self.level_tree[60] = {
 		name_id = "lvl_60",
-		announcements = {
-			"menu_es_jobs_available"
-		},
 		upgrades = {
 			"rep_upgrade6"
 		}
 	}
 	self.level_tree[70] = {
 		name_id = "lvl_70",
-		announcements = {
-			"menu_es_jobs_available"
-		},
 		upgrades = {
 			"rep_upgrade7"
 		}
 	}
 	self.level_tree[80] = {
 		name_id = "lvl_80",
-		announcements = {
-			"menu_es_jobs_available"
-		},
 		upgrades = {
 			"rep_upgrade8"
 		}
 	}
 	self.level_tree[90] = {
 		name_id = "lvl_90",
-		announcements = {
-			"menu_es_jobs_available"
-		},
 		upgrades = {
 			"rep_upgrade9"
 		}
 	}
 	self.level_tree[95] = {
 		name_id = "menu_es_jobs_available",
-		announcements = {
-			"menu_es_jobs_available"
-		},
 		upgrades = {
 			"lucky_charm"
 		}
@@ -647,7 +636,6 @@ function UpgradesTweakData:_init_values()
 	self.values.team.pistol = self.values.team.pistol or {}
 	self.values.team.weapon = self.values.team.weapon or {}
 	self.values.team.weapon.suppression_recoil_multiplier = {0.75}
-	self.values.team.weapon.recoil_multiplier = {0.75}
 	self.values.team.xp = self.values.team.xp or {}
 	self.values.team.armor = self.values.team.armor or {}
 	self.values.team.stamina = self.values.team.stamina or {}

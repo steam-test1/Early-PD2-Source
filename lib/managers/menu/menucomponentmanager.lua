@@ -1206,10 +1206,19 @@ end
 function MenuComponentManager:create_contract_gui()
 	self:close_contract_gui()
 	self._contract_gui = ContractBoxGui:new(self._ws, self._fullscreen_ws)
+	local peers_state = managers.menu:get_all_peers_state() or {}
+	for i = 1, 4 do
+		self._contract_gui:update_character_menu_state(i, peers_state[i])
+	end
 end
 function MenuComponentManager:update_contract_character(peer_id)
 	if self._contract_gui then
 		self._contract_gui:update_character(peer_id)
+	end
+end
+function MenuComponentManager:update_contract_character_menu_state(peer_id, state)
+	if self._contract_gui then
+		self._contract_gui:update_character_menu_state(peer_id, state)
 	end
 end
 function MenuComponentManager:_disable_contract_gui()

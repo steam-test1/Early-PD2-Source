@@ -97,6 +97,8 @@ function MenuManager:init(is_start_menu)
 	managers.user:add_setting_changed_callback("voice_volume", callback(self, self, "voice_volume_changed"), true)
 	managers.user:add_setting_changed_callback("use_lightfx", callback(self, self, "lightfx_changed"), true)
 	managers.user:add_setting_changed_callback("effect_quality", callback(self, self, "effect_quality_changed"), true)
+	managers.user:add_setting_changed_callback("dof_setting", callback(self, self, "dof_setting_changed"), true)
+	managers.user:add_setting_changed_callback("fps_cap", callback(self, self, "fps_limit_changed"), true)
 	managers.user:add_active_user_state_changed_callback(callback(self, self, "on_user_changed"))
 	managers.user:add_storage_changed_callback(callback(self, self, "on_storage_changed"))
 	managers.savefile:add_active_changed_callback(callback(self, self, "safefile_manager_active_changed"))
@@ -104,7 +106,9 @@ function MenuManager:init(is_start_menu)
 	self._save_game_callback = nil
 	self:brightness_changed(nil, nil, managers.user:get_setting("brightness"))
 	self:effect_quality_changed(nil, nil, managers.user:get_setting("effect_quality"))
+	self:fps_limit_changed(nil, nil, managers.user:get_setting("fps_cap"))
 	self:invert_camera_y_changed("invert_camera_y", nil, managers.user:get_setting("invert_camera_y"))
+	self:dof_setting_changed("dof_setting", nil, managers.user:get_setting("dof_setting"))
 	managers.system_menu:add_active_changed_callback(callback(self, self, "system_menu_active_changed"))
 	self._sound_source = SoundDevice:create_source("MenuManager")
 end
@@ -139,6 +143,37 @@ function MenuManager:system_menu_active_changed(active)
 	else
 		active_menu.renderer:disable_input(0.01)
 	end
+end
+function MenuManager:set_and_send_sync_state(state)
+	if not managers.network or not managers.network:session() then
+		return
+	end
+	local index = tweak_data:menu_sync_state_to_index(state)
+	if index then
+		self:_set_peer_sync_state(managers.network:session():local_peer():id(), state)
+		managers.network:session():send_to_peers("set_menu_sync_state_index", index)
+	end
+end
+function MenuManager:_set_peer_sync_state(peer_id, state)
+	Application:debug("MenuManager: " .. peer_id .. " sync state is now", state)
+	self._peers_state = self._peers_state or {}
+	self._peers_state[peer_id] = state
+	if managers.menu_scene then
+		managers.menu_scene:set_lobby_character_menu_state(peer_id, state)
+	end
+end
+function MenuManager:set_peer_sync_state_index(peer_id, index)
+	local state = tweak_data:index_to_menu_sync_state(index)
+	self:_set_peer_sync_state(peer_id, state)
+end
+function MenuManager:get_all_peers_state()
+	return self._peers_state
+end
+function MenuManager:get_peer_state(peer_id)
+	return self._peers_state and self._peers_state[peer_id]
+end
+function MenuManager:_node_selected(menu_name, node)
+	self:set_and_send_sync_state(node and node:parameters().sync_state)
 end
 function MenuManager:active_menu(node_name, parameter_list)
 	local active_menu = self._open_menus[#self._open_menus]
@@ -268,6 +303,9 @@ function MenuManager:create_controller()
 			self._controller:enable()
 		end
 	end
+end
+function MenuManager:get_controller()
+	return self._controller
 end
 function MenuManager:safefile_manager_active_changed(active)
 	if self._controller then
@@ -417,6 +455,15 @@ function MenuManager:southpaw_changed(name, old_value, new_value)
 		look_connection:set_input_name_list({"right"})
 	end
 	managers.controller:rebind_connections()
+end
+function MenuManager:dof_setting_changed(name, old_value, new_value)
+	managers.environment_controller:set_dof_setting(new_value)
+end
+function MenuManager:fps_limit_changed(name, old_value, new_value)
+	if SystemInfo:platform() ~= Idstring("WIN32") then
+		return
+	end
+	setup:set_fps_cap(new_value)
 end
 function MenuManager:subtitle_changed(name, old_value, new_value)
 	managers.subtitle:set_visible(new_value)
@@ -916,6 +963,9 @@ end
 function MenuCallbackHandler:is_normal_job()
 	return not self:is_prof_job()
 end
+function MenuCallbackHandler:singleplayer_restart()
+	return self:is_singleplayer() and self:has_full_game() and self:is_normal_job() and not managers.job:stage_success()
+end
 function MenuCallbackHandler:hidden()
 	return false
 end
@@ -951,6 +1001,9 @@ function MenuCallbackHandler:leave_online_menu()
 end
 function MenuCallbackHandler:on_visit_forum()
 	Steam:overlay_activate("url", "http://forums.steampowered.com/forums/forumdisplay.php?f=1225")
+end
+function MenuCallbackHandler:on_visit_gamehub()
+	Steam:overlay_activate("url", "http://steamcommunity.com/app/218620")
 end
 function MenuCallbackHandler:on_buy_dlc1()
 	Steam:overlay_activate("store", 218620)
@@ -1057,6 +1110,10 @@ function MenuCallbackHandler:invert_camera_vertically(item)
 	managers.user:set_setting("invert_camera_y", invert)
 end
 function MenuCallbackHandler:toggle_southpaw(item)
+end
+function MenuCallbackHandler:toggle_dof_setting(item)
+	local dof_setting = item:value() == "on"
+	managers.user:set_setting("dof_setting", dof_setting and "standard" or "none")
 end
 function MenuCallbackHandler:hold_to_steelsight(item)
 	local hold = item:value() == "on"
@@ -1311,11 +1368,18 @@ function MenuCallbackHandler:play_online_game()
 	Global.game_settings.single_player = false
 	Global.game_settings.team_ai = true
 end
-function MenuCallbackHandler:play_safehouse()
-	self:play_single_player()
-	Global.game_settings.team_ai = false
-	Global.mission_manager.has_played_tutorial = true
-	self:start_single_player_job({job_id = "safehouse", difficulty = "normal"})
+function MenuCallbackHandler:play_safehouse(params)
+	local function yes_func()
+		self:play_single_player()
+		Global.game_settings.team_ai = false
+		Global.mission_manager.has_played_tutorial = true
+		self:start_single_player_job({job_id = "safehouse", difficulty = "normal"})
+	end
+	if params.skip_question then
+		yes_func()
+		return
+	end
+	managers.menu:show_play_safehouse_question({yes_func = yes_func})
 end
 function MenuCallbackHandler:choice_choose_character(item)
 	local character = item:value()
@@ -1335,6 +1399,10 @@ function MenuCallbackHandler:choice_choose_anisotropic(item)
 	RenderSettings.max_anisotropy = item:value()
 	Application:apply_render_settings()
 	Application:save_render_settings()
+end
+function MenuCallbackHandler:choice_fps_cap(item)
+	setup:set_fps_cap(item:value())
+	managers.user:set_setting("fps_cap", item:value())
 end
 function MenuCallbackHandler:choice_choose_color_grading(item)
 	managers.user:set_setting("video_color_grading", item:value())
@@ -1637,6 +1705,10 @@ end
 function MenuCallbackHandler:restart_game(item)
 	managers.menu:show_restart_game_dialog({
 		yes_func = function()
+			if managers.job:stage_success() then
+				print("No restart after stage success")
+				return
+			end
 			managers.statistics:stop_session()
 			managers.savefile:save_progress()
 			managers.groupai:state():set_AI_enabled(false)
@@ -1714,6 +1786,9 @@ function MenuCallbackHandler:toggle_zoom_sensitivity(item)
 		item_sens_zoom:trigger()
 	end
 end
+function MenuCallbackHandler:is_current_resolution(item)
+	return item:name() == string.format("%d x %d", RenderSettings.resolution.x, RenderSettings.resolution.y)
+end
 function MenuCallbackHandler:end_game()
 	local dialog_data = {}
 	dialog_data.title = managers.localization:text("dialog_warning_title")
@@ -1750,6 +1825,12 @@ function MenuCallbackHandler:leave_safehouse()
 		self:_dialog_end_game_yes()
 	end
 	managers.menu:show_leave_safehouse_dialog({yes_func = yes_func})
+end
+function MenuCallbackHandler:abort_mission()
+	local function yes_func()
+		self:load_start_menu_lobby()
+	end
+	managers.menu:show_abort_mission_dialog({yes_func = yes_func})
 end
 function MenuCallbackHandler:load_start_menu_lobby()
 	managers.network:session():load_lobby()
@@ -1801,7 +1882,7 @@ function MenuCallbackHandler:debug_next_stage()
 	})
 end
 function MenuCallbackHandler:debug_give_alot_of_lootdrops()
-	for i = 1, 10 do
+	for i = 1, 7 do
 		managers.lootdrop:debug_drop(1000, true, i)
 	end
 end
@@ -2666,7 +2747,10 @@ function MenuResolutionCreator:modify_node(node)
 					text_id = res_string,
 					resolution = res,
 					callback = "change_resolution",
-					localize = "false"
+					localize = "false",
+					icon = "guis/textures/scrollarrow",
+					icon_rotation = 90,
+					icon_visible_callback = "is_current_resolution"
 				}
 				local new_item = new_node:create_item(nil, params)
 				new_node:add_item(new_item)
@@ -3213,6 +3297,15 @@ function MenuOptionInitiator:modify_adv_video(node)
 	node:item("choose_anisotropic"):set_value(RenderSettings.max_anisotropy)
 	if node:item("fov_multiplier") then
 		node:item("fov_multiplier"):set_value(managers.user:get_setting("fov_multiplier"))
+	end
+	node:item("choose_fps_cap"):set_value(managers.user:get_setting("fps_cap"))
+	local option_value = "off"
+	local dof_setting_item = node:item("toggle_dof")
+	if dof_setting_item then
+		if managers.user:get_setting("dof_setting") ~= "none" then
+			option_value = "on"
+		end
+		dof_setting_item:set_value(option_value)
 	end
 	return node
 end

@@ -744,12 +744,24 @@ function NarrativeTweakData:init()
 	self.jobs.escape_chain_test_prof.jc = 50
 	self.jobs.escape_chain_test_prof.professional = true
 	self._jobs_index = {
+		"welcome_to_the_jungle_prof",
+		"framing_frame",
+		"framing_frame_prof",
 		"watchdogs",
+		"watchdogs_prof",
 		"alex",
+		"alex_prof",
+		"firestarter",
+		"firestarter_prof",
+		"ukrainian_job_prof",
 		"jewelry_store",
 		"four_stores",
+		"nightclub",
+		"mallcrasher",
 		"branchbank_deposit",
-		"branchbank_cash"
+		"branchbank_cash",
+		"branchbank_gold_prof",
+		"branchbank_prof"
 	}
 end
 function NarrativeTweakData:get_jobs_index()

@@ -17,8 +17,6 @@ function BlackMarketManager:_setup()
 	if not Global.blackmarket_manager then
 		Global.blackmarket_manager = {}
 		self:_setup_armors()
-		self:_setup_masks()
-		self:_setup_weapon_upgrades()
 		self:_setup_weapons()
 		self:_setup_characters()
 		self:_setup_track_global_values()
@@ -34,8 +32,7 @@ function BlackMarketManager:_setup()
 end
 function BlackMarketManager:init_finalize()
 	print("BlackMarketManager:init_finalize()")
-	self:aquire_default_weapons()
-	self:aquire_default_masks()
+	managers.savefile:add_load_sequence_done_callback_handler(callback(self, self, "_load_done"))
 end
 function BlackMarketManager:_setup_armors()
 	local armors = {}
@@ -126,12 +123,11 @@ function BlackMarketManager:_setup_weapons()
 			local selection_index = data.use_data.selection_index
 			local equipped = weapon == managers.player:weapon_in_slot(selection_index)
 			local factory_id = managers.weapon_factory:get_factory_id_by_weapon_id(weapon)
-			local condition = math.random(17) - 1
 			weapons[weapon] = {
+				owned = false,
 				unlocked = false,
 				factory_id = factory_id,
-				selection_index = selection_index,
-				condition = condition
+				selection_index = selection_index
 			}
 		end
 	end
@@ -142,8 +138,18 @@ BlackMarketManager.weapons_to_buy.raging_bull = true
 function BlackMarketManager:mask_data(mask)
 	return Global.blackmarket_manager.masks[mask]
 end
-function BlackMarketManager:weapon_unlocked(weapon)
-	return Global.blackmarket_manager.weapons[weapon].unlocked
+function BlackMarketManager:weapon_unlocked(weapon_id)
+	return Global.blackmarket_manager.weapons[weapon_id].unlocked
+end
+function BlackMarketManager:weapon_level(weapon_id)
+	for level, level_data in pairs(tweak_data.upgrades.level_tree) do
+		for _, upgrade in ipairs(level_data.upgrades) do
+			if upgrade == weapon_id then
+				return level
+			end
+		end
+	end
+	return 0
 end
 function BlackMarketManager:equipped_item(category)
 	if category == "primaries" then
@@ -186,11 +192,14 @@ function BlackMarketManager:equipped_mask_slot()
 	end
 end
 function BlackMarketManager:equipped_armor()
+	local armor
 	for armor_id, data in pairs(tweak_data.blackmarket.armors) do
-		if Global.blackmarket_manager.armors[armor_id].equipped then
+		armor = Global.blackmarket_manager.armors[armor_id]
+		if armor.equipped and armor.unlocked and armor.owned then
 			return armor_id
 		end
 	end
+	return self._defaults.armor
 end
 function BlackMarketManager:equipped_secondary()
 	if not Global.blackmarket_manager.crafted_items.secondaries then
@@ -258,6 +267,25 @@ function BlackMarketManager:equip_armor(armor_id)
 	end
 	MenuCallbackHandler:_update_outfit_information()
 end
+function BlackMarketManager:_update_cached_mask()
+	do return end
+	if SystemInfo:platform() ~= Idstring("X360") then
+		return
+	end
+	Application:debug("[BlackMarketManager:_update_cached_mask()]")
+	local old_cached_mask = Global.cached_player_mask
+	if old_cached_mask and old_cached_mask.mask_id ~= "character_locked" then
+		local blueprint = old_cached_mask.blueprint
+		local pattern_id = blueprint.pattern.id
+		local material_id = blueprint.material.id
+		local pattern = Idstring(tweak_data.blackmarket.textures[pattern_id].texture)
+		local reflection = Idstring(tweak_data.blackmarket.materials[material_id].texture)
+		managers.dyn_resource:unload(Idstring("unit"), Idstring(tweak_data.blackmarket.masks[old_cached_mask.mask_id].unit), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
+		TextureCache:unretrieve(pattern)
+		TextureCache:unretrieve(reflection)
+	end
+	Global.cached_player_mask = nil
+end
 function BlackMarketManager:equip_mask(slot)
 	local category = "masks"
 	if not Global.blackmarket_manager.crafted_items[category] then
@@ -266,9 +294,35 @@ function BlackMarketManager:equip_mask(slot)
 	for s, data in pairs(Global.blackmarket_manager.crafted_items[category]) do
 		data.equipped = s == slot
 	end
+	local new_mask_data = Global.blackmarket_manager.crafted_items[category][slot]
 	if managers.menu_scene then
-		local data = Global.blackmarket_manager.crafted_items[category][slot]
-		managers.menu_scene:set_character_mask_by_id(data.mask_id, data.blueprint)
+		managers.menu_scene:set_character_mask_by_id(new_mask_data.mask_id, new_mask_data.blueprint)
+	end
+	if SystemInfo:platform() == Idstring("X360") then
+		do break end
+		local old_cached_mask = Global.cached_player_mask
+		Global.cached_player_mask = new_mask_data
+		Application:debug("[BlackMarketManager:equip_mask()] Set cached mask")
+		if new_mask_data and new_mask_data.mask_id ~= "character_locked" then
+			local blueprint = new_mask_data.blueprint
+			local pattern_id = blueprint.pattern.id
+			local material_id = blueprint.material.id
+			local pattern = tweak_data.blackmarket.textures[pattern_id].texture
+			local reflection = tweak_data.blackmarket.materials[material_id].texture
+			managers.dyn_resource:load(Idstring("unit"), Idstring(tweak_data.blackmarket.masks[new_mask_data.mask_id].unit), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
+			TextureCache:retrieve(pattern, "NORMAL")
+			TextureCache:retrieve(reflection, "NORMAL")
+		end
+		if old_cached_mask and old_cached_mask.mask_id ~= "character_locked" then
+			local blueprint = old_cached_mask.blueprint
+			local pattern_id = blueprint.pattern.id
+			local material_id = blueprint.material.id
+			local pattern = Idstring(tweak_data.blackmarket.textures[pattern_id].texture)
+			local reflection = Idstring(tweak_data.blackmarket.materials[material_id].texture)
+			managers.dyn_resource:unload(Idstring("unit"), Idstring(tweak_data.blackmarket.masks[old_cached_mask.mask_id].unit), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
+			TextureCache:unretrieve(pattern)
+			TextureCache:unretrieve(reflection)
+		end
 	end
 	MenuCallbackHandler:_update_outfit_information()
 end
@@ -635,21 +689,18 @@ end
 function BlackMarketManager:add_to_inventory(global_value, category, id, not_new)
 	if category == "cash" then
 		local value_id = tweak_data.blackmarket[category][id].value_id
-		local money = tweak_data.money_manager.loot_drop_cash[value_id] or 100
-		print("Cash value_id", value_id)
-		print(" - cash:", money)
 		managers.money:on_loot_drop_cash(value_id)
 	end
 	self._global.inventory[global_value] = self._global.inventory[global_value] or {}
 	self._global.inventory[global_value][category] = self._global.inventory[global_value][category] or {}
 	self._global.inventory[global_value][category][id] = (self._global.inventory[global_value][category][id] or 0) + 1
-	if not not_new and self._global.inventory[global_value][category][id] > 0 then
+	if not not_new and category ~= "cash" and self._global.inventory[global_value][category][id] > 0 then
 		self._global.new_drops[global_value] = self._global.new_drops[global_value] or {}
 		self._global.new_drops[global_value][category] = self._global.new_drops[global_value][category] or {}
 		self._global.new_drops[global_value][category][id] = true
 	end
 	if self._global.new_item_type_unlocked[category] == nil and category ~= "cash" then
-		self._global.new_item_type_unlocked[category] = true
+		self._global.new_item_type_unlocked[category] = id
 	end
 	self:alter_global_value_item(global_value, category, nil, id, INV_ADD)
 end
@@ -1061,16 +1112,20 @@ function BlackMarketManager:get_dropable_mods_by_weapon_id(weapon_id)
 		for _, mod in ipairs(data) do
 			local my_mod = all_mods[mod]
 			if my_mod and (my_mod.pcs or my_mod.pc) then
-				table.insert(dropable_mods[id], {
-					mod,
-					all_mods.infamous and "infamous" or "normal"
-				})
+				local is_dlc = my_mod.dlcs or my_mod.dlc
+				if not is_dlc or all_mods.infamous then
+					table.insert(dropable_mods[id], {
+						mod,
+						all_mods.infamous and "infamous" or "normal"
+					})
+				end
 			end
 		end
 	end
 	local content, loot_drops
-	for global_value, dlc in pairs(tweak_data.dlc) do
-		if dlc.free or managers.dlc:has_dlc(global_value) then
+	for package_id, dlc in pairs(tweak_data.dlc) do
+		local global_value = dlc.content and dlc.content.loot_global_value or package_id
+		if (dlc.free or managers.dlc:has_dlc(global_value)) and global_value ~= "normal" and global_value ~= "infamous" then
 			content = dlc.content
 			loot_drops = content and content.loot_drops or {}
 			for _, item_data in ipairs(loot_drops) do
@@ -1346,7 +1401,6 @@ function BlackMarketManager:_get_free_weapon_slot(category)
 			return i
 		end
 	end
-	return nil
 end
 function BlackMarketManager:on_aquired_weapon_platform(upgrade, id, loading)
 	self._global.weapons[id].unlocked = true
@@ -1356,12 +1410,12 @@ function BlackMarketManager:on_aquired_weapon_platform(upgrade, id, loading)
 		if slot then
 			self:on_buy_weapon_platform(category, upgrade.weapon_id, slot, true)
 		end
-	elseif not loading then
+	elseif not loading and id ~= "saw" then
 		print("on_aquired_weapon_platform", inspect(upgrade), id)
 		self._global.new_drops.normal = self._global.new_drops.normal or {}
 		self._global.new_drops.normal[category] = self._global.new_drops.normal[category] or {}
 		self._global.new_drops.normal[category][id] = true
-		self._global.new_item_type_unlocked[category] = managers.weapon_factory:get_weapon_name_by_factory_id(upgrade.factory_id)
+		self._global.new_item_type_unlocked[category] = upgrade.factory_id
 	end
 end
 function BlackMarketManager:on_unaquired_weapon_platform(upgrade, id)
@@ -1376,11 +1430,13 @@ function BlackMarketManager:on_unaquired_weapon_platform(upgrade, id)
 	end
 end
 function BlackMarketManager:aquire_default_weapons()
-	print("BlackMarketManager:aquire_default_weapons()", self._global.crafted_items.secondaries)
-	if not self._global.crafted_items.secondaries and not managers.upgrades:aquired("glock_17") then
+	print("BlackMarketManager:aquire_default_weapons()")
+	local glock_17 = self._global and self._global.weapons and self._global.weapons.glock_17
+	if glock_17 and (not self._global.crafted_items.secondaries or not glock_17.unlocked) and not managers.upgrades:aquired("glock_17") then
 		managers.upgrades:aquire("glock_17")
 	end
-	if not self._global.crafted_items.primaries and not managers.upgrades:aquired("amcar") then
+	local amcar = self._global and self._global.weapons and self._global.weapons.amcar
+	if amcar and (not self._global.crafted_items.primaries or not amcar.unlocked) and not managers.upgrades:aquired("amcar") then
 		managers.upgrades:aquire("amcar")
 	end
 end
@@ -1628,7 +1684,7 @@ function BlackMarketManager:on_aquired_armor(upgrade, id, loading)
 		self._global.new_drops.normal.armors = self._global.new_drops.normal.armors or {}
 		self._global.new_drops.normal.armors[upgrade.armor_id] = true
 		if self._global.new_item_type_unlocked.armors == nil then
-			self._global.new_item_type_unlocked.armors = true
+			self._global.new_item_type_unlocked.armors = upgrade.armor_id
 		end
 	end
 end
@@ -2063,7 +2119,6 @@ function BlackMarketManager:reset()
 	self._global.crafted_items = {}
 	self._global.new_drops = {}
 	self._global.new_item_type_unlocked = {}
-	self:_setup_masks()
 	self:_setup_weapons()
 	self:_setup_characters()
 	self:_setup_armors()
@@ -2076,40 +2131,51 @@ function BlackMarketManager:reset()
 	end
 end
 function BlackMarketManager:save(data)
-	data.blackmarket = self._global
+	local save_data = deep_clone(self._global)
+	save_data.equipped_armor = self:equipped_armor()
+	save_data.armors = nil
+	save_data.masks = nil
+	save_data.weapon_upgrades = nil
+	save_data.weapons = nil
+	data.blackmarket = save_data
 end
 function BlackMarketManager:load(data)
 	if data.blackmarket then
+		local default_global = self._global or {}
 		Global.blackmarket_manager = data.blackmarket
 		self._global = Global.blackmarket_manager
-		for mask, _ in pairs(tweak_data.blackmarket.masks) do
-			if not self._global.masks[mask] then
-				self._global.masks[mask] = {
-					unlocked = true,
-					owned = true,
-					equipped = false
-				}
-			end
+		if self._global.equipped_armor and type(self._global.equipped_armor) ~= "string" then
+			self._global.equipped_armor = nil
 		end
-		for mask, _ in pairs(clone(self._global.masks)) do
-			if not tweak_data.blackmarket.masks[mask] then
-				self._global.masks[mask] = nil
-			end
-		end
+		self._global.armors = default_global.armors or {}
 		for armor, _ in pairs(tweak_data.blackmarket.armors) do
 			if not self._global.armors[armor] then
 				self._global.armors[armor] = {
-					unlocked = true,
-					owned = true,
+					unlocked = false,
+					owned = false,
 					equipped = false
+				}
+			else
+				self._global.armors[armor].equipped = false
+			end
+		end
+		self._global.armors[self._global.equipped_armor or self._defaults.armor].equipped = true
+		self._global.equipped_armor = nil
+		self._global.weapons = default_global.weapons or {}
+		for weapon, data in pairs(tweak_data.weapon) do
+			if not self._global.weapons[weapon] and data.autohit then
+				local selection_index = data.use_data.selection_index
+				local factory_id = managers.weapon_factory:get_factory_id_by_weapon_id(weapon)
+				self._global.weapons[weapon] = {
+					owned = false,
+					equipped = false,
+					unlocked = false,
+					factory_id = factory_id,
+					selection_index = selection_index
 				}
 			end
 		end
-		for armor, _ in pairs(clone(self._global.armors)) do
-			if not tweak_data.blackmarket.armors[armor] then
-				self._global.armors[armor] = nil
-			end
-		end
+		self._global._preferred_character = self._global._preferred_character or self._defaults.preferred_character
 		for character, _ in pairs(tweak_data.blackmarket.characters) do
 			if not self._global.characters[character] then
 				self._global.characters[character] = {
@@ -2124,33 +2190,8 @@ function BlackMarketManager:load(data)
 				self._global.characters[character] = nil
 			end
 		end
-		self._global._preferred_character = self._global._preferred_character or self._defaults.preferred_character
-		for weapon, data in pairs(tweak_data.weapon) do
-			if data.autohit and not self._global.weapons[weapon] then
-				local condition = math.random(17) - 1
-				local selection_index = data.use_data.selection_index
-				local factory_id = managers.weapon_factory:get_factory_id_by_weapon_id(weapon)
-				self._global.weapons[weapon] = {
-					unlocked = false,
-					factory_id = factory_id,
-					selection_index = selection_index,
-					condition = condition
-				}
-			end
-		end
-		for weapon, data in pairs(self._global.weapons) do
-			data.owned = nil
-			data.equipped = nil
-			data.factory_id = data.factory_id or managers.weapon_factory:get_factory_id_by_weapon_id(weapon)
-		end
-		if not self:equipped_mask() then
-			self._global.masks[self._defaults.mask].equipped = true
-		end
 		if not self:equipped_character() then
 			self._global.characters[self._defaults.character].equipped = true
-		end
-		if not self:equipped_armor() then
-			self._global.armors[self._defaults.armor].equipped = true
 		end
 		self._global.inventory = self._global.inventory or {}
 		self._global.crafted_items = self._global.crafted_items or {}
@@ -2159,27 +2200,30 @@ function BlackMarketManager:load(data)
 		if not self._global.global_value_items then
 			self:_setup_track_global_values()
 		end
-		self:aquire_default_weapons()
-		self:aquire_default_masks()
-		self:_verfify_equipped()
-		if managers.menu_scene then
-			managers.menu_scene:set_character(self:equipped_character())
-			managers.menu_scene:on_set_preferred_character()
-			local equipped_mask = self:equipped_mask()
-			if equipped_mask.mask_id then
-				managers.menu_scene:set_character_mask_by_id(equipped_mask.mask_id, equipped_mask.blueprint)
-			else
-				managers.menu_scene:set_character_mask(tweak_data.blackmarket.masks[equipped_mask].unit)
-			end
-			managers.menu_scene:set_character_armor(self:equipped_armor())
-			local secondary = self:equipped_secondary()
-			if secondary then
-				managers.menu_scene:set_character_equipped_weapon(nil, secondary.factory_id, secondary.blueprint, "secondary")
-			end
-			local primary = self:equipped_primary()
-			if primary then
-				managers.menu_scene:set_character_equipped_weapon(nil, primary.factory_id, primary.blueprint, "primary")
-			end
+	end
+end
+function BlackMarketManager:_load_done()
+	Application:debug("BlackMarketManager:_load_done()")
+	self:aquire_default_weapons()
+	self:aquire_default_masks()
+	self:_verfify_equipped()
+	if managers.menu_scene then
+		managers.menu_scene:set_character(self:equipped_character())
+		managers.menu_scene:on_set_preferred_character()
+		local equipped_mask = self:equipped_mask()
+		if equipped_mask.mask_id then
+			managers.menu_scene:set_character_mask_by_id(equipped_mask.mask_id, equipped_mask.blueprint)
+		else
+			managers.menu_scene:set_character_mask(tweak_data.blackmarket.masks[equipped_mask].unit)
+		end
+		managers.menu_scene:set_character_armor(self:equipped_armor())
+		local secondary = self:equipped_secondary()
+		if secondary then
+			managers.menu_scene:set_character_equipped_weapon(nil, secondary.factory_id, secondary.blueprint, "secondary")
+		end
+		local primary = self:equipped_primary()
+		if primary then
+			managers.menu_scene:set_character_equipped_weapon(nil, primary.factory_id, primary.blueprint, "primary")
 		end
 	end
 end
@@ -2190,87 +2234,89 @@ function BlackMarketManager:_verify_dlc_items()
 	Application:debug("-----------------------BlackMarketManager:_verify_dlc_items-----------------------")
 	local owns_dlc
 	for package_id, data in pairs(tweak_data.dlc) do
-		owns_dlc = tweak_data.lootdrop.global_values[package_id].dlc and (data.free or managers.dlc:has_dlc(package_id))
-		print(owns_dlc, tweak_data.lootdrop.global_values[package_id].dlc, not data.free, not managers.dlc:has_dlc(package_id))
-		if owns_dlc then
-		elseif self._global.global_value_items[package_id] then
-			print("You do not own " .. package_id .. ", will lock all related items.")
-			local all_crafted_items = self._global.global_value_items[package_id].crafted_items or {}
-			local primaries = all_crafted_items.primaries or {}
-			local secondaries = all_crafted_items.secondaries or {}
-			for slot, parts in pairs(primaries) do
-				local crafted = managers.blackmarket:get_crafted_category("primaries")
-				if not crafted then
-				else
-					crafted = crafted[slot]
-					if crafted then
-						local factory_id = crafted.factory_id
-						local default_blueprint = managers.weapon_factory:get_default_blueprint_by_factory_id(factory_id)
-						for part_id, only_one in pairs(parts) do
-							if only_one ~= 1 then
-								Application:error("[BlackMarketManager] _verify_dlc_items(): something wrong with", primaries, part_id, only_one)
-							end
-							local default_mod
-							local ids_id = Idstring(tweak_data.weapon.factory.parts[part_id].type)
-							for i, d_mod in ipairs(default_blueprint) do
-								if Idstring(tweak_data.weapon.factory.parts[d_mod].type) == ids_id then
-									default_mod = d_mod
-								else
-								end
-							end
-							if default_mod then
-								self:buy_and_modify_weapon("primaries", slot, "normal", default_mod, true)
-							else
-								managers.blackmarket:on_sell_weapon_part("primaries", slot, package_id, part_id)
-							end
-							managers.money:refund_weapon_part(crafted.weapon_id, part_id, package_id)
-						end
-					end
-				end
-			end
-			for slot, parts in pairs(secondaries) do
-				local crafted = managers.blackmarket:get_crafted_category("secondaries")
-				if not crafted then
-				else
-					crafted = crafted[slot]
-					if crafted then
-						local factory_id = crafted.factory_id
-						local default_blueprint = managers.weapon_factory:get_default_blueprint_by_factory_id(factory_id)
-						for part_id, only_one in pairs(parts) do
-							if only_one ~= 1 then
-								Application:error("[BlackMarketManager] _verify_dlc_items(): something wrong with", secondaries, part_id, only_one)
-							end
-							local default_mod
-							local ids_id = Idstring(tweak_data.weapon.factory.parts[part_id].type)
-							for i, d_mod in ipairs(default_blueprint) do
-								if Idstring(tweak_data.weapon.factory.parts[d_mod].type) == ids_id then
-									default_mod = d_mod
-								else
-								end
-							end
-							if default_mod then
-								self:buy_and_modify_weapon("secondaries", slot, "normal", default_mod, true)
-							else
-								managers.blackmarket:on_sell_weapon_part("secondaries", slot, package_id, part_id)
-							end
-							managers.money:refund_weapon_part(crafted.weapon_id, part_id, package_id)
-						end
-					end
-				end
-			end
-			local mask = managers.blackmarket:equipped_mask()
-			local is_locked = mask.global_value == package_id
-			if not is_locked then
-				for _, part in pairs(mask.blueprint) do
-					print(package_id, inspect(part))
-					is_locked = part.global_value == package_id
-					if is_locked then
+		if tweak_data.lootdrop.global_values[package_id] then
+			owns_dlc = tweak_data.lootdrop.global_values[package_id].dlc and (data.free or managers.dlc:has_dlc(package_id))
+			print(owns_dlc, tweak_data.lootdrop.global_values[package_id].dlc, not data.free, not managers.dlc:has_dlc(package_id))
+			if owns_dlc then
+			elseif self._global.global_value_items[package_id] then
+				print("You do not own " .. package_id .. ", will lock all related items.")
+				local all_crafted_items = self._global.global_value_items[package_id].crafted_items or {}
+				local primaries = all_crafted_items.primaries or {}
+				local secondaries = all_crafted_items.secondaries or {}
+				for slot, parts in pairs(primaries) do
+					local crafted = managers.blackmarket:get_crafted_category("primaries")
+					if not crafted then
 					else
+						crafted = crafted[slot]
+						if crafted then
+							local factory_id = crafted.factory_id
+							local default_blueprint = managers.weapon_factory:get_default_blueprint_by_factory_id(factory_id)
+							for part_id, only_one in pairs(parts) do
+								if only_one ~= 1 then
+									Application:error("[BlackMarketManager] _verify_dlc_items(): something wrong with", primaries, part_id, only_one)
+								end
+								local default_mod
+								local ids_id = Idstring(tweak_data.weapon.factory.parts[part_id].type)
+								for i, d_mod in ipairs(default_blueprint) do
+									if Idstring(tweak_data.weapon.factory.parts[d_mod].type) == ids_id then
+										default_mod = d_mod
+									else
+									end
+								end
+								if default_mod then
+									self:buy_and_modify_weapon("primaries", slot, "normal", default_mod, true)
+								else
+									managers.blackmarket:on_sell_weapon_part("primaries", slot, package_id, part_id)
+								end
+								managers.money:refund_weapon_part(crafted.weapon_id, part_id, package_id)
+							end
+						end
 					end
 				end
-			end
-			if is_locked then
-				self:equip_mask(1)
+				for slot, parts in pairs(secondaries) do
+					local crafted = managers.blackmarket:get_crafted_category("secondaries")
+					if not crafted then
+					else
+						crafted = crafted[slot]
+						if crafted then
+							local factory_id = crafted.factory_id
+							local default_blueprint = managers.weapon_factory:get_default_blueprint_by_factory_id(factory_id)
+							for part_id, only_one in pairs(parts) do
+								if only_one ~= 1 then
+									Application:error("[BlackMarketManager] _verify_dlc_items(): something wrong with", secondaries, part_id, only_one)
+								end
+								local default_mod
+								local ids_id = Idstring(tweak_data.weapon.factory.parts[part_id].type)
+								for i, d_mod in ipairs(default_blueprint) do
+									if Idstring(tweak_data.weapon.factory.parts[d_mod].type) == ids_id then
+										default_mod = d_mod
+									else
+									end
+								end
+								if default_mod then
+									self:buy_and_modify_weapon("secondaries", slot, "normal", default_mod, true)
+								else
+									managers.blackmarket:on_sell_weapon_part("secondaries", slot, package_id, part_id)
+								end
+								managers.money:refund_weapon_part(crafted.weapon_id, part_id, package_id)
+							end
+						end
+					end
+				end
+				local mask = managers.blackmarket:equipped_mask()
+				local is_locked = mask.global_value == package_id
+				if not is_locked then
+					for _, part in pairs(mask.blueprint) do
+						print(package_id, inspect(part))
+						is_locked = part.global_value == package_id
+						if is_locked then
+						else
+						end
+					end
+				end
+				if is_locked then
+					self:equip_mask(1)
+				end
 			end
 		end
 	end
@@ -2279,19 +2325,43 @@ function BlackMarketManager:_verfify_equipped()
 	self:_verfify_equipped_category("secondaries")
 	self:_verfify_equipped_category("primaries")
 	self:_verfify_equipped_category("masks")
+	self:_verfify_equipped_category("armors")
 end
 function BlackMarketManager:_verfify_equipped_category(category)
+	if category == "armors" then
+		local armor_id = self._defaults.armor
+		for armor, craft in pairs(Global.blackmarket_manager.armors) do
+			if craft.equipped and craft.unlocked and craft.owned then
+				armor_id = armor
+			end
+		end
+		for s, data in pairs(Global.blackmarket_manager.armors) do
+			data.equipped = s == armor_id
+		end
+		if managers.menu_scene then
+			managers.menu_scene:set_character_armor(armor_id)
+		end
+		return
+	end
 	if not self._global.crafted_items[category] then
 		return
 	end
+	local is_weapon = category == "secondaries" or category == "primaries"
 	for slot, craft in pairs(self._global.crafted_items[category]) do
 		if craft.equipped then
-			print("HAD A EQUIPPED IN CATEGORY", category)
-			return
+			if is_weapon then
+				if self._global.weapons[craft.weapon_id].unlocked then
+					return
+				else
+					craft.equipped = false
+				end
+			else
+				return
+			end
 		end
 	end
 	for slot, craft in pairs(self._global.crafted_items[category]) do
-		if category == "secondaries" or category == "primaries" then
+		if is_weapon then
 			if self._global.weapons[craft.weapon_id].unlocked then
 				print("  Equip", category, slot)
 				craft.equipped = true
@@ -2303,8 +2373,9 @@ function BlackMarketManager:_verfify_equipped_category(category)
 			return
 		end
 	end
-	local free_slot = self:_get_free_weapon_slot(category) or 1
 	if category == "secondaries" or category == "primaries" then
+		local free_slot = self:_get_free_weapon_slot(category) or 1
+		self:on_sell_weapon(category, free_slot)
 		local weapon_id = category == "primaries" and "amcar" or "glock_17"
 		local factory_id = managers.weapon_factory:get_factory_id_by_weapon_id(weapon_id)
 		local blueprint = deep_clone(managers.weapon_factory:get_default_blueprint_by_factory_id(factory_id))
@@ -2314,6 +2385,7 @@ function BlackMarketManager:_verfify_equipped_category(category)
 			blueprint = blueprint,
 			equipped = true
 		}
+		managers.money:on_buy_weapon_platform(weapon_id, true)
 		return
 	end
 end

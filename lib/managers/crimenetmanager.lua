@@ -227,7 +227,7 @@ function CrimeNetManager:_find_online_games_xbox360(friends_only)
 				local difficulty = tweak_data:index_to_difficulty(difficulty_id)
 				local job_id = tweak_data.narrative:get_job_name_from_index(math.floor(attributes_numbers[1] / 1000))
 				local state_string_id = tweak_data:index_to_server_state(attributes_numbers[4])
-				local state_name = state_string_id and managers.localization:text("menu_lobby_server_state_" .. state_string_id) or "blah"
+				local state_name = state_string_id and managers.localization:text("menu_lobby_server_state_" .. state_string_id) or "UNKNOWN"
 				local state = attributes_numbers[4]
 				local num_plrs = attributes_numbers[5]
 				local is_friend = friends[host_name] and true or false
@@ -304,7 +304,7 @@ function CrimeNetManager:_find_online_games_ps3(friends_only)
 					local difficulty = tweak_data:index_to_difficulty(difficulty_id)
 					local job_id = tweak_data.narrative:get_job_name_from_index(math.floor(attributes_numbers[1] / 1000))
 					local state_string_id = tweak_data:index_to_server_state(attributes_numbers[4])
-					local state_name = state_string_id and managers.localization:text("menu_lobby_server_state_" .. state_string_id) or "blah"
+					local state_name = state_string_id and managers.localization:text("menu_lobby_server_state_" .. state_string_id) or "UNKNOWN"
 					local state = attributes_numbers[4]
 					local num_plrs = attributes_numbers[8]
 					local is_friend = friend_names[host_name] and true or false
@@ -380,7 +380,7 @@ function CrimeNetManager:_find_online_games_win32(friends_only)
 				local difficulty = tweak_data:index_to_difficulty(difficulty_id)
 				local job_id = tweak_data.narrative:get_job_name_from_index(math.floor(attributes_numbers[1] / 1000))
 				local state_string_id = tweak_data:index_to_server_state(attributes_numbers[4])
-				local state_name = state_string_id and managers.localization:text("menu_lobby_server_state_" .. state_string_id) or "blah"
+				local state_name = state_string_id and managers.localization:text("menu_lobby_server_state_" .. state_string_id) or "UNKNOWN"
 				local state = attributes_numbers[4]
 				local num_plrs = attributes_numbers[5]
 				local is_friend = false
@@ -1013,7 +1013,8 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 		end
 	end
 	if start_position then
-		self._zoom = 0.9 + 0.1 * start_position.zoom
+		self:_set_zoom("in", fw * 0.5, fh * 0.5)
+		self:_set_zoom("in", fw * 0.5, fh * 0.5)
 		self:_set_zoom("in", fw * 0.5, fh * 0.5)
 		self:_goto_map_position(start_position.x, start_position.y)
 	end
@@ -1190,7 +1191,6 @@ function CrimeNetGui:set_players_online(players)
 end
 function CrimeNetGui:_create_locations()
 	self._locations = deep_clone(self._tweak_data.locations) or {}
-	tweak_data.gui:create_narrative_locations(self._locations)
 	self:_create_polylines()
 end
 function CrimeNetGui:_add_location(contact, data)
@@ -1198,58 +1198,32 @@ function CrimeNetGui:_add_location(contact, data)
 	self._locations[contact] = self._locations[contact] or {}
 	table.insert(self._locations[contact], data)
 end
-function CrimeNetGui:_get_contact_locations(job_data, difficulty_id)
-	local difficulties = {
-		[2] = "normal",
-		[3] = "hard",
-		[4] = "overkill",
-		[5] = "overkill_145"
-	}
-	return self._locations[job_data.region or "street"][job_data.contact][difficulties[difficulty_id or 2]]
+function CrimeNetGui:_get_contact_locations()
+	return self._locations[1]
 end
 function CrimeNetGui:_get_random_location()
 	return self._pan_panel_job_border_x + math.random(self._map_size_w - 2 * self._pan_panel_job_border_x), self._pan_panel_job_border_y + math.random(self._map_size_h - 2 * self._pan_panel_job_border_y)
 end
 function CrimeNetGui:_get_job_location(data)
-	local job_data = tweak_data.narrative.jobs[data.job_id]
-	if not job_data then
-		Application:error("CrimeNetGui: Job not in NarrativeTweakData", data.job_id)
-		return self:_get_random_location()
-	end
-	local locations = self:_get_contact_locations(job_data, data.difficulty_id)
+	local locations = self:_get_contact_locations()
 	if locations and #locations > 0 then
 		local found_point = false
 		local x, y, randomized_location
-		local total_weight = 0
-		for i, location in ipairs(locations) do
-			total_weight = total_weight + (location.weight or 1)
-		end
 		local break_limit = 100
-		while not found_point do
-			local weight_variant = math.random(total_weight)
-			local variant = 1
-			for i, location in ipairs(locations) do
-				weight_variant = weight_variant - (location.weight or 1)
-				if weight_variant <= 0 then
-					variant = i
-				else
-				end
-			end
-			randomized_location = locations[variant]
-			variant = math.random(#randomized_location.dots)
-			randomized_location = randomized_location.dots[variant]
-			if randomized_location and not randomized_location[3] then
-				x = randomized_location[1]
-				y = randomized_location[2]
-			end
-			if x and y then
-				found_point = true
-			end
-			break_limit = break_limit - 1
-			if break_limit <= 0 then
-				break
+		local dots = locations[1].dots
+		local randomized_dot = math.random(#dots)
+		local choosen_dot = randomized_dot
+		randomized_location = dots[choosen_dot]
+		while randomized_location[3] do
+			choosen_dot = choosen_dot % #dots + 1
+			randomized_location = dots[choosen_dot]
+			if choosen_dot == randomized_dot then
+				Application:error("[CrimeNetGui:_get_job_location] All spawning points are taken!")
+				return self:_get_random_location()
 			end
 		end
+		x = randomized_location[1]
+		y = randomized_location[2]
 		if x and y then
 			local tw = math.max(self._map_panel:child("map"):texture_width(), 1)
 			local th = math.max(self._map_panel:child("map"):texture_height(), 1)
@@ -1273,15 +1247,16 @@ function CrimeNetGui:add_server_job(data)
 	gui_data.host_name = data.host_name
 	self._jobs[data.id] = gui_data
 end
-function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y)
+function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y, fixed_location)
 	local level_id = data.level_id
 	local level_data = tweak_data.levels[level_id]
 	local narrative_data = data.job_id and tweak_data.narrative.jobs[data.job_id]
 	local is_server = type == "server"
 	local is_professional = narrative_data and narrative_data.professional
+	local got_job = data.job_id and true or false
 	local x = fixed_x
 	local y = fixed_y
-	local location
+	local location = fixed_location
 	if not x and not y then
 		x, y, location = self:_get_job_location(data)
 	end
@@ -1300,11 +1275,22 @@ function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y)
 	local star_size = 8
 	local job_num = 0
 	local job_cash = 0
+	local difficulty_name = side_panel:text({
+		name = "difficulty_name",
+		text = "",
+		vertical = "center",
+		font = tweak_data.menu.pd2_small_font,
+		font_size = tweak_data.menu.pd2_small_font_size,
+		color = color,
+		blend_mode = "add",
+		layer = 0
+	})
 	if data.job_id then
 		local x = 0
 		local y = 0
 		local job_stars = math.ceil(tweak_data.narrative.jobs[data.job_id].jc / 10)
 		local difficulty_stars = data.difficulty_id - 2
+		local job_and_difficulty_stars = job_stars + difficulty_stars
 		for i = 1, 10 do
 			stars_panel:bitmap({
 				texture = "guis/textures/pd2/crimenet_paygrade_marker",
@@ -1320,14 +1306,40 @@ function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y)
 		local money_multiplier = managers.money:get_contract_difficulty_multiplier(difficulty_stars)
 		local money_stage_stars = managers.money:get_stage_payout_by_stars(job_stars)
 		local money_job_stars = managers.money:get_job_payout_by_stars(job_stars)
+		local plvl = managers.experience:current_level()
+		local player_stars = math.max(math.ceil(plvl / 10), 1)
+		local money_manager = tweak_data.money_manager.level_limit
+		if player_stars <= job_and_difficulty_stars + tweak_data:get_value("money_manager", "level_limit", "low_cap_level") then
+			local diff_stars = math.clamp(job_and_difficulty_stars - player_stars, 1, #money_manager.pc_difference_multipliers)
+			local level_limit_mul = tweak_data:get_value("money_manager", "level_limit", "pc_difference_multipliers", diff_stars)
+			local plr_difficulty_stars = math.max(difficulty_stars - diff_stars, 0)
+			local plr_money_multiplier = managers.money:get_contract_difficulty_multiplier(plr_difficulty_stars) or 0
+			local white_player_stars = player_stars - plr_difficulty_stars
+			local cash_plr_stage_stars = managers.money:get_stage_payout_by_stars(white_player_stars, true)
+			cash_plr_stage_stars = cash_plr_stage_stars + cash_plr_stage_stars * plr_money_multiplier
+			local cash_stage = money_stage_stars + money_stage_stars * money_multiplier
+			local diff_stage = cash_stage - cash_plr_stage_stars
+			local new_cash_stage = cash_plr_stage_stars + diff_stage * level_limit_mul
+			money_stage_stars = money_stage_stars * (new_cash_stage / cash_stage)
+			local cash_plr_job_stars = managers.money:get_job_payout_by_stars(white_player_stars, true)
+			cash_plr_job_stars = cash_plr_job_stars + cash_plr_job_stars * plr_money_multiplier
+			local cash_job = money_job_stars + money_job_stars * money_multiplier
+			local diff_job = cash_job - cash_plr_job_stars
+			local new_cash_job = cash_plr_job_stars + diff_job * level_limit_mul
+			money_job_stars = money_job_stars * (new_cash_job / cash_job)
+		end
 		job_num = #tweak_data.narrative.jobs[data.job_id].chain
-		job_cash = managers.experience:cash_string(math.round(money_job_stars + money_job_stars * money_multiplier + (money_stage_stars + money_stage_stars * money_multiplier) * #tweak_data.narrative.jobs[data.job_id].chain))
+		job_cash = managers.experience:cash_string(math.round(money_job_stars + tweak_data:get_value("money_manager", "flat_job_completion") + money_job_stars * money_multiplier + (money_stage_stars + tweak_data:get_value("money_manager", "flat_stage_completion") + money_stage_stars * money_multiplier) * #tweak_data.narrative.jobs[data.job_id].chain))
+		local difficulty_string = managers.localization:to_upper_text(tweak_data.difficulty_name_ids[tweak_data.difficulties[data.difficulty_id]])
+		difficulty_name:set_text(difficulty_string)
+		difficulty_name:set_color(difficulty_stars > 0 and tweak_data.screen_colors.risk or tweak_data.screen_colors.text)
 	end
 	local host_string = data.host_name or is_professional and managers.localization:to_upper_text("cn_menu_pro_job") or " "
 	local job_string = data.job_id and managers.localization:to_upper_text(tweak_data.narrative.jobs[data.job_id].name_id) or data.level_name or "NO JOB"
 	local contact_string = utf8.to_upper(data.job_id and managers.localization:text(tweak_data.narrative.contacts[tweak_data.narrative.jobs[data.job_id].contact].name_id)) or "BAIN"
 	contact_string = contact_string .. ": "
 	local info_string = managers.localization:to_upper_text("cn_menu_contract_short_" .. (job_num > 1 and "plural" or "singular"), {days = job_num, money = job_cash})
+	info_string = info_string .. (data.state_name and " / " .. data.state_name or "")
 	local host_name = side_panel:text({
 		name = "host_name",
 		text = host_string,
@@ -1381,6 +1393,8 @@ function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y)
 		local _, _, w, h = host_name:text_rect()
 		host_name:set_size(w, h)
 		host_name:set_position(0, 0)
+		if not is_server then
+		end
 	end
 	do
 		local _, _, w, h = job_name:text_rect()
@@ -1399,8 +1413,29 @@ function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y)
 		info_name:set_top(contact_name:bottom())
 		info_name:set_right(0)
 	end
+	do
+		local _, _, w, h = difficulty_name:text_rect()
+		difficulty_name:set_size(w, h)
+		difficulty_name:set_top(info_name:bottom())
+		difficulty_name:set_right(0)
+	end
+	if not got_job then
+		job_name:set_text(data.state_name or managers.localization:to_upper_text("menu_lobby_server_state_in_lobby"))
+		local _, _, w, h = job_name:text_rect()
+		job_name:set_size(w, h)
+		job_name:set_position(0, host_name:bottom())
+		contact_name:set_text(" ")
+		contact_name:set_w(0, 0)
+		contact_name:set_position(0, host_name:bottom())
+		info_name:set_text(" ")
+		info_name:set_size(0, 0)
+		info_name:set_position(0, host_name:bottom())
+		difficulty_name:set_text(" ")
+		difficulty_name:set_w(0, 0)
+		difficulty_name:set_position(0, host_name:bottom())
+	end
 	stars_panel:set_position(0, job_name:bottom())
-	side_panel:set_h(stars_panel:bottom())
+	side_panel:set_h(math.max(stars_panel:bottom(), difficulty_name:bottom()))
 	side_panel:set_w(300)
 	self._num_layer_jobs = (self._num_layer_jobs + 1) % 1
 	local marker_panel = self._pan_panel:panel({
@@ -1540,6 +1575,7 @@ function CrimeNetGui:_create_job_gui(data, type, fixed_x, fixed_y)
 		job_name:set_right(side_panel:w())
 		contact_name:set_left(side_panel:w())
 		info_name:set_left(side_panel:w())
+		difficulty_name:set_left(side_panel:w())
 		stars_panel:set_right(side_panel:w())
 		side_panel:set_right(marker_panel:left())
 	end
@@ -1606,34 +1642,38 @@ function CrimeNetGui:remove_job(id)
 	end
 	self._jobs[id] = nil
 end
-function CrimeNetGui:update_server_job(data)
-	local job = self._jobs[data.id]
+function CrimeNetGui:update_server_job(data, i)
+	local job_index = data.id or i
+	local job = self._jobs[job_index]
 	if not job then
 		return
 	end
 	local level_id = data.level_id
 	local level_data = tweak_data.levels[level_id]
 	local recreate_job = false
-	recreate_job = recreate_job or self:_update_job_variable(data.id, "room_id", data.room_id)
-	recreate_job = recreate_job or self:_update_job_variable(data.id, "job_id", data.job_id)
-	recreate_job = recreate_job or self:_update_job_variable(data.id, "level_id", level_id)
-	recreate_job = recreate_job or self:_update_job_variable(data.id, "level_data", level_data)
-	recreate_job = recreate_job or self:_update_job_variable(data.id, "difficulty", data.difficulty)
-	recreate_job = recreate_job or self:_update_job_variable(data.id, "difficulty_id", data.difficulty_id)
-	self:_update_job_variable(data.id, "state", data.state)
-	if self:_update_job_variable(data.id, "num_plrs", data.num_plrs) and job.peers_panel then
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "room_id", data.room_id)
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "job_id", data.job_id)
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "level_id", level_id)
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "level_data", level_data)
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "difficulty", data.difficulty)
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "difficulty_id", data.difficulty_id)
+	recreate_job = recreate_job or self:_update_job_variable(job_index, "state", data.state)
+	self:_update_job_variable(job_index, "state_name", data.state_name)
+	if self:_update_job_variable(job_index, "num_plrs", data.num_plrs) and job.peers_panel then
 		for i, peer_icon in ipairs(job.peers_panel:children()) do
 			peer_icon:set_visible(i <= job.num_plrs)
 		end
 	end
 	if recreate_job then
-		print("[CrimeNetGui] update_server_job", "data.id", data.id)
+		print("[CrimeNetGui] update_server_job", "job_index", job_index)
+		local is_server = job.server
 		local x = job.job_x
 		local y = job.job_y
-		self:remove_job(data.id)
-		local gui_data = self:_create_job_gui(data, "server", x, y)
-		gui_data.server = true
-		self._jobs[data.id] = gui_data
+		local location = job.location
+		self:remove_job(job_index)
+		local gui_data = self:_create_job_gui(data, is_server and "server" or "contract", x, y, location)
+		gui_data.server = is_server
+		self._jobs[job_index] = gui_data
 	end
 end
 function CrimeNetGui:_update_job_variable(id, variable, value)
@@ -2056,15 +2096,16 @@ function CrimeNetGui:update_job_gui(job, inside)
 			local job_name = job.side_panel:child("job_name")
 			local contact_name = job.side_panel:child("contact_name")
 			local info_name = job.side_panel:child("info_name")
+			local difficulty_name = job.side_panel:child("difficulty_name")
 			local stars_panel = job.side_panel:child("stars_panel")
 			local base_h = math.round(host_name:h() + job_name:h() + stars_panel:h())
-			local expand_h = math.round(base_h + info_name:h())
+			local expand_h = math.round(base_h + info_name:h() + difficulty_name:h())
 			local start_x = 0
-			local max_x = math.round(math.max(contact_name:w(), info_name:w()))
+			local max_x = math.round(math.max(contact_name:w(), info_name:w(), difficulty_name:w()))
 			if job.text_on_right then
-				start_x = math.round(math.min(contact_name:right(), info_name:right()))
+				start_x = math.round(math.min(contact_name:right(), info_name:right(), difficulty_name:right()))
 			else
-				start_x = math.round(job.side_panel:w() - math.min(contact_name:left(), info_name:left()))
+				start_x = math.round(job.side_panel:w() - math.min(contact_name:left(), info_name:left(), difficulty_name:left()))
 			end
 			local x = start_x
 			local object_alpha = {}
@@ -2110,7 +2151,6 @@ function CrimeNetGui:update_job_gui(job, inside)
 					h = math.step(h, inside and expand_h or base_h, (inside and expand_h or base_h) * dt * 4)
 					job.side_panel:set_h(h)
 					job.side_panel:set_center_y(o:top() + 11)
-					job.side_panel:set_world_position(math.round(job.side_panel:world_x()), math.round(job.side_panel:world_y()))
 					stars_panel:set_bottom(job.side_panel:h())
 					expand_met = h == (inside and expand_h or base_h)
 					if expand_met then
@@ -2119,14 +2159,17 @@ function CrimeNetGui:update_job_gui(job, inside)
 				end
 				if not pushout_met then
 					x = math.step(x, inside and max_x or 0, max_x * dt * 4)
+					stars_panel:set_alpha(1 - x / math.min(max_x, 1))
 					if job.text_on_right then
 						job_name:set_left(math.round(math.min(x, contact_name:w())))
 						contact_name:set_left(math.round(math.min(x - contact_name:w(), 0)))
 						info_name:set_left(math.round(math.min(x - info_name:w(), 0)))
+						difficulty_name:set_left(math.round(math.min(x - difficulty_name:w(), 0)))
 					else
 						job_name:set_right(math.round(job.side_panel:w() - math.min(x, contact_name:w())))
 						contact_name:set_right(math.round(job.side_panel:w() - math.min(x - contact_name:w(), 0)))
 						info_name:set_right(math.round(job.side_panel:w() - math.min(x - info_name:w(), 0)))
+						difficulty_name:set_right(math.round(job.side_panel:w() - math.min(x - difficulty_name:w(), 0)))
 					end
 					pushout_met = x == (inside and max_x or 0)
 				end
@@ -2149,10 +2192,12 @@ function CrimeNetGui:update_job_gui(job, inside)
 			job.side_panel:child("job_name"):set_blend_mode("normal")
 			job.side_panel:child("contact_name"):set_blend_mode("normal")
 			job.side_panel:child("info_name"):set_blend_mode("normal")
+			job.side_panel:child("difficulty_name"):set_blend_mode("normal")
 		else
 			job.side_panel:child("job_name"):set_blend_mode("add")
 			job.side_panel:child("contact_name"):set_blend_mode("add")
 			job.side_panel:child("info_name"):set_blend_mode("add")
+			job.side_panel:child("difficulty_name"):set_blend_mode("normal")
 		end
 		job.marker_panel:stop()
 		if job.peers_panel then
@@ -2290,7 +2335,10 @@ function CrimeNetGui:ps3_invites_callback()
 	if managers.system_menu and managers.system_menu:is_active() and not managers.system_menu:is_closing() then
 		return true
 	end
-	MenuCallbackHandler:view_invites()
+	if managers.menu:active_menu() and managers.menu:active_menu().input:get_accept_input() then
+		managers.menu:active_menu().renderer:disable_input(0.2)
+		MenuCallbackHandler:view_invites()
+	end
 end
 function CrimeNetGui:enable_crimenet()
 	self._crimenet_enabled = true

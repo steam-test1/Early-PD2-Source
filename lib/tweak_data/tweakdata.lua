@@ -29,6 +29,40 @@ require("lib/tweak_data/DLCTweakData")
 TweakData = TweakData or class()
 require("lib/tweak_data/TweakDataPD2")
 TweakData.RELOAD = true
+function TweakData:digest_tweak_data()
+	Application:debug("TweakData: Digesting tweak_data. <('O'<)")
+	self:digest_recursive(self.money_manager)
+	self:digest_recursive(self.experience_manager)
+end
+function TweakData:digest_recursive(key, parent)
+	local value = parent and parent[key] or key
+	if type(value) == "table" then
+		for index, data in pairs(value) do
+			self:digest_recursive(index, value)
+		end
+	elseif type(value) == "number" then
+		parent[key] = Application:digest_value(value, true)
+	end
+end
+function TweakData:get_value(...)
+	local arg = {
+		...
+	}
+	local value = self
+	for _, v in ipairs(arg) do
+		if not value[v] then
+			return false
+		end
+		value = value[v]
+	end
+	if type(value) == "string" then
+		return Application:digest_value(value, false)
+	elseif type(value) == "table" then
+		Application:debug("TweakData:get_value() value was a table, is this correct? returning false!", inspect(arg), inspect(value))
+		return false
+	end
+	return value
+end
 function TweakData:set_difficulty()
 	if not Global.game_settings then
 		return
@@ -50,6 +84,7 @@ function TweakData:_set_easy()
 	self.character:_set_easy()
 	self.group_ai:_set_easy()
 	self.experience_manager.civilians_killed = 15
+	self.difficulty_name_id = self.difficulty_name_ids.easy
 	self.experience_manager.total_level_objectives = 1000
 	self.experience_manager.total_criminals_finished = 25
 	self.experience_manager.total_objectives_finished = 750
@@ -59,6 +94,7 @@ function TweakData:_set_normal()
 	self.character:_set_normal()
 	self.group_ai:_set_normal()
 	self.experience_manager.civilians_killed = 35
+	self.difficulty_name_id = self.difficulty_name_ids.normal
 	self.experience_manager.total_level_objectives = 2000
 	self.experience_manager.total_criminals_finished = 50
 	self.experience_manager.total_objectives_finished = 1000
@@ -68,6 +104,7 @@ function TweakData:_set_hard()
 	self.character:_set_hard()
 	self.group_ai:_set_hard()
 	self.experience_manager.civilians_killed = 75
+	self.difficulty_name_id = self.difficulty_name_ids.hard
 	self.experience_manager.total_level_objectives = 2500
 	self.experience_manager.total_criminals_finished = 150
 	self.experience_manager.total_objectives_finished = 1500
@@ -77,6 +114,7 @@ function TweakData:_set_overkill()
 	self.character:_set_overkill()
 	self.group_ai:_set_overkill()
 	self.experience_manager.civilians_killed = 150
+	self.difficulty_name_id = self.difficulty_name_ids.overkill
 	self.experience_manager.total_level_objectives = 5000
 	self.experience_manager.total_criminals_finished = 500
 	self.experience_manager.total_objectives_finished = 3000
@@ -86,6 +124,7 @@ function TweakData:_set_overkill_145()
 	self.character:_set_overkill_145()
 	self.group_ai:_set_overkill_145()
 	self.experience_manager.civilians_killed = 550
+	self.difficulty_name_id = self.difficulty_name_ids.overkill_145
 	self.experience_manager.total_level_objectives = 5000
 	self.experience_manager.total_criminals_finished = 2000
 	self.experience_manager.total_objectives_finished = 3000
@@ -119,6 +158,19 @@ function TweakData:server_state_to_index(state)
 end
 function TweakData:index_to_server_state(index)
 	return self.server_states[index]
+end
+function TweakData:menu_sync_state_to_index(state)
+	if not state then
+		return false
+	end
+	for i, menu_sync in ipairs(self.menu_sync_states) do
+		if menu_sync == state then
+			return i
+		end
+	end
+end
+function TweakData:index_to_menu_sync_state(index)
+	return self.menu_sync_states[index]
 end
 function TweakData:init()
 	self.hud_icons = HudIconsTweakData:new()
@@ -174,6 +226,21 @@ function TweakData:init()
 		"loading",
 		"in_game"
 	}
+	self.menu_sync_states = {
+		"crimenet",
+		"skilltree",
+		"options",
+		"lobby",
+		"blackmarket",
+		"blackmarket_weapon",
+		"blackmarket_mask"
+	}
+	self.difficulty_name_ids = {}
+	self.difficulty_name_ids.easy = "menu_difficulty_easy"
+	self.difficulty_name_ids.normal = "menu_difficulty_normal"
+	self.difficulty_name_ids.hard = "menu_difficulty_hard"
+	self.difficulty_name_ids.overkill = "menu_difficulty_very_hard"
+	self.difficulty_name_ids.overkill_145 = "menu_difficulty_overkill"
 	self.menu_themes = {
 		old = {
 			bg_startscreen = "guis/textures/menu/old_theme/bg_startscreen",
@@ -1878,26 +1945,6 @@ function TweakData:init()
 	self.experience_manager.values.size16 = 250
 	self.experience_manager.values.size18 = 500
 	self.experience_manager.values.size20 = 1000
-	self.experience_manager.actions = {}
-	self.experience_manager.actions.killed_cop = "size02"
-	self.experience_manager.actions.revive = "size04"
-	self.experience_manager.actions.security_camera = "size04"
-	self.experience_manager.actions.tie_swat = "size08"
-	self.experience_manager.actions.tie_civ = "size06"
-	self.experience_manager.actions.objective_completed = "size02"
-	self.experience_manager.actions.secret_assignment = "size16"
-	self.experience_manager.actions.money_wrap_single_bundle = "size06"
-	self.experience_manager.actions.diamond_single_pickup = "size12"
-	self.experience_manager.actions.suburbia_necklace_pickup = "size20"
-	self.experience_manager.actions.suburbia_bracelet_pickup = "size18"
-	self.experience_manager.actions.diamondheist_vault_bust = "size06"
-	self.experience_manager.actions.diamondheist_vault_diamond = "size03"
-	self.experience_manager.actions.apartment_completed = "size02"
-	self.experience_manager.actions.bridge_completed = "size02"
-	self.experience_manager.actions.street_completed = "size02"
-	self.experience_manager.actions.diamondheist_big_diamond = "size18"
-	self.experience_manager.actions.slaughterhouse_take_gold = "size16"
-	self.experience_manager.actions.suburbia_money = "size20"
 	self.experience_manager.stage_completion = {
 		200,
 		250,
@@ -1934,14 +1981,14 @@ function TweakData:init()
 	self.experience_manager.level_limit.pc_difference_multipliers = {
 		1,
 		0.9,
+		0.72,
 		0.504,
 		0.3024,
 		0.1512,
 		0.06048,
 		0.018144,
 		0.0036288,
-		3.6288E-4,
-		0
+		3.6288E-4
 	}
 	self.experience_manager.civilians_killed = 0
 	self.experience_manager.day_multiplier = {
@@ -2178,6 +2225,7 @@ function TweakData:init()
 	self.blame.cop_alarm = "hint_alarm_cop"
 	self.blame.gan_alarm = "hint_alarm_cop"
 	self:set_difficulty()
+	self:digest_tweak_data()
 end
 function TweakData:_execute_reload_clbks()
 	if self._reload_clbks then
@@ -2750,6 +2798,11 @@ function TweakData:get_controller_help_coords()
 			align = "right",
 			vertical = "top"
 		}
+	end
+	if managers.user and managers.user:get_setting("southpaw") then
+		local tmp = coords.menu_button_move
+		coords.menu_button_move = coords.menu_button_look
+		coords.menu_button_look = tmp
 	end
 	return coords
 end

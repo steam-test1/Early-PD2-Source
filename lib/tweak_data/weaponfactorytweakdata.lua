@@ -148,7 +148,7 @@ function WeaponFactoryTweakData:_init_silencers()
 		parent = "slide",
 		unit = "units/payday2/weapons/wpn_fps_upg_ns_pis_medium/wpn_fps_upg_ns_pis_medium",
 		stats = {
-			value = 2,
+			value = 1,
 			suppression = 9,
 			damage = -4,
 			recoil = 1,
@@ -502,6 +502,10 @@ function WeaponFactoryTweakData:_init_sights()
 			wpn_fps_smg_mac10 = {
 				translation = Vector3(0, 0, -4.5)
 			}
+		},
+		forbids = {
+			"wpn_fps_amcar_uupg_body_upperreciever",
+			"wpn_fps_ass_m16_os_frontsight"
 		}
 	}
 	self.parts.wpn_fps_upg_o_aimpoint = {
@@ -518,9 +522,20 @@ function WeaponFactoryTweakData:_init_sights()
 			concealment = -1
 		},
 		perks = {"scope"},
-		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod)
+		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod),
+		forbids = {
+			"wpn_fps_amcar_uupg_body_upperreciever",
+			"wpn_fps_ass_m16_os_frontsight"
+		}
 	}
 	self.parts.wpn_fps_upg_o_aimpoint_2 = {
+		pcs = {
+			10,
+			20,
+			30,
+			40
+		},
+		dlc = "preorder",
 		type = "sight",
 		name_id = "bm_wp_upg_o_aimpoint",
 		a_obj = "a_o",
@@ -533,7 +548,11 @@ function WeaponFactoryTweakData:_init_sights()
 			concealment = -1
 		},
 		perks = {"scope"},
-		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod)
+		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod),
+		forbids = {
+			"wpn_fps_amcar_uupg_body_upperreciever",
+			"wpn_fps_ass_m16_os_frontsight"
+		}
 	}
 	self.parts.wpn_fps_upg_o_docter = {
 		pcs = {
@@ -551,7 +570,11 @@ function WeaponFactoryTweakData:_init_sights()
 			spread_moving = -1
 		},
 		perks = {"scope"},
-		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod)
+		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod),
+		forbids = {
+			"wpn_fps_amcar_uupg_body_upperreciever",
+			"wpn_fps_ass_m16_os_frontsight"
+		}
 	}
 	self.parts.wpn_fps_upg_o_eotech = {
 		pcs = {
@@ -572,7 +595,11 @@ function WeaponFactoryTweakData:_init_sights()
 			concealment = -1
 		},
 		perks = {"scope"},
-		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod)
+		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod),
+		forbids = {
+			"wpn_fps_amcar_uupg_body_upperreciever",
+			"wpn_fps_ass_m16_os_frontsight"
+		}
 	}
 	self.parts.wpn_fps_upg_o_t1micro = {
 		pcs = {
@@ -592,7 +619,11 @@ function WeaponFactoryTweakData:_init_sights()
 			spread_moving = -1
 		},
 		perks = {"scope"},
-		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod)
+		stance_mod = deep_clone(self.parts.wpn_fps_upg_o_specter.stance_mod),
+		forbids = {
+			"wpn_fps_amcar_uupg_body_upperreciever",
+			"wpn_fps_ass_m16_os_frontsight"
+		}
 	}
 	self.parts.wpn_upg_o_marksmansight_rear = {
 		pcs = {
@@ -803,7 +834,7 @@ function WeaponFactoryTweakData:_init_m4()
 		name_id = "bm_wp_m4_uupg_m_std",
 		a_obj = "a_m",
 		unit = "units/payday2/weapons/wpn_fps_ass_m4_pts/wpn_fps_m4_uupg_m_std",
-		stats = {value = 1}
+		stats = {value = 1, extra_ammo = 4}
 	}
 	self.parts.wpn_fps_m4_uupg_s_fold = {
 		pcs = {
@@ -908,7 +939,7 @@ function WeaponFactoryTweakData:_init_m4()
 			value = 3,
 			spread_moving = 1,
 			concealment = 0,
-			extra_ammo = 6
+			extra_ammo = 2
 		}
 	}
 	self.parts.wpn_fps_upg_m4_m_straight = {
@@ -1007,6 +1038,12 @@ function WeaponFactoryTweakData:_init_m4()
 	self.parts.wpn_fps_upg_m4_s_adapter.third_unit = "units/payday2/weapons/wpn_third_upg_m4_reusable/wpn_third_upg_m4_s_adapter"
 	self.parts.wpn_fps_upg_m4_s_pts.third_unit = "units/payday2/weapons/wpn_third_upg_m4_reusable/wpn_third_upg_m4_s_pts"
 	self.parts.wpn_fps_upg_m4_s_standard.third_unit = "units/payday2/weapons/wpn_third_upg_m4_reusable/wpn_third_upg_m4_s_standard"
+	self.parts.wpn_fps_m4_upper_reciever_round_vanilla = deep_clone(self.parts.wpn_fps_m4_upper_reciever_round)
+	self.parts.wpn_fps_m4_upper_reciever_round_vanilla.stats = nil
+	self.parts.wpn_fps_m4_upper_reciever_round_vanilla.pcs = nil
+	self.parts.wpn_fps_m4_uupg_draghandle_vanilla = deep_clone(self.parts.wpn_fps_m4_uupg_draghandle)
+	self.parts.wpn_fps_m4_uupg_draghandle_vanilla.stats = nil
+	self.parts.wpn_fps_m4_uupg_draghandle_vanilla.pcs = nil
 	self.parts.wpn_fps_m4_uupg_m_std_vanilla = deep_clone(self.parts.wpn_fps_m4_uupg_m_std)
 	self.parts.wpn_fps_m4_uupg_m_std_vanilla.stats = nil
 	self.parts.wpn_fps_m4_uupg_m_std_vanilla.pcs = nil
@@ -1218,11 +1255,17 @@ function WeaponFactoryTweakData:_init_g18c()
 end
 function WeaponFactoryTweakData:_init_amcar()
 	self.parts.wpn_fps_amcar_uupg_body_upperreciever = {
-		type = "upper_reciever",
+		type = "sight",
+		name_id = "bm_wp_g18c_m_mag_17rnd",
 		a_obj = "a_body",
 		unit = "units/payday2/weapons/wpn_fps_ass_amcar_pts/wpn_fps_amcar_uupg_body_upperreciever",
 		adds = {
 			"wpn_fps_ass_m16_os_frontsight"
+		},
+		forbids = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
 		}
 	}
 	self.parts.wpn_fps_amcar_uupg_fg_amcar = {
@@ -1235,6 +1278,38 @@ function WeaponFactoryTweakData:_init_amcar()
 	self.wpn_fps_ass_amcar = {}
 	self.wpn_fps_ass_amcar.unit = "units/payday2/weapons/wpn_fps_ass_amcar/wpn_fps_ass_amcar"
 	self.wpn_fps_ass_amcar.stock_adapter = "wpn_fps_upg_m4_s_adapter"
+	self.wpn_fps_ass_amcar.adds = {
+		wpn_fps_upg_o_specter = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
+		},
+		wpn_fps_upg_o_aimpoint = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
+		},
+		wpn_fps_upg_o_aimpoint_2 = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
+		},
+		wpn_fps_upg_o_docter = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
+		},
+		wpn_fps_upg_o_eotech = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
+		},
+		wpn_fps_upg_o_t1micro = {
+			"wpn_fps_m4_upper_reciever_round_vanilla",
+			"wpn_fps_m4_uupg_draghandle_vanilla",
+			"wpn_fps_m4_uupg_fg_rail_ext"
+		}
+	}
 	self.wpn_fps_ass_amcar.default_blueprint = {
 		"wpn_fps_m4_uupg_b_medium_vanilla",
 		"wpn_fps_m4_lower_reciever",
@@ -1248,10 +1323,18 @@ function WeaponFactoryTweakData:_init_amcar()
 		"wpn_fps_m4_uupg_b_medium_vanilla",
 		"wpn_fps_m4_lower_reciever",
 		"wpn_fps_amcar_uupg_body_upperreciever",
+		"wpn_fps_m4_upper_reciever_round_vanilla",
 		"wpn_fps_amcar_uupg_fg_amcar",
 		"wpn_fps_upg_m4_m_straight_vanilla",
+		"wpn_fps_m4_uupg_m_std",
 		"wpn_fps_upg_m4_s_standard_vanilla",
 		"wpn_fps_upg_m4_g_standard_vanilla",
+		"wpn_fps_upg_o_specter",
+		"wpn_fps_upg_o_aimpoint",
+		"wpn_fps_upg_o_aimpoint_2",
+		"wpn_fps_upg_o_docter",
+		"wpn_fps_upg_o_eotech",
+		"wpn_fps_upg_o_t1micro",
 		"wpn_fps_upg_ns_ass_smg_large",
 		"wpn_fps_upg_ns_ass_smg_medium",
 		"wpn_fps_upg_ns_ass_smg_small",
@@ -4039,7 +4122,6 @@ function WeaponFactoryTweakData:_init_mac10()
 		"wpn_fps_smg_mac10_body_mac10",
 		"wpn_fps_smg_mac10_s_fold",
 		"wpn_fps_smg_mac10_s_skel",
-		"wpn_fps_upg_o_specter",
 		"wpn_fps_upg_o_aimpoint",
 		"wpn_fps_upg_o_docter",
 		"wpn_fps_upg_o_eotech",
@@ -4164,7 +4246,7 @@ function WeaponFactoryTweakData:_init_r870()
 			value = 6,
 			concealment = -1,
 			spread_moving = -1,
-			extra_ammo = 3
+			extra_ammo = 1
 		}
 	}
 	self.parts.wpn_fps_shot_r870_s_folding = {

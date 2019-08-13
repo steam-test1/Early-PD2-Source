@@ -587,7 +587,7 @@ function CopActionHurt:_upd_bleedout(t)
 		local new_rot = Rotation(tmp_vec2, normal)
 		self._ext_movement:set_rotation(new_rot)
 	end
-	if not self._ext_anim.bleedout_enter then
+	if not self._ext_anim.bleedout_enter and self._weapon_unit then
 		if self._attention and not self._ext_anim.reload and not self._ext_anim.equip then
 			local autotarget, target_pos
 			if self._attention.handler then
@@ -697,19 +697,6 @@ end
 function CopActionHurt:expired()
 	return self._expired
 end
-function CopActionHurt:_action_hurt_equip(event)
-	if self._weapon_unit then
-		local weapon_unit = self._unit:inventory():equipped_unit()
-		local weap_tweak = weapon_unit:base():weapon_tweak_data()
-		local weapon_usage_tweak = self._tweak_data.weapon[weap_tweak.usage]
-		self._weapon_unit = weapon_unit
-		self._weap_tweak = weap_tweak
-		self._w_usage_tweak = weapon_usage_tweak
-		self._reload_speed = weapon_usage_tweak.RELOAD_SPEED
-		self._spread = weapon_usage_tweak.spread
-		self._falloff = weapon_usage_tweak.FALLOFF
-	end
-end
 function CopActionHurt:chk_block(action_type, t)
 	if CopActionAct.chk_block(self, action_type, t) then
 		return true
@@ -775,7 +762,8 @@ function CopActionHurt:on_inventory_event(event)
 		self._falloff = weapon_usage_tweak.FALLOFF
 		self._automatic_weap = weap_tweak.auto and true
 	else
-		self.update = self._upd_empty
+		self._weapon_unit = false
+		self._shooting_hurt = false
 	end
 end
 function CopActionHurt:save(save_data)

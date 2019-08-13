@@ -23,7 +23,7 @@ function TimeSpeedManager:_update_playing_effects()
 			local effect_speed
 			if time < effect.fade_in_delay_end_t then
 			elseif time < effect.fade_in_end_t then
-				effect_speed = math.lerp(1, effect.desc.speed, ((time - effect.start_t) / effect.desc.fade_in) ^ 0.5)
+				effect_speed = math.lerp(1, effect.desc.speed, ((time - effect.fade_in_delay_end_t) / effect.desc.fade_in) ^ 0.5)
 			elseif not effect.sustain_end_t or time < effect.sustain_end_t then
 				effect_speed = effect.desc.speed
 			elseif time < effect.effect_end_t then
@@ -170,4 +170,5 @@ function TimeSpeedManager:destroy()
 		local eff_id, eff = next(self._playing_effects)
 		self:_on_effect_expired(eff_id)
 	end
+	SoundDevice:set_rtpc("game_speed", 1)
 end

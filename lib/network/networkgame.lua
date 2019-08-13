@@ -418,6 +418,7 @@ function NetworkGame:on_peer_loading(peer, state)
 	cat_print("multiplayer_base", "[NetworkGame:on_peer_loading]", inspect(peer), state)
 	if Network:is_server() and not state then
 		if not self:_has_client(peer) then
+			Network:remove_co_client(peer:rpc())
 			Network:add_client(peer:rpc())
 		end
 		if not NetworkManager.DROPIN_ENABLED then

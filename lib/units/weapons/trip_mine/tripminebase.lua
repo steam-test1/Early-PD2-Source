@@ -20,6 +20,8 @@ function TripMineBase:init(unit)
 	self._forward = self._rotation:y()
 	self._ray_from_pos = Vector3()
 	self._ray_to_pos = Vector3()
+	self._init_length = 500
+	self._length = self._init_length
 	self._ids_laser = Idstring("laser")
 	self._g_laser = self._unit:get_object(Idstring("g_laser"))
 	self._g_laser_sensor = self._unit:get_object(Idstring("g_laser_sensor"))
@@ -42,7 +44,6 @@ function TripMineBase:sync_setup(sensor_upgrade)
 end
 function TripMineBase:setup(sensor_upgrade)
 	self._slotmask = managers.slot:get_mask("trip_mine_targets")
-	self._init_length = 500
 	self._first_armed = false
 	self._armed = false
 	self._sensor_upgrade = sensor_upgrade

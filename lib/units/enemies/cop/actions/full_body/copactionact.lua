@@ -354,6 +354,10 @@ function CopActionAct:on_attention(attention)
 	self:_update_ik_type()
 	self._m_attention_head_pos = attention and (not attention.handler or not attention.handler:get_attention_m_pos()) and attention.unit and attention.unit:movement():m_head_pos()
 	self._attention = attention
+	if self._modifier_on then
+		self._modifier_on = nil
+		self._machine:forbid_modifier(self._modifier_name)
+	end
 	self._ext_movement:enable_update()
 end
 function CopActionAct:_update_ik_type()

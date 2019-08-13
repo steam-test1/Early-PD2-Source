@@ -11,18 +11,12 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	})
 	self._node = node
 	local job_data = self._node:parameters().menu_component_data
-	job_data.job_id = job_data.job_id or "ukrainian_job"
-	local narrative = tweak_data.narrative.jobs[job_data.job_id]
 	local width = 760
 	local height = 540
 	if SystemInfo:platform() ~= Idstring("WIN32") then
 		width = 800
 		height = 500
 	end
-	local text_w = width - 360
-	local font_size = tweak_data.menu.pd2_small_font_size
-	local font = tweak_data.menu.pd2_small_font
-	local risk_color = tweak_data.screen_colors.risk
 	local blur = self._fullscreen_panel:bitmap({
 		texture = "guis/textures/test_blur_df",
 		w = self._fullscreen_ws:panel():w(),
@@ -37,9 +31,7 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	end
 	blur:animate(func)
 	self._contact_text_header = self._panel:text({
-		text = managers.localization:to_upper_text("menu_cn_contract_title", {
-			job = managers.localization:text(narrative.name_id)
-		}),
+		text = " ",
 		align = "left",
 		vertical = "top",
 		font_size = tweak_data.menu.pd2_large_font_size,
@@ -58,6 +50,39 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 		x = self._contact_text_header:x(),
 		y = self._contact_text_header:bottom()
 	})
+	self._contract_panel:set_center_y(self._panel:h() * 0.5)
+	self._contact_text_header:set_bottom(self._contract_panel:top())
+	if not job_data.job_id then
+		local bottom = self._contract_panel:bottom()
+		self._contract_panel:set_h(160)
+		self._contract_panel:set_bottom(bottom)
+		self._contact_text_header:set_bottom(self._contract_panel:top())
+		Global.a = job_data
+		local host_name = job_data.host_name or ""
+		local num_players = job_data.num_plrs or 1
+		local server_text = managers.localization:to_upper_text("menu_lobby_server_title") .. " " .. host_name
+		local players_text = managers.localization:to_upper_text("menu_players_online", {
+			COUNT = tostring(num_players)
+		})
+		self._contact_text_header:set_text(server_text .. "\n" .. players_text)
+		self._contact_text_header:set_font(tweak_data.menu.pd2_medium_font_id)
+		self._contact_text_header:set_font_size(tweak_data.menu.pd2_medium_font_size)
+		local x, y, w, h = self._contact_text_header:text_rect()
+		self._contact_text_header:set_size(width, h)
+		self._contact_text_header:set_top(self._contract_panel:top())
+		self._contact_text_header:move(10, 10)
+		BoxGuiObject:new(self._contract_panel, {
+			sides = {
+				1,
+				1,
+				1,
+				1
+			}
+		})
+		self._step = 1
+		self._steps = {}
+		return
+	end
 	BoxGuiObject:new(self._contract_panel, {
 		sides = {
 			1,
@@ -66,8 +91,15 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 			1
 		}
 	})
-	self._contract_panel:set_center_y(self._panel:h() * 0.5)
-	self._contact_text_header:set_bottom(self._contract_panel:top())
+	job_data.job_id = job_data.job_id or "ukrainian_job"
+	local narrative = tweak_data.narrative.jobs[job_data.job_id]
+	local text_w = width - 360
+	local font_size = tweak_data.menu.pd2_small_font_size
+	local font = tweak_data.menu.pd2_small_font
+	local risk_color = tweak_data.screen_colors.risk
+	self._contact_text_header:set_text(managers.localization:to_upper_text("menu_cn_contract_title", {
+		job = managers.localization:text(narrative.name_id)
+	}))
 	local contract_text = self._contract_panel:text({
 		text = managers.localization:text(narrative.briefing_id),
 		align = "left",
@@ -233,6 +265,8 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	local sx = math.max(paygrade_title:w(), experience_title:w())
 	sx = math.max(sx, stage_cash_title:w())
 	sx = math.max(sx, cash_title:w()) + 24
+	local plvl = managers.experience:current_level()
+	local player_stars = math.max(math.ceil(plvl / 10), 1)
 	local job_stars = math.ceil(narrative.jc / 10)
 	local difficulty_stars = job_data.difficulty_id - 2
 	local job_and_difficulty_stars = job_stars + difficulty_stars
@@ -275,27 +309,54 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 		32
 	}
 	local cy = paygrade_title:center_y()
-	for i = 1, 10 do
-		local x = sx + (i - 1) * 18
-		local alpha = 0.25
-		local color = Color.white
-		local star = self._contract_panel:bitmap({
-			name = "star" .. tostring(i),
-			texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
-			texture_rect = filled_star_rect,
-			x = x,
-			y = 0,
-			w = 16,
-			h = 16,
-			alpha = alpha,
-			color = color
-		})
+	local level_data = {
+		texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
+		texture_rect = filled_star_rect,
+		w = 20,
+		h = 20,
+		color = tweak_data.screen_colors.text,
+		alpha = 0
+	}
+	local risk_data = {
+		texture = "guis/textures/pd2/crimenet_skull",
+		w = 20,
+		h = 20,
+		color = tweak_data.screen_colors.text,
+		alpha = 0
+	}
+	for i = 1, job_and_difficulty_stars do
+		local is_risk = job_stars < i
+		local star_data = is_risk and risk_data or level_data
+		star_data.name = "star" .. tostring(i)
+		local star = self._contract_panel:bitmap(star_data)
+		star:set_x(math.round(sx + (i - 1) * 22))
 		star:set_center_y(math.round(cy))
 	end
 	local cy = experience_title:center_y()
 	local xp_stage_stars = managers.experience:get_stage_xp_by_stars(job_stars)
 	local xp_job_stars = managers.experience:get_job_xp_by_stars(job_stars)
 	local xp_multiplier = managers.experience:get_contract_difficulty_multiplier(difficulty_stars)
+	local xp_multiplier = managers.experience:get_contract_difficulty_multiplier(difficulty_stars)
+	local experience_manager = tweak_data.experience_manager.level_limit
+	if player_stars <= job_and_difficulty_stars + tweak_data:get_value("experience_manager", "level_limit", "low_cap_level") then
+		local diff_stars = math.clamp(job_and_difficulty_stars - player_stars, 1, #experience_manager.pc_difference_multipliers)
+		local level_limit_mul = tweak_data:get_value("experience_manager", "level_limit", "pc_difference_multipliers", diff_stars)
+		local plr_difficulty_stars = math.max(difficulty_stars - diff_stars, 0)
+		local plr_xp_multiplier = managers.experience:get_contract_difficulty_multiplier(plr_difficulty_stars) or 0
+		local white_player_stars = player_stars - plr_difficulty_stars
+		local xp_plr_stage_stars = managers.experience:get_stage_xp_by_stars(white_player_stars)
+		xp_plr_stage_stars = xp_plr_stage_stars + xp_plr_stage_stars * plr_xp_multiplier
+		local xp_stage = xp_stage_stars + xp_stage_stars * xp_multiplier
+		local diff_stage = xp_stage - xp_plr_stage_stars
+		local new_xp_stage = xp_plr_stage_stars + diff_stage * level_limit_mul
+		xp_stage_stars = xp_stage_stars * (new_xp_stage / xp_stage)
+		local xp_plr_job_stars = managers.experience:get_job_xp_by_stars(white_player_stars)
+		xp_plr_job_stars = xp_plr_job_stars + xp_plr_job_stars * plr_xp_multiplier
+		local xp_job = xp_job_stars + xp_job_stars * xp_multiplier
+		local diff_job = xp_job - xp_plr_job_stars
+		local new_xp_job = xp_plr_job_stars + diff_job * level_limit_mul
+		xp_job_stars = xp_job_stars * (new_xp_job / xp_job)
+	end
 	local job_xp = self._contract_panel:text({
 		font = font,
 		font_size = font_size,
@@ -340,6 +401,26 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	stage_add_cash:set_center_y(math.round(cy))
 	cy = cash_title:center_y()
 	local money_job_stars = managers.money:get_job_payout_by_stars(job_stars)
+	local money_manager = tweak_data.money_manager.level_limit
+	if player_stars <= job_and_difficulty_stars + tweak_data:get_value("money_manager", "level_limit", "low_cap_level") then
+		local diff_stars = math.clamp(job_and_difficulty_stars - player_stars, 1, #money_manager.pc_difference_multipliers)
+		local level_limit_mul = tweak_data:get_value("money_manager", "level_limit", "pc_difference_multipliers", diff_stars)
+		local plr_difficulty_stars = math.max(difficulty_stars - diff_stars, 0)
+		local plr_money_multiplier = managers.money:get_contract_difficulty_multiplier(plr_difficulty_stars) or 0
+		local white_player_stars = player_stars - plr_difficulty_stars
+		local cash_plr_stage_stars = managers.money:get_stage_payout_by_stars(white_player_stars, true)
+		cash_plr_stage_stars = cash_plr_stage_stars + cash_plr_stage_stars * plr_money_multiplier
+		local cash_stage = money_stage_stars + money_stage_stars * money_multiplier
+		local diff_stage = cash_stage - cash_plr_stage_stars
+		local new_cash_stage = cash_plr_stage_stars + diff_stage * level_limit_mul
+		money_stage_stars = money_stage_stars * (new_cash_stage / cash_stage)
+		local cash_plr_job_stars = managers.money:get_job_payout_by_stars(white_player_stars, true)
+		cash_plr_job_stars = cash_plr_job_stars + cash_plr_job_stars * plr_money_multiplier
+		local cash_job = money_job_stars + money_job_stars * money_multiplier
+		local diff_job = cash_job - cash_plr_job_stars
+		local new_cash_job = cash_plr_job_stars + diff_job * level_limit_mul
+		money_job_stars = money_job_stars * (new_cash_job / cash_job)
+	end
 	local job_cash = self._contract_panel:text({
 		font = font,
 		font_size = font_size,
@@ -359,7 +440,7 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	self:make_fine_text(add_cash)
 	add_cash:set_x(math.round(job_cash:right()))
 	add_cash:set_center_y(math.round(cy))
-	local payday_money = math.round(money_job_stars + money_job_stars * money_multiplier + (money_stage_stars + money_stage_stars * money_multiplier) * #narrative.chain)
+	local payday_money = math.round(money_job_stars + tweak_data:get_value("money_manager", "flat_job_completion") + money_job_stars * money_multiplier + (money_stage_stars + tweak_data:get_value("money_manager", "flat_stage_completion") + money_stage_stars * money_multiplier) * #narrative.chain)
 	local payday_text = self._contract_panel:text({
 		font = tweak_data.menu.pd2_large_font,
 		font_size = tweak_data.menu.pd2_large_font_size,
@@ -424,17 +505,18 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 		self._briefing_len_panel:set_position(contact_text:left(), contact_text:bottom() + 10)
 	end
 	local days_multiplier = 0
-	local day_tweak = narrative.professional and tweak_data.experience_manager.pro_day_multiplier or tweak_data.experience_manager.day_multiplier
 	for i = 1, #narrative.chain do
-		days_multiplier = days_multiplier + (day_tweak[i] - 1)
+		local day_mul = narrative.professional and tweak_data:get_value("experience_manager", "pro_day_multiplier", i) or tweak_data:get_value("experience_manager", "day_multiplier", i)
+		days_multiplier = days_multiplier + (day_mul - 1)
 	end
 	days_multiplier = 1 + days_multiplier / #narrative.chain
+	local last_day_mul = narrative.professional and tweak_data:get_value("experience_manager", "pro_day_multiplier", #narrative.chain) or tweak_data:get_value("experience_manager", "day_multiplier", #narrative.chain)
 	self._data = {}
-	self._data.job_cash = money_job_stars
+	self._data.job_cash = money_job_stars + tweak_data:get_value("money_manager", "flat_job_completion")
 	self._data.add_job_cash = money_job_stars * money_multiplier
-	self._data.stage_cash = money_stage_stars
+	self._data.stage_cash = money_stage_stars + tweak_data:get_value("money_manager", "flat_stage_completion")
 	self._data.add_stage_cash = money_stage_stars * money_multiplier
-	self._data.experience = xp_job_stars * day_tweak[#narrative.chain] + xp_stage_stars + xp_stage_stars * (#narrative.chain - 1) * days_multiplier
+	self._data.experience = xp_job_stars * last_day_mul + xp_stage_stars + xp_stage_stars * (#narrative.chain - 1) * days_multiplier
 	self._data.add_experience = self._data.experience * xp_multiplier
 	self._data.num_stages_string = tostring(#narrative.chain) .. " x "
 	self._data.payday_money = payday_money

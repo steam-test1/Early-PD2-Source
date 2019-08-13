@@ -107,6 +107,12 @@ function MenuBackdropGUI:create_black_borders()
 		color = Color.black
 	})
 	self:_set_black_borders()
+	local one_frame_wait_anim = function(o)
+		o:hide()
+		coroutine.yield()
+		o:show()
+	end
+	self._blackborder_workspace:panel():animate(one_frame_wait_anim)
 end
 function MenuBackdropGUI:_set_black_borders(manager)
 	local manager = self._gui_data_manager or managers.gui_data
@@ -115,16 +121,10 @@ function MenuBackdropGUI:_set_black_borders(manager)
 	local bottom_border = self._blackborder_workspace:panel():child("bottom_border")
 	local border_w = self._blackborder_workspace:panel():w()
 	local border_h = (self._blackborder_workspace:panel():h() - self.BASE_RES.h) / 2
-	top_border:set_position(0, 0)
-	top_border:set_size(border_w, border_h)
-	bottom_border:set_position(0, self.BASE_RES.h + border_h)
-	bottom_border:set_size(border_w, border_h)
-	local one_frame_wait_anim = function(o)
-		o:hide()
-		coroutine.yield()
-		o:show()
-	end
-	self._blackborder_workspace:panel():animate(one_frame_wait_anim)
+	top_border:set_position(0, -2)
+	top_border:set_size(border_w, border_h + 2)
+	bottom_border:set_position(0, self.BASE_RES.h + border_h - 2)
+	bottom_border:set_size(border_w, border_h + 2)
 end
 function MenuBackdropGUI:resolution_changed()
 	local manager = self._gui_data_manager or managers.gui_data

@@ -318,6 +318,10 @@ function MenuNodeGui:_create_menu_item(row_item)
 		row_item.gui_pd2_panel:parent():remove(row_item.gui_pd2_panel)
 	end
 	if row_item.item:parameters().back then
+		row_item.item:parameters().back = false
+		row_item.item:parameters().pd2_corner = true
+	end
+	if row_item.item:parameters().back then
 		row_item.gui_panel = self._item_panel_parent:panel({
 			layer = self.layers.items,
 			w = 30,
@@ -552,8 +556,9 @@ function MenuNodeGui:_create_menu_item(row_item)
 		if row_item.item:parameters().icon then
 			row_item.icon = self.item_panel:bitmap({
 				texture = row_item.item:parameters().icon,
-				rotation = 360,
-				visible = row_item.item:icon_visible()
+				rotation = row_item.item:parameters().icon_rotation or 360,
+				visible = row_item.item:icon_visible(),
+				layer = self.layers.items + 1
 			})
 		end
 		self:_align_normal(row_item)
@@ -1169,7 +1174,8 @@ function MenuNodeGui:_highlight_row_item(row_item, mouse_over)
 end
 function MenuNodeGui:_align_marker(row_item)
 	if row_item.item:parameters().pd2_corner then
-		self._marker_data.marker:show()
+		self._marker_data.marker:set_visible(true)
+		self._marker_data.gradient:set_visible(true)
 		self._marker_data.gradient:set_rotation(360)
 		self._marker_data.marker:set_height(64 * row_item.gui_text:height() / 32)
 		self._marker_data.gradient:set_height(64 * row_item.gui_text:height() / 32)

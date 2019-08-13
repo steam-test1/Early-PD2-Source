@@ -1676,8 +1676,35 @@ function HudIconsTweakData:init()
 		texture_rect = {
 			0,
 			0,
-			102,
-			142
+			128,
+			180
+		}
+	}
+	self.upcard_mask = {
+		texture = "guis/textures/pd2/lootscreen/loot_cards",
+		texture_rect = {
+			128,
+			0,
+			128,
+			180
+		}
+	}
+	self.upcard_weapon = {
+		texture = "guis/textures/pd2/lootscreen/loot_cards",
+		texture_rect = {
+			256,
+			0,
+			128,
+			180
+		}
+	}
+	self.upcard_cash = {
+		texture = "guis/textures/pd2/lootscreen/loot_cards",
+		texture_rect = {
+			384,
+			0,
+			128,
+			180
 		}
 	}
 	self.ace_of_spade = {

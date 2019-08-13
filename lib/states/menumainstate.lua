@@ -68,7 +68,7 @@ function MenuMainState:at_enter(old_state)
 		managers.menu:open_node("trial_info")
 	elseif not has_invite and not managers.network:session() and not Global.mission_manager.has_played_tutorial then
 		local yes_func = function()
-			MenuCallbackHandler:play_safehouse()
+			MenuCallbackHandler:play_safehouse({skip_question = true})
 		end
 		managers.menu:show_question_start_tutorial({yes_func = yes_func})
 	end

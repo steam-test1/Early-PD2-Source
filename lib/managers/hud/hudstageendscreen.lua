@@ -489,7 +489,8 @@ function HUDStageEndScreen:bonus_days(panel, delay, bonus)
 	local _, _, w, h = text:text_rect()
 	panel:set_h(h)
 	text:set_size(w, h)
-	text:set_center_y(math.round(panel:h() / 2))
+	text:set_center_y(panel:h() / 2)
+	text:set_position(math.round(text:x()), math.round(text:y()))
 	panel:animate(callback(self, self, "spawn_animation"), delay, "box_tick")
 	local sign_text = panel:text({
 		font = tweak_data.menu.pd2_small_font,
@@ -522,7 +523,8 @@ function HUDStageEndScreen:bonus_skill(panel, delay, bonus)
 	local _, _, w, h = text:text_rect()
 	panel:set_h(h)
 	text:set_size(w, h)
-	text:set_center_y(math.round(panel:h() / 2))
+	text:set_center_y(panel:h() / 2)
+	text:set_position(math.round(text:x()), math.round(text:y()))
 	panel:animate(callback(self, self, "spawn_animation"), delay, "box_tick")
 	local sign_text = panel:text({
 		font = tweak_data.menu.pd2_small_font,
@@ -555,7 +557,8 @@ function HUDStageEndScreen:bonus_num_players(panel, delay, bonus)
 	local _, _, w, h = text:text_rect()
 	panel:set_h(h)
 	text:set_size(w, h)
-	text:set_center_y(math.round(panel:h() / 2))
+	text:set_center_y(panel:h() / 2)
+	text:set_position(math.round(text:x()), math.round(text:y()))
 	panel:animate(callback(self, self, "spawn_animation"), delay, "box_tick")
 	local sign_text = panel:text({
 		font = tweak_data.menu.pd2_small_font,
@@ -588,7 +591,8 @@ function HUDStageEndScreen:bonus_failed(panel, delay, bonus)
 	local _, _, w, h = text:text_rect()
 	panel:set_h(h)
 	text:set_size(w, h)
-	text:set_center_y(math.round(panel:h() / 2))
+	text:set_center_y(panel:h() / 2)
+	text:set_position(math.round(text:x()), math.round(text:y()))
 	panel:animate(callback(self, self, "spawn_animation"), delay, "box_tick")
 	local sign_text = panel:text({
 		font = tweak_data.menu.pd2_small_font,
@@ -622,7 +626,8 @@ function HUDStageEndScreen:bonus_low_level(panel, delay, bonus)
 	local _, _, w, h = text:text_rect()
 	panel:set_h(h)
 	text:set_size(w, h)
-	text:set_center_y(math.round(panel:h() / 2))
+	text:set_center_y(panel:h() / 2)
+	text:set_position(math.round(text:x()), math.round(text:y()))
 	panel:animate(callback(self, self, "spawn_animation"), delay, "box_tick")
 	local sign_text = panel:text({
 		font = tweak_data.menu.pd2_small_font,
@@ -680,6 +685,8 @@ function HUDStageEndScreen:clear_stage()
 	WalletGuiObject.set_object_visible("wallet_level_text", false)
 	WalletGuiObject.set_object_visible("wallet_money_icon", false)
 	WalletGuiObject.set_object_visible("wallet_money_text", false)
+	WalletGuiObject.set_object_visible("wallet_skillpoint_icon", false)
+	WalletGuiObject.set_object_visible("wallet_skillpoint_text", false)
 end
 function HUDStageEndScreen:stop_stage()
 	self:clear_stage()
@@ -707,14 +714,20 @@ function HUDStageEndScreen:_wait_for_video()
 	local length = video:length()
 	local fade_t = 1
 	local alpha = 0
-	while video:loop_count() == 0 do
+	while alive(video) and video:loop_count() == 0 do
 		local dt = coroutine.yield()
 		time = time + dt
 		video:set_alpha(math.min(time, 1) * 0.2)
 	end
 	if alive(video) then
-		video:stop()
-		video:animate(callback(self, self, "destroy_animation"), nil, 4)
+		do
+			local start_alpha = video:alpha()
+			over(0.25, function(p)
+				video:set_alpha(math.lerp(start_alpha, 0, p))
+			end)
+			video:parent():remove(video)
+			video = nil
+		end
 	end
 end
 function HUDStageEndScreen:create_money_counter(t, dt)
@@ -948,7 +961,7 @@ function HUDStageEndScreen:stage_init(t, dt)
 	self._lp_circle:show()
 	self._lp_backpanel:child("bg_progress_circle"):show()
 	self._lp_forepanel:child("level_progress_text"):show()
-	if data.gained == 0 and data.start_t.current == data.start_t.total then
+	if data.gained == 0 then
 		self._lp_text:set_text(tostring(data.start_t.level))
 		self._lp_circle:set_color(Color(1, 1, 1))
 		managers.menu_component:post_event("box_tick")
@@ -958,11 +971,6 @@ function HUDStageEndScreen:stage_init(t, dt)
 	self._lp_circle:set_alpha(0)
 	self._lp_backpanel:child("bg_progress_circle"):set_alpha(0)
 	self._lp_text:set_alpha(0)
-	if data.gained == 0 then
-		managers.menu_component:post_event("box_tick")
-		self:step_stage_to_end()
-		return
-	end
 	self._bonuses_panel = self._lp_forepanel:panel({
 		x = self._lp_curr_xp:x(),
 		y = 10
@@ -1026,7 +1034,6 @@ function HUDStageEndScreen:stage_init(t, dt)
 	end
 	local bonuses_to_string_converter = {
 		"bonus_risk",
-		"bonus_low_level",
 		"bonus_failed",
 		"bonus_days",
 		"bonus_num_players",
@@ -1174,7 +1181,11 @@ function HUDStageEndScreen:stage_spin_levels(t, dt)
 		end
 		self._lp_xp_curr:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._current_xp))))
 		self._lp_xp_gain:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._gained_xp))))
-		self._lp_xp_nl:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._next_level_xp))))
+		if current_level_data.level < managers.experience:level_cap() then
+			self._lp_xp_nl:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._next_level_xp))))
+		else
+			self._lp_xp_nl:set_text("")
+		end
 	else
 		self._speed = math.max(1.55, self._speed * 0.55)
 		self._top_speed = self._speed
@@ -1201,9 +1212,13 @@ function HUDStageEndScreen:stage_spin_slowdown(t, dt)
 	end
 	local ratio = 1 - self._next_level_xp / data.end_t.total
 	self._lp_circle:set_color(Color(ratio, 1, 1))
-	self._lp_xp_curr:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._current_xp))))
-	self._lp_xp_gain:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._gained_xp))))
-	self._lp_xp_nl:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._next_level_xp))))
+	if data.end_t.level < managers.experience:level_cap() then
+		self._lp_xp_curr:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._current_xp))))
+		self._lp_xp_gain:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._gained_xp))))
+		self._lp_xp_nl:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._next_level_xp))))
+	else
+		self._lp_xp_nl:set_text("")
+	end
 end
 function HUDStageEndScreen:stage_end(t, dt)
 	local data = self._data
@@ -1212,10 +1227,15 @@ function HUDStageEndScreen:stage_end(t, dt)
 	self._static_gained_xp = data.gained
 	self._current_xp = self._static_current_xp
 	self._gained_xp = self._static_gained_xp
-	self._lp_circle:set_color(Color(ratio, 1, 1))
 	self._lp_xp_curr:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._current_xp))))
 	self._lp_xp_gain:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(self._gained_xp))))
-	self._lp_xp_nl:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(data.end_t.total - data.end_t.current))))
+	if data.end_t.level < managers.experience:level_cap() then
+		self._lp_circle:set_color(Color(ratio, 1, 1))
+		self._lp_xp_nl:set_text(managers.money:add_decimal_marks_to_string(tostring(math.floor(data.end_t.total - data.end_t.current))))
+	else
+		self._lp_circle:set_color(Color(1, 1, 1))
+		self._lp_xp_nl:set_text("")
+	end
 	self._wait_t = t
 	self:step_stage_up()
 end
@@ -1227,6 +1247,8 @@ function HUDStageEndScreen:stage_done(t, dt)
 		WalletGuiObject.refresh()
 		WalletGuiObject.set_object_visible("wallet_level_icon", true)
 		WalletGuiObject.set_object_visible("wallet_level_text", true)
+		WalletGuiObject.set_object_visible("wallet_skillpoint_icon", managers.skilltree:points() > 0)
+		WalletGuiObject.set_object_visible("wallet_skillpoint_text", managers.skilltree:points() > 0)
 		self._done_clbk(true)
 		self._all_done = true
 	end

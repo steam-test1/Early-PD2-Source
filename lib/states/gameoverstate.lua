@@ -30,7 +30,7 @@ function GameOverState:_set_continue_button_text()
 	local text = utf8.to_upper(managers.localization:text(text_id, {
 		CONTINUE = managers.localization:btn_macro("continue")
 	}))
-	managers.menu_component:set_endscreen_continue_button_text(text, self._continue_block_timer and self._continue_block_timer > Application:time() or self._completion_bonus_done == false)
+	managers.menu_component:set_endscreen_continue_button_text(text, text_id ~= "failed_disconnected_continue" and text_id ~= "debug_mission_end_continue" and text_id ~= "menu_victory_retry_stage")
 end
 function GameOverState:_continue()
 	if Network:is_server() or managers.dlc:is_trial() then

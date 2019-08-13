@@ -66,7 +66,8 @@ function ContractBoxGui:init(ws, fullscreen_ws)
 			bg_text:move(-13, 9)
 			MenuBackdropGUI.animate_bg_text(self, bg_text)
 		end
-		if managers.menu:is_pc_controller() and wfs_text then
+		if not managers.menu:is_pc_controller() or wfs_text then
+			do break end
 			local bg_text = self._fullscreen_panel:text({
 				text = wfs_text:text(),
 				h = 90,
@@ -207,36 +208,66 @@ function ContractBoxGui:create_contract_box()
 		local job_stars = managers.job:current_job_stars()
 		local job_and_difficulty_stars = managers.job:current_job_and_difficulty_stars()
 		local difficulty_stars = job_and_difficulty_stars - job_stars
-		local risk_color = Color(255, 255, 204, 0) / 255
+		local risk_color = tweak_data.screen_colors.risk
 		local cy = paygrade_text_header:center_y()
 		local sx = paygrade_text_header:right() + 5
-		for i = 1, 10 do
+		local level_data = {
+			texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
+			texture_rect = filled_star_rect,
+			w = 16,
+			h = 16,
+			color = tweak_data.screen_colors.text,
+			alpha = 1
+		}
+		local risk_data = {
+			texture = "guis/textures/pd2/crimenet_skull",
+			w = 16,
+			h = 16,
+			color = risk_color,
+			alpha = 1
+		}
+		for i = 1, job_and_difficulty_stars do
 			local x = sx + (i - 1) * 18
-			local alpha = i > job_and_difficulty_stars and 0.25 or 1
-			local color = (i > job_and_difficulty_stars or i <= job_stars) and Color.white or risk_color
-			local star = self._contract_panel:bitmap({
-				name = "star" .. tostring(i),
-				texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
-				texture_rect = filled_star_rect,
-				x = x,
-				y = 0,
-				w = 16,
-				h = 16,
-				alpha = alpha,
-				color = color
-			})
+			local is_risk = i > job_stars
+			local star_data = is_risk and risk_data or level_data
+			local star = self._contract_panel:bitmap(star_data)
+			star:set_x(x)
 			star:set_center_y(math.round(cy))
 		end
+		local plvl = managers.experience:current_level()
+		local player_stars = math.max(math.ceil(plvl / 10), 1)
 		local days_multiplier = 0
-		local day_tweak = job_data.professional and tweak_data.experience_manager.pro_day_multiplier or tweak_data.experience_manager.day_multiplier
 		for i = 1, #job_data.chain do
-			days_multiplier = days_multiplier + (day_tweak[i] - 1)
+			local day_mul = job_data.professional and tweak_data:get_value("experience_manager", "pro_day_multiplier", i) or tweak_data:get_value("experience_manager", "day_multiplier", i)
+			days_multiplier = days_multiplier + (day_mul - 1)
 		end
 		days_multiplier = 1 + days_multiplier / #job_data.chain
+		local last_day_mul = job_data.professional and tweak_data:get_value("experience_manager", "pro_day_multiplier", #job_data.chain) or tweak_data:get_value("experience_manager", "day_multiplier", #job_data.chain)
 		local xp_stage_stars = managers.experience:get_stage_xp_by_stars(job_stars)
 		local xp_job_stars = managers.experience:get_job_xp_by_stars(job_stars)
 		local xp_multiplier = managers.experience:get_contract_difficulty_multiplier(difficulty_stars)
-		local job_experience = math.round(xp_job_stars * day_tweak[#job_data.chain] + xp_stage_stars + xp_stage_stars * (#job_data.chain - 1) * days_multiplier)
+		local experience_manager = tweak_data.experience_manager.level_limit
+		if player_stars <= job_and_difficulty_stars + tweak_data:get_value("experience_manager", "level_limit", "low_cap_level") then
+			local diff_stars = math.clamp(job_and_difficulty_stars - player_stars, 1, #experience_manager.pc_difference_multipliers)
+			local level_limit_mul = tweak_data:get_value("experience_manager", "level_limit", "pc_difference_multipliers", diff_stars)
+			local plr_difficulty_stars = math.max(difficulty_stars - diff_stars, 0)
+			local plr_xp_multiplier = managers.experience:get_contract_difficulty_multiplier(plr_difficulty_stars) or 0
+			local white_player_stars = player_stars - plr_difficulty_stars
+			local xp_plr_stage_stars = managers.experience:get_stage_xp_by_stars(white_player_stars)
+			xp_plr_stage_stars = xp_plr_stage_stars + xp_plr_stage_stars * plr_xp_multiplier
+			local xp_stage = xp_stage_stars + xp_stage_stars * xp_multiplier
+			local diff_stage = xp_stage - xp_plr_stage_stars
+			local new_xp_stage = xp_plr_stage_stars + diff_stage * level_limit_mul
+			xp_stage_stars = xp_stage_stars * (new_xp_stage / xp_stage)
+			local xp_plr_job_stars = managers.experience:get_job_xp_by_stars(white_player_stars)
+			xp_plr_job_stars = xp_plr_job_stars + xp_plr_job_stars * plr_xp_multiplier
+			local xp_job = xp_job_stars + xp_job_stars * xp_multiplier
+			local diff_job = xp_job - xp_plr_job_stars
+			local new_xp_job = xp_plr_job_stars + diff_job * level_limit_mul
+			xp_job_stars = xp_job_stars * (new_xp_job / xp_job)
+		end
+		local pure_job_experience = xp_job_stars * last_day_mul + xp_stage_stars + xp_stage_stars * (#job_data.chain - 1) * days_multiplier
+		local job_experience = math.round(pure_job_experience)
 		local job_xp = self._contract_panel:text({
 			font = font,
 			font_size = font_size,
@@ -251,7 +282,7 @@ function ContractBoxGui:create_contract_box()
 		local risk_xp = self._contract_panel:text({
 			font = font,
 			font_size = font_size,
-			text = " +" .. tostring(math.round(job_experience * xp_multiplier)),
+			text = " +" .. tostring(math.round(pure_job_experience * xp_multiplier)),
 			color = risk_color
 		})
 		do
@@ -262,10 +293,30 @@ function ContractBoxGui:create_contract_box()
 		local money_stage_stars = managers.money:get_stage_payout_by_stars(job_stars)
 		local money_job_stars = managers.money:get_job_payout_by_stars(job_stars)
 		local money_multiplier = managers.money:get_contract_difficulty_multiplier(difficulty_stars)
+		local money_manager = tweak_data.money_manager.level_limit
+		if player_stars <= job_and_difficulty_stars + tweak_data:get_value("money_manager", "level_limit", "low_cap_level") then
+			local diff_stars = math.clamp(job_and_difficulty_stars - player_stars, 1, #money_manager.pc_difference_multipliers)
+			local level_limit_mul = tweak_data:get_value("money_manager", "level_limit", "pc_difference_multipliers", diff_stars)
+			local plr_difficulty_stars = math.max(difficulty_stars - diff_stars, 0)
+			local plr_money_multiplier = managers.money:get_contract_difficulty_multiplier(plr_difficulty_stars) or 0
+			local white_player_stars = player_stars - plr_difficulty_stars
+			local cash_plr_stage_stars = managers.money:get_stage_payout_by_stars(white_player_stars, true)
+			cash_plr_stage_stars = cash_plr_stage_stars + cash_plr_stage_stars * plr_money_multiplier
+			local cash_stage = money_stage_stars + money_stage_stars * money_multiplier
+			local diff_stage = cash_stage - cash_plr_stage_stars
+			local new_cash_stage = cash_plr_stage_stars + diff_stage * level_limit_mul
+			money_stage_stars = money_stage_stars * (new_cash_stage / cash_stage)
+			local cash_plr_job_stars = managers.money:get_job_payout_by_stars(white_player_stars, true)
+			cash_plr_job_stars = cash_plr_job_stars + cash_plr_job_stars * plr_money_multiplier
+			local cash_job = money_job_stars + money_job_stars * money_multiplier
+			local diff_job = cash_job - cash_plr_job_stars
+			local new_cash_job = cash_plr_job_stars + diff_job * level_limit_mul
+			money_job_stars = money_job_stars * (new_cash_job / cash_job)
+		end
 		local job_money = self._contract_panel:text({
 			font = font,
 			font_size = font_size,
-			text = managers.experience:cash_string(math.round(money_job_stars + money_stage_stars * #job_data.chain)),
+			text = managers.experience:cash_string(math.round(money_job_stars + tweak_data:get_value("money_manager", "flat_job_completion") + (money_stage_stars + tweak_data:get_value("money_manager", "flat_stage_completion")) * #job_data.chain)),
 			color = tweak_data.screen_colors.text
 		})
 		do
@@ -306,6 +357,15 @@ function ContractBoxGui:create_contract_box()
 		if wfs_text and not managers.menu:is_pc_controller() then
 			wfs_text:set_rightbottom(self._panel:w() - 20, self._contract_text_header:top())
 		end
+	end
+	local wfs = self._panel:child("wfs")
+	if wfs then
+		self._contract_panel:grow(0, wfs:h() + 5)
+		self._contract_panel:move(0, -(wfs:h() + 5))
+		if self._contract_text_header then
+			self._contract_text_header:move(0, -(wfs:h() + 5))
+		end
+		wfs:set_world_rightbottom(self._contract_panel:world_right() - 5, self._contract_panel:world_bottom())
 	end
 	BoxGuiObject:new(self._contract_panel, {
 		sides = {
@@ -350,11 +410,25 @@ function ContractBoxGui:create_character_text(peer_id, x, y, text)
 		color = color,
 		blend_mode = "add"
 	})
-	self._peers[peer_id]:set_text(text)
+	self._peers[peer_id]:set_text(text or "")
 	self._peers[peer_id]:set_visible(self._enabled)
 	local _, _, w, h = self._peers[peer_id]:text_rect()
 	self._peers[peer_id]:set_size(w, h)
 	self._peers[peer_id]:set_center(x, y)
+	self._peers_state = self._peers_state or {}
+	self._peers_state[peer_id] = self._peers_state[peer_id] or self._panel:text({
+		name = tostring(peer_id) .. "_state",
+		text = "",
+		align = "center",
+		vertical = "top",
+		font_size = tweak_data.menu.pd2_medium_font_size,
+		font = tweak_data.menu.pd2_medium_font,
+		layer = 0,
+		color = tweak_data.screen_colors.text,
+		blend_mode = "add"
+	})
+	self._peers_state[peer_id]:set_top(self._peers[peer_id]:bottom())
+	self._peers_state[peer_id]:set_center_x(self._peers[peer_id]:center_x())
 end
 function ContractBoxGui:update_character(peer_id)
 	if not peer_id or not managers.network:session() then
@@ -374,6 +448,15 @@ function ContractBoxGui:update_character(peer_id)
 		text = peer:name() .. " (" .. tostring((peer:level())) .. ")"
 	end
 	self:create_character_text(peer_id, x, y, text)
+end
+function ContractBoxGui:update_character_menu_state(peer_id, state)
+	if not self._peers_state then
+		return
+	end
+	if not self._peers_state[peer_id] then
+		return
+	end
+	self._peers_state[peer_id]:set_text(state and managers.localization:to_upper_text("menu_lobby_menu_state_" .. state) or "")
 end
 function ContractBoxGui:_create_text_box(ws, title, text, content_data, config)
 end

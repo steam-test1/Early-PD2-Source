@@ -157,20 +157,27 @@ function HUDMissionBriefing:init(hud, workspace)
 	local x = 0
 	local y = 4
 	local star_size = 18
-	for i = 1, 10 do
-		local alpha = i > job_and_difficulty_stars and 0.25 or 1
-		local color = (i > job_and_difficulty_stars or i <= job_stars) and Color.white or tweak_data.screen_colors.risk
-		self._paygrade_panel:bitmap({
-			texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
-			texture_rect = filled_star_rect,
-			x = x,
-			y = y,
-			w = 16,
-			h = 16,
-			alpha = 1,
-			color = color,
-			alpha = alpha
-		})
+	local risk_color = tweak_data.screen_colors.risk
+	local level_data = {
+		texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
+		texture_rect = filled_star_rect,
+		w = 16,
+		h = 16,
+		color = tweak_data.screen_colors.text,
+		alpha = 1
+	}
+	local risk_data = {
+		texture = "guis/textures/pd2/crimenet_skull",
+		w = 16,
+		h = 16,
+		color = risk_color,
+		alpha = 1
+	}
+	for i = 1, job_and_difficulty_stars do
+		local is_risk = i > job_stars
+		local star_data = is_risk and risk_data or level_data
+		local star = self._paygrade_panel:bitmap(star_data)
+		star:set_position(x, y)
 		x = x + star_size
 		num_stars = num_stars + 1
 	end

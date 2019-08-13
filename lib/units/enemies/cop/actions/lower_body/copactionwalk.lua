@@ -408,7 +408,7 @@ function CopActionWalk:_init()
 		end
 	else
 		local good_pos = common_data.nav_tracker:lost() and common_data.nav_tracker:field_position() or common_data.nav_tracker:position()
-		self._simplified_path = self._calculate_simplified_path(good_pos, self._nav_path)
+		self._simplified_path = self._calculate_simplified_path(good_pos, self._nav_path, self._common_data.stance.name == "ntl" and 1)
 	end
 	self:_advance_simplified_path(self._simplified_path_index or 1)
 	self._curve_path_index = 1
@@ -1118,7 +1118,7 @@ function CopActionWalk.synthesize_nav_link(pos, rot, anim, from_idle)
 	local nav_link = {element = fake_element}
 	return nav_link
 end
-CopActionWalk._chk_shortcut_pos_to_pos_params = {allow_entry = true}
+CopActionWalk._chk_shortcut_pos_to_pos_params = {allow_entry = false}
 function CopActionWalk._chk_shortcut_pos_to_pos(from, to, trace)
 	local params = CopActionWalk._chk_shortcut_pos_to_pos_params
 	params.pos_from = from
@@ -1127,7 +1127,7 @@ function CopActionWalk._chk_shortcut_pos_to_pos(from, to, trace)
 	local res = managers.navigation:raycast(params)
 	return res, params.trace
 end
-function CopActionWalk._calculate_simplified_path(good_pos, path)
+function CopActionWalk._calculate_simplified_path(good_pos, path, iteration_nr)
 	local simplified_path = {good_pos}
 	local size_path = #path
 	if size_path > 2 then
@@ -1165,9 +1165,12 @@ function CopActionWalk._calculate_simplified_path(good_pos, path)
 	end
 	table.insert(simplified_path, mvec3_cpy(path[#path]))
 	simplified_path[1] = mvec3_cpy(path[1])
-	if #simplified_path > 2 then
+	if (not iteration_nr or iteration_nr == 1) and #simplified_path > 2 then
 		CopActionWalk._calculate_shortened_path(simplified_path)
 		CopActionWalk._apply_padding_to_simplified_path(simplified_path)
+		if iteration_nr == 1 then
+			simplified_path = CopActionWalk._calculate_simplified_path(good_pos, simplified_path, 2)
+		end
 	end
 	return simplified_path
 end
@@ -1304,7 +1307,7 @@ function CopActionWalk:_nav_chk_walk(t, dt, vis_state)
 				mvec3_set_z(next_vec, 0)
 				local future_dis_flat = mvec3_norm(next_vec)
 				local turn_dot = mvec3_dot(cur_vec, next_vec)
-				if self._haste ~= "run" and turn_dot > -0.7 and turn_dot < 0.7 and not self._attention_pos and future_dis_flat > 80 and self._common_data.stance.name == "ntl" then
+				if self._haste ~= "run" and turn_dot > -0.7 and turn_dot < 0.7 and not self._attention_pos and future_dis_flat > 80 and self._common_data.stance.name == "ntl" and mvec3_dot(self._common_data.fwd, cur_vec) > 0.97 then
 					self._walk_turn = true
 				else
 					turn_dot = turn_dot * turn_dot

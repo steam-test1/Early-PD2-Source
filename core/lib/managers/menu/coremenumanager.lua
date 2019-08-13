@@ -23,6 +23,7 @@ function Manager:register_menu(menu)
 	menu.data:set_callback_handler(menu.callback_handler)
 	menu.logic = CoreMenuLogic.Logic:new(menu.data)
 	menu.logic:register_callback("menu_manager_menu_closed", callback(self, self, "_menu_closed", menu.name))
+	menu.logic:register_callback("menu_manager_select_node", callback(self, self, "_node_selected", menu.name))
 	if not menu.input then
 		menu.input = CoreMenuInput.MenuInput:new(menu.logic, menu.name)
 	else
@@ -108,6 +109,8 @@ function Manager:_menu_closed(menu_name)
 		self._open_menus[#self._open_menus].logic:accept_input(true)
 		self._open_menus[#self._open_menus].logic:soft_open()
 	end
+end
+function Manager:_node_selected(menu_name, node)
 end
 function Manager:input_enabled(enabled)
 	self._input_enabled = enabled

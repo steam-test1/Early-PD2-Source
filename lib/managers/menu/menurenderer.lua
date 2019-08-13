@@ -62,15 +62,15 @@ function MenuRenderer:_create_bottom_text()
 		wrap = true,
 		word_wrap = true,
 		font_size = tweak_data.menu.pd2_small_font_size,
-		align = "left",
-		halign = "left",
+		align = "right",
+		halign = "right",
 		vertical = "top",
 		hvertical = "top",
 		font = tweak_data.menu.pd2_small_font,
-		w = scaled_size.width * 0.75,
+		w = scaled_size.width * 0.66,
 		layer = 2
 	})
-	self._bottom_text:set_top(self._bottom_line:top() - 2)
+	self._bottom_text:set_right(self._bottom_text:parent():w())
 end
 function MenuRenderer:set_bottom_text(id)
 	if not alive(self._bottom_text) then
@@ -148,6 +148,7 @@ end
 function MenuRenderer:resolution_changed(...)
 	MenuRenderer.super.resolution_changed(self, ...)
 	self:_layout_menu_bg()
+	self:active_node_gui():update_item_icon_visibility()
 end
 function MenuRenderer:set_bg_visible(visible)
 end

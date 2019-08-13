@@ -609,6 +609,7 @@ end
 IntimitateInteractionExt = IntimitateInteractionExt or class(BaseInteractionExt)
 function IntimitateInteractionExt:init(unit, ...)
 	IntimitateInteractionExt.super.init(self, unit, ...)
+	self._nbr_interactions = 0
 end
 function IntimitateInteractionExt:unselect()
 	UseInteractionExt.super.unselect(self)
@@ -632,6 +633,9 @@ function IntimitateInteractionExt:interact(player)
 	if self.tweak_data == "corpse_alarm_pager" then
 		self._unit:base():set_material_state(true)
 		if Network:is_server() then
+			self._nbr_interactions = 0
+			local u_id = managers.enemy:get_corpse_unit_data_from_key(self._unit:key()).u_id
+			managers.network:session():send_to_peers_synched("alarm_pager_interaction", u_id, self.tweak_data, 3)
 			self._unit:brain():on_alarm_pager_interaction("complete", player)
 		else
 			local u_id = managers.enemy:get_corpse_unit_data_from_key(self._unit:key()).u_id
@@ -675,6 +679,9 @@ end
 function IntimitateInteractionExt:_at_interact_start(player, timer)
 	IntimitateInteractionExt.super._at_interact_start(self)
 	if self.tweak_data == "corpse_alarm_pager" then
+		if Network:is_server() then
+			self._nbr_interactions = self._nbr_interactions + 1
+		end
 		if self._in_progress then
 			return
 		end
@@ -694,13 +701,17 @@ function IntimitateInteractionExt:_at_interact_interupt(player, complete)
 		if not self._in_progress then
 			return
 		end
-		self._in_progress = nil
 		player:sound():say("dsp_stop_all", false, true)
 		if not complete then
 			self._unit:base():set_material_state(true)
 			if Network:is_server() then
-				self._unit:brain():on_alarm_pager_interaction("interrupted", player)
+				self._nbr_interactions = self._nbr_interactions - 1
+				if self._nbr_interactions == 0 then
+					self._in_progress = nil
+					self._unit:brain():on_alarm_pager_interaction("interrupted", player)
+				end
 			else
+				self._in_progress = nil
 				local u_id = managers.enemy:get_corpse_unit_data_from_key(self._unit:key()).u_id
 				managers.network:session():send_to_host("alarm_pager_interaction", u_id, self.tweak_data, 2)
 			end
@@ -716,18 +727,35 @@ function IntimitateInteractionExt:sync_interacted(peer, status)
 		return unit
 	end
 	if self.tweak_data == "corpse_alarm_pager" then
-		if status == "interrupted" or status == "complete" then
-			if not self._in_progress then
-				return
+		if Network:is_server() then
+			if status == "started" then
+				self._nbr_interactions = self._nbr_interactions + 1
+				if self._in_progress then
+					return
+				end
+				self._in_progress = true
+				self._unit:brain():on_alarm_pager_interaction(status, _get_unit())
+			else
+				if not self._in_progress then
+					return
+				end
+				if status == "complete" then
+					self._nbr_interactions = 0
+					local u_id = managers.enemy:get_corpse_unit_data_from_key(self._unit:key()).u_id
+					managers.network:session():send_to_peers_synched_except(peer:id(), "alarm_pager_interaction", u_id, self.tweak_data, 3)
+				else
+					self._nbr_interactions = self._nbr_interactions - 1
+				end
+				if self._nbr_interactions == 0 then
+					self._in_progress = nil
+					self._unit:base():set_material_state(true)
+					self:remove_interact()
+					self._unit:brain():on_alarm_pager_interaction(status, _get_unit())
+				end
 			end
-			self._in_progress = nil
+		else
 			self._unit:base():set_material_state(true)
-			self:remove_interact()
-		elseif self._in_progress then
-			return
 		end
-		self._in_progress = true
-		self._unit:brain():on_alarm_pager_interaction(status, _get_unit())
 	elseif self.tweak_data == "corpse_dispose" then
 		self:remove_interact()
 		self:set_active(false, true)

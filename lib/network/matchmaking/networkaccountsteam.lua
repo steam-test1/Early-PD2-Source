@@ -150,6 +150,7 @@ function NetworkAccountSTEAM._on_stats_stored(status)
 	managers.network.account._leaderboard_to_publish = nil
 end
 function NetworkAccountSTEAM:publish_statistics(stats, success)
+	do break end
 	if managers.dlc:is_trial() then
 		return
 	end
@@ -230,6 +231,11 @@ function NetworkAccountSTEAM._on_join_request(lobby_id, friend_id)
 	if managers.network:session() and (managers.network:session():_local_peer_in_lobby() or managers.network:game()) then
 		managers.menu:show_cant_join_from_game_dialog()
 	else
+		if not Global.user_manager.user_index or not Global.user_manager.active_user_state_change_quit then
+			print("BOOT UP INVITE")
+			Global.boot_invite = lobby_id
+			return
+		end
 		Global.game_settings.single_player = false
 		managers.network.matchmake:join_server_with_check(lobby_id)
 	end

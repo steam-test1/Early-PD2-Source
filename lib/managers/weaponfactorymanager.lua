@@ -632,10 +632,12 @@ end
 function WeaponFactoryManager:get_stats(factory_id, blueprint)
 	local factory = tweak_data.weapon.factory
 	local forbidden = self:_get_forbidden_parts(factory_id, blueprint)
+	local override = self:_get_override_parts(factory_id, blueprint)
 	local stats = {}
 	for _, part_id in ipairs(blueprint) do
 		if not forbidden[part_id] and factory.parts[part_id].stats then
-			for stat_type, value in pairs(factory.parts[part_id].stats) do
+			local part = self:_part_data(part_id, factory_id)
+			for stat_type, value in pairs(part.stats) do
 				stats[stat_type] = stats[stat_type] or 0
 				stats[stat_type] = stats[stat_type] + value
 			end

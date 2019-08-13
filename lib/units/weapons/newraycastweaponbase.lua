@@ -145,17 +145,19 @@ end
 function NewRaycastWeaponBase:replenish()
 	local ammo_max_multiplier = managers.player:upgrade_value("player", "extra_ammo_multiplier", 1)
 	ammo_max_multiplier = ammo_max_multiplier * managers.player:upgrade_value(self:weapon_tweak_data().category, "extra_ammo_multiplier", 1)
-	self._ammo_max_per_clip = self:get_ammo_max_per_clip()
-	self._ammo_max = math.round((tweak_data.weapon[self._name_id].AMMO_MAX + managers.player:upgrade_value(self._name_id, "clip_amount_increase") * self._ammo_max_per_clip) * ammo_max_multiplier)
-	self._ammo_total = self._ammo_max
-	self._ammo_remaining_in_clip = self._ammo_max_per_clip
+	local ammo_max_per_clip = self:calculate_ammo_max_per_clip()
+	local ammo_max = math.round((tweak_data.weapon[self._name_id].AMMO_MAX + managers.player:upgrade_value(self._name_id, "clip_amount_increase") * ammo_max_per_clip) * ammo_max_multiplier)
+	self:set_ammo_max_per_clip(ammo_max_per_clip)
+	self:set_ammo_max(ammo_max)
+	self:set_ammo_total(ammo_max)
+	self:set_ammo_remaining_in_clip(ammo_max_per_clip)
 	self._ammo_pickup = tweak_data.weapon[self._name_id].AMMO_PICKUP
 	self:update_damage()
 end
 function NewRaycastWeaponBase:update_damage()
 	self._damage = (self._current_stats and self._current_stats.damage or 0) * self:damage_multiplier()
 end
-function NewRaycastWeaponBase:get_ammo_max_per_clip()
+function NewRaycastWeaponBase:calculate_ammo_max_per_clip()
 	local ammo = tweak_data.weapon[self._name_id].CLIP_AMMO_MAX
 	ammo = ammo + managers.player:upgrade_value(self._name_id, "clip_ammo_increase")
 	if not self:upgrade_blocked("weapon", "clip_ammo_increase") then

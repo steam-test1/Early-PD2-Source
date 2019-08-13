@@ -1,7 +1,7 @@
 core:module("CoreMenuRenderer")
 core:import("CoreMenuNodeGui")
 Renderer = Renderer or class()
-Renderer.border_height = 40
+Renderer.border_height = 44
 function Renderer:preload()
 end
 function Renderer:init(logic, parameters)

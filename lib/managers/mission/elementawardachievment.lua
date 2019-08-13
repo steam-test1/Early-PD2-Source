@@ -3,6 +3,9 @@ ElementAwardAchievment = ElementAwardAchievment or class(CoreMissionScriptElemen
 function ElementAwardAchievment:init(...)
 	ElementAwardAchievment.super.init(self, ...)
 end
+function ElementAwardAchievment:client_on_executed_end_screen(...)
+	self:on_executed(...)
+end
 function ElementAwardAchievment:client_on_executed(...)
 	self:on_executed(...)
 end

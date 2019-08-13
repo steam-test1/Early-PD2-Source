@@ -6,8 +6,9 @@ PlayerDamage._ARMOR_DAMAGE_REDUCTION = tweak_data.player.damage.ARMOR_DAMAGE_RED
 PlayerDamage._ARMOR_DAMAGE_REDUCTION_STEPS = tweak_data.player.damage.ARMOR_DAMAGE_REDUCTION_STEPS
 function PlayerDamage:init(unit)
 	self._unit = unit
+	self._revives = Application:digest_value(0, true)
 	self:replenish()
-	self._bleed_out_health = tweak_data.player.damage.BLEED_OUT_HEALTH_INIT * managers.player:upgrade_value("player", "bleed_out_health_multiplier", 1)
+	self._bleed_out_health = Application:digest_value(tweak_data.player.damage.BLEED_OUT_HEALTH_INIT * managers.player:upgrade_value("player", "bleed_out_health_multiplier", 1), true)
 	self._god_mode = Global.god_mode
 	self._invulnerable = false
 	self._gui = Overlay:newgui()
@@ -15,7 +16,7 @@ function PlayerDamage:init(unit)
 	self._focus_delay_mul = 1
 	self._listener_holder = EventListenerHolder:new()
 	self._dmg_interval = tweak_data.player.damage.MIN_DAMAGE_INTERVAL
-	self._next_allowed_dmg_t = -100
+	self._next_allowed_dmg_t = Application:digest_value(-100, true)
 	self._last_received_dmg = 0
 	self._next_allowed_sup_t = -100
 	self._last_received_sup = 0
@@ -42,7 +43,7 @@ function PlayerDamage:update(unit, t, dt)
 			managers.environment_controller:set_hurt_value(hurt)
 			local armor_value = math.max(self._armor_value or 0, self._hurt_value)
 			managers.hud:set_player_armor({
-				current = self._armor * armor_value,
+				current = self:get_real_armor() * armor_value,
 				total = self:_total_armor(),
 				max = self:_max_armor()
 			})
@@ -101,9 +102,9 @@ function PlayerDamage:recover_health()
 	end
 	self:_regenerated(true)
 	managers.hud:set_player_health({
-		current = self._health,
+		current = self:get_real_health(),
 		total = self:_max_health(),
-		revives = self._revives
+		revives = Application:digest_value(self._revives, false)
 	})
 end
 function PlayerDamage:replenish()
@@ -113,12 +114,12 @@ function PlayerDamage:replenish()
 	self:_regenerated()
 	self:_regenerate_armor()
 	managers.hud:set_player_health({
-		current = self._health,
+		current = self:get_real_health(),
 		total = self:_max_health(),
-		revives = self._revives
+		revives = Application:digest_value(self._revives, false)
 	})
 	managers.hud:set_player_armor({
-		current = self._armor,
+		current = self:get_real_armor(),
 		total = self:_total_armor(),
 		max = self:_max_armor()
 	})
@@ -134,11 +135,11 @@ function PlayerDamage:_regenerate_armor()
 	self:_send_set_armor()
 end
 function PlayerDamage:_regenerated(no_messiah)
-	self._health = self:_max_health()
+	self:set_health(self:_max_health())
 	self:_send_set_health()
 	self:_set_health_effect()
 	self._said_hurt = false
-	self._revives = tweak_data.player.damage.LIVES_INIT + managers.player:upgrade_value("player", "additional_lives", 0)
+	self._revives = Application:digest_value(tweak_data.player.damage.LIVES_INIT + managers.player:upgrade_value("player", "additional_lives", 0), true)
 	self._revive_health_i = 1
 	managers.environment_controller:set_last_life(false)
 	self._down_time = tweak_data.player.damage.DOWNED_TIME
@@ -157,39 +158,34 @@ end
 function PlayerDamage:got_messiah_charges()
 	return self._messiah_charges and self._messiah_charges > 0
 end
+function PlayerDamage:get_real_health()
+	return Application:digest_value(self._health, false)
+end
+function PlayerDamage:get_real_armor()
+	return Application:digest_value(self._armor, false)
+end
 function PlayerDamage:change_health(change_of_health)
-	self:set_health(self._health + change_of_health)
+	self:set_health(self:get_real_health() + change_of_health)
 end
 function PlayerDamage:set_health(health)
 	local max_health = self:_max_health()
-	self._health = math.clamp(health, 0, max_health)
+	self._health = Application:digest_value(math.clamp(health, 0, max_health), true)
 	self:_send_set_health()
 	self:_set_health_effect()
 	managers.hud:set_player_health({
-		current = self._health,
+		current = self:get_real_health(),
 		total = max_health,
-		revives = self._revives
+		revives = Application:digest_value(self._revives, false)
 	})
 end
 function PlayerDamage:set_armor(armor)
-	self._armor = math.max(0, armor)
-	local total_armor = self:_total_armor()
-	local armor_ratio = (self._armor or total_armor) / total_armor
-	local armor_steps = self:_armor_steps()
-	for i = 1, armor_steps do
-		local step_ratio = i / armor_steps
-		if armor_ratio <= step_ratio then
-			self._armor_step = step_ratio
-			self._armor_step_i = i
-			break
-		end
-	end
+	self._armor = Application:digest_value(math.clamp(armor, 0, self:_max_armor()), true)
 end
 function PlayerDamage:down_time()
 	return self._down_time
 end
 function PlayerDamage:health_ratio()
-	return self._health / self:_max_health()
+	return self:get_real_health() / self:_max_health()
 end
 function PlayerDamage:_max_health()
 	return (self._HEALTH_INIT + managers.player:thick_skin_value()) * managers.player:upgrade_value("player", "health_multiplier", 1) * managers.player:upgrade_value("player", "passive_health_multiplier", 1)
@@ -204,10 +200,10 @@ function PlayerDamage:_armor_steps()
 	return self._ARMOR_STEPS
 end
 function PlayerDamage:_armor_damage_reduction()
-	return self._ARMOR_DAMAGE_REDUCTION_STEPS[self._armor_step_i or 1] or 0
+	return 0
 end
 function PlayerDamage:full_health()
-	return self._health == self:_max_health()
+	return self:get_real_health() == self:_max_health()
 end
 function PlayerDamage:damage_tase(attack_data)
 	if self._god_mode then
@@ -291,7 +287,7 @@ function PlayerDamage:damage_bullet(attack_data)
 	if attack_data.attacker_unit:base()._tweak_table == "tank" then
 		managers.achievment:set_script_data("dodge_this_fail", true)
 	end
-	if 0 < self._armor then
+	if 0 < self:get_real_armor() then
 		self._unit:sound():play("player_hit")
 	else
 		self._unit:sound():play("player_hit_permadamage")
@@ -309,14 +305,14 @@ function PlayerDamage:damage_bullet(attack_data)
 		return
 	end
 	local armor_reduction_multiplier = 0
-	if 0 >= self._armor then
+	if 0 >= self:get_real_armor() then
 		armor_reduction_multiplier = 1
 	end
 	local health_subtracted = self:_calc_armor_damage(attack_data)
 	attack_data.damage = attack_data.damage * armor_reduction_multiplier
 	health_subtracted = health_subtracted + self:_calc_health_damage(attack_data)
 	managers.player:activate_temporary_upgrade("temporary", "wolverine_health_regen")
-	self._next_allowed_dmg_t = managers.player:player_timer():time() + self._dmg_interval
+	self._next_allowed_dmg_t = Application:digest_value(managers.player:player_timer():time() + self._dmg_interval, true)
 	self._last_received_dmg = health_subtracted
 	if not self._bleed_out and health_subtracted > 0 then
 		self:_send_damage_drama(attack_data, health_subtracted)
@@ -327,19 +323,19 @@ function PlayerDamage:damage_bullet(attack_data)
 end
 function PlayerDamage:_calc_armor_damage(attack_data)
 	local health_subtracted = 0
-	if 0 < self._armor then
-		health_subtracted = self._armor
-		self:set_armor(self._armor - attack_data.damage)
-		health_subtracted = health_subtracted - self._armor
+	if 0 < self:get_real_armor() then
+		health_subtracted = self:get_real_armor()
+		self:set_armor(self:get_real_armor() - attack_data.damage)
+		health_subtracted = health_subtracted - self:get_real_armor()
 		self:_damage_screen()
 		managers.hud:set_player_armor({
-			current = self._armor,
+			current = self:get_real_armor(),
 			total = self:_total_armor(),
 			max = self:_max_armor()
 		})
-		SoundDevice:set_rtpc("shield_status", self._armor / self:_total_armor() * 100)
+		SoundDevice:set_rtpc("shield_status", self:get_real_armor() / self:_total_armor() * 100)
 		self:_send_set_armor()
-		if 0 >= self._armor then
+		if 0 >= self:get_real_armor() then
 			self._unit:sound():play("player_armor_gone_stinger")
 		end
 	end
@@ -347,10 +343,10 @@ function PlayerDamage:_calc_armor_damage(attack_data)
 end
 function PlayerDamage:_calc_health_damage(attack_data)
 	local health_subtracted = 0
-	health_subtracted = self._health
-	self._health = math.max(0, self._health - attack_data.damage)
-	health_subtracted = health_subtracted - self._health
-	if self._health == 0 and attack_data.variant and attack_data.variant == "bullet" and self._revives > 1 and managers.player:has_category_upgrade("player", "cheat_death_chance") then
+	health_subtracted = self:get_real_health()
+	self:change_health(-attack_data.damage)
+	health_subtracted = health_subtracted - self:get_real_health()
+	if self:get_real_health() == 0 and attack_data.variant and attack_data.variant == "bullet" and Application:digest_value(self._revives, false) > 1 and managers.player:has_category_upgrade("player", "cheat_death_chance") then
 		local r = math.rand(1)
 		if r <= managers.player:upgrade_value("player", "cheat_death_chance") then
 			self._auto_revive_timer = 1
@@ -359,9 +355,9 @@ function PlayerDamage:_calc_health_damage(attack_data)
 	self:_damage_screen()
 	self:_check_bleed_out()
 	managers.hud:set_player_health({
-		current = self._health,
+		current = self:get_real_health(),
 		total = self:_max_health(),
-		revives = self._revives
+		revives = Application:digest_value(self._revives, false)
 	})
 	self:_send_set_health()
 	self:_set_health_effect()
@@ -402,7 +398,7 @@ function PlayerDamage:damage_killzone(attack_data)
 		return
 	end
 	local armor_reduction_multiplier = 0
-	if 0 >= self._armor then
+	if 0 >= self:get_real_armor() then
 		armor_reduction_multiplier = 1
 	end
 	local health_subtracted = self:_calc_armor_damage(attack_data)
@@ -434,10 +430,10 @@ function PlayerDamage:damage_fall(data)
 	end
 	local health_damage_multiplier = 0
 	if die then
-		self._health = 0
+		self:set_health(0)
 	else
 		health_damage_multiplier = managers.player:upgrade_value("player", "fall_damage_multiplier", 1) * managers.player:upgrade_value("player", "fall_health_damage_multiplier", 1)
-		self._health = math.clamp(self._health - tweak_data.player.fall_health_damage * health_damage_multiplier, 1, self:_max_health())
+		self:change_health(-(tweak_data.player.fall_health_damage * health_damage_multiplier))
 	end
 	if die or health_damage_multiplier > 0 then
 		local alert_rad = tweak_data.player.fall_damage_alert_size or 500
@@ -454,10 +450,10 @@ function PlayerDamage:damage_fall(data)
 	if die then
 		self:set_armor(0)
 	else
-		self:set_armor(self._armor - max_armor * managers.player:upgrade_value("player", "fall_damage_multiplier", 1))
+		self:set_armor(self:get_real_armor() - max_armor * managers.player:upgrade_value("player", "fall_damage_multiplier", 1))
 	end
 	managers.hud:set_player_armor({
-		current = self._armor,
+		current = self:get_real_armor(),
 		total = self:_total_armor(),
 		max = max_armor,
 		no_hint = true
@@ -465,9 +461,9 @@ function PlayerDamage:damage_fall(data)
 	SoundDevice:set_rtpc("shield_status", 0)
 	self:_send_set_armor()
 	managers.hud:set_player_health({
-		current = self._health,
+		current = self:get_real_health(),
 		total = self:_max_health(),
-		revives = self._revives
+		revives = Application:digest_value(self._revives, false)
 	})
 	self:_send_set_health()
 	self:_set_health_effect()
@@ -518,10 +514,10 @@ function PlayerDamage:update_downed(t, dt)
 	return false
 end
 function PlayerDamage:_check_bleed_out()
-	if self._health == 0 then
-		self._revives = self._revives - 1
-		managers.environment_controller:set_last_life(self._revives <= 1)
-		if self._revives == 0 then
+	if self:get_real_health() == 0 then
+		self._revives = Application:digest_value(Application:digest_value(self._revives, false) - 1, true)
+		managers.environment_controller:set_last_life(Application:digest_value(self._revives, false) <= 1)
+		if Application:digest_value(self._revives, false) == 0 then
 			self._down_time = 0
 		end
 		self._bleed_out = true
@@ -530,7 +526,7 @@ function PlayerDamage:_check_bleed_out()
 		managers.environment_controller:set_downed_value(0)
 		SoundDevice:set_rtpc("downed_state_progression", 0)
 		self._slomo_sound_instance = self._unit:sound():play("downed_slomo_fx")
-		self._bleed_out_health = tweak_data.player.damage.BLEED_OUT_HEALTH_INIT * managers.player:upgrade_value("player", "bleed_out_health_multiplier", 1)
+		self._bleed_out_health = Application:digest_value(tweak_data.player.damage.BLEED_OUT_HEALTH_INIT * managers.player:upgrade_value("player", "bleed_out_health_multiplier", 1), true)
 		self._hurt_value = 0.2
 		if managers.player:has_category_upgrade("temporary", "pistol_revive_from_bleed_out") then
 			local upgrade_value = managers.player:upgrade_value("temporary", "pistol_revive_from_bleed_out")
@@ -542,7 +538,7 @@ function PlayerDamage:_check_bleed_out()
 		end
 		self:_drop_blood_sample()
 		self:on_downed()
-	elseif not self._said_hurt and 0.2 > self._health / self:_max_health() then
+	elseif not self._said_hurt and 0.2 > self:get_real_health() / self:_max_health() then
 		self._said_hurt = true
 		PlayerStandard.say_line(self, "g80x_plu")
 	end
@@ -658,12 +654,12 @@ function PlayerDamage:arrested()
 	return self._arrested_timer or self._arrested
 end
 function PlayerDamage:_bleed_out_damage(attack_data)
-	local health_subtracted = self._bleed_out_health
-	self._bleed_out_health = math.max(0, self._bleed_out_health - attack_data.damage)
-	health_subtracted = health_subtracted - self._health
-	self._next_allowed_dmg_t = managers.player:player_timer():time() + self._dmg_interval
+	local health_subtracted = Application:digest_value(self._bleed_out_health, false)
+	self._bleed_out_health = Application:digest_value(math.max(0, health_subtracted - attack_data.damage), true)
+	health_subtracted = health_subtracted - Application:digest_value(self._bleed_out_health, false)
+	self._next_allowed_dmg_t = Application:digest_value(managers.player:player_timer():time() + self._dmg_interval, true)
 	self._last_received_dmg = health_subtracted
-	if self._bleed_out_health <= 0 then
+	if Application:digest_value(self._bleed_out_health, false) <= 0 then
 		managers.player:set_player_state("fatal")
 	end
 	if health_subtracted > 0 then
@@ -703,8 +699,8 @@ function PlayerDamage:_hit_direction(col_ray)
 end
 function PlayerDamage:_damage_screen()
 	self:set_regenerate_timer_to_max()
-	self._hurt_value = 1 - math.clamp(0.8 - math.pow(self._armor / self:_max_armor(), 2), 0, 1)
-	self._armor_value = math.clamp(self._armor / self:_max_armor(), 0, 1)
+	self._hurt_value = 1 - math.clamp(0.8 - math.pow(self:get_real_armor() / self:_max_armor(), 2), 0, 1)
+	self._armor_value = math.clamp(self:get_real_armor() / self:_max_armor(), 0, 1)
 	managers.environment_controller:set_hurt_value(self._hurt_value)
 end
 function PlayerDamage:set_revive_boost(revive_health_level)
@@ -712,7 +708,7 @@ function PlayerDamage:set_revive_boost(revive_health_level)
 	print("PlayerDamage:set_revive_boost", "revive_health_level", revive_health_level, "revive_health_multiplier", tostring(self._revive_health_multiplier))
 end
 function PlayerDamage:revive(helped_self)
-	if self._revives == 0 then
+	if Application:digest_value(self._revives, false) == 0 then
 		self._revive_health_multiplier = nil
 		return
 	end
@@ -729,17 +725,16 @@ function PlayerDamage:revive(helped_self)
 		if true ~= helped_self then
 			managers.challenges:count_up("revived")
 		end
-		self._health = self:_max_health()
-		self._health = math.clamp(self._health * tweak_data.player.damage.REVIVE_HEALTH_STEPS[self._revive_health_i] * (self._revive_health_multiplier or 1), 0, self._health)
+		self:set_health(self:_max_health() * tweak_data.player.damage.REVIVE_HEALTH_STEPS[self._revive_health_i] * (self._revive_health_multiplier or 1))
 		self:set_armor(self:_total_armor())
 		self._revive_health_i = math.min(#tweak_data.player.damage.REVIVE_HEALTH_STEPS, self._revive_health_i + 1)
 		self._revive_miss = 2
 	end
 	self:_regenerate_armor()
 	managers.hud:set_player_health({
-		current = self._health,
+		current = self:get_real_health(),
 		total = self:_max_health(),
-		revives = self._revives
+		revives = Application:digest_value(self._revives, false)
 	})
 	self:_send_set_health()
 	self:_set_health_effect()
@@ -781,18 +776,18 @@ function PlayerDamage:set_regenerate_timer_to_max()
 end
 function PlayerDamage:_send_set_health()
 	if self._unit:network() then
-		local hp = math.round(self._health / self:_max_health() * 100)
+		local hp = math.round(self:get_real_health() / self:_max_health() * 100)
 		self._unit:network():send("set_health", math.clamp(hp, 0, 100))
 	end
 end
 function PlayerDamage:_set_health_effect()
-	local hp = self._health / self:_max_health()
+	local hp = self:get_real_health() / self:_max_health()
 	math.clamp(hp, 0, 1)
 	managers.environment_controller:set_health_effect_value(hp)
 end
 function PlayerDamage:_send_set_armor()
 	if self._unit:network() then
-		local armor = math.round(self._armor / self:_total_armor() * 100)
+		local armor = math.round(self:get_real_armor() / self:_total_armor() * 100)
 		self._unit:network():send("set_armor", math.clamp(armor, 0, 100))
 	end
 end
@@ -850,7 +845,8 @@ function PlayerDamage:on_incapacitated_state_enter()
 	self:_call_listeners(dmg_info)
 end
 function PlayerDamage:_chk_dmg_too_soon(damage)
-	if damage <= self._last_received_dmg and managers.player:player_timer():time() < self._next_allowed_dmg_t then
+	local next_allowed_dmg_t = type(self._next_allowed_dmg_t) == "number" and self._next_allowed_dmg_t or Application:digest_value(self._next_allowed_dmg_t, false)
+	if damage <= self._last_received_dmg and next_allowed_dmg_t > managers.player:player_timer():time() then
 		return true
 	end
 end
@@ -926,7 +922,7 @@ function PlayerDamage:_upd_health_regen(t, dt)
 	if not self._health_regen_update_timer then
 		local regen_rate = 0 + managers.player:temporary_upgrade_value("temporary", "wolverine_health_regen", 0)
 		local max_health = self:_max_health()
-		if regen_rate > 0 and max_health > self._health then
+		if regen_rate > 0 and max_health > self:get_real_health() then
 			self:change_health(max_health * regen_rate)
 			self._health_regen_update_timer = 1
 		end

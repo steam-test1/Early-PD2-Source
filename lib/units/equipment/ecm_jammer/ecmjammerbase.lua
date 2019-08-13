@@ -274,6 +274,7 @@ function ECMJammerBase:clbk_feedback()
 	end
 end
 function ECMJammerBase._detect_and_give_dmg(hit_pos, device_unit, user_unit, range)
+	local mvec3_dis_sq = mvector3.distance_sq
 	local slotmask = managers.slot:get_mask("bullet_impact_targets")
 	local splinters = {
 		mvector3.copy(hit_pos)
@@ -303,6 +304,9 @@ function ECMJammerBase._detect_and_give_dmg(hit_pos, device_unit, user_unit, ran
 			table.insert(splinters, mvector3.copy(pos))
 		end
 	end
+	local range_sq = range * range
+	local half_range_sq = range * 0.5
+	half_range_sq = half_range_sq * half_range_sq
 	local function _chk_apply_dmg_to_char(u_data)
 		if not u_data.char_tweak.ecm_vulnerability then
 			return
@@ -310,10 +314,14 @@ function ECMJammerBase._detect_and_give_dmg(hit_pos, device_unit, user_unit, ran
 		if math.random() >= u_data.char_tweak.ecm_vulnerability then
 			return
 		end
+		local head_pos = u_data.unit:movement():m_head_pos()
+		local dis_sq = mvec3_dis_sq(head_pos, hit_pos)
+		if dis_sq > range_sq then
+			return
+		end
 		for i_splinter, s_pos in ipairs(splinters) do
-			local head_pos = u_data.unit:movement():m_head_pos()
-			local ray_hit = not World:raycast("ray", s_pos, head_pos, "slot_mask", slotmask, "ignore_unit", u_data.unit, "report")
-			if not ray_hit then
+			local ray_hit = World:raycast("ray", s_pos, head_pos, "slot_mask", slotmask, "ignore_unit", u_data.unit, "report")
+			if not ray_hit and (i_splinter == 1 or dis_sq < half_range_sq) then
 				local attack_data = {
 					variant = "stun",
 					damage = 0,

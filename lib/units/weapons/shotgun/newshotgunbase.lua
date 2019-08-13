@@ -132,16 +132,17 @@ function NewShotgunBase:_fire_raycast(user_unit, from_pos, direction, dmg_mul, s
 	return result
 end
 function NewShotgunBase:reload_expire_t()
-	return math.min(self._ammo_total - self._ammo_remaining_in_clip, self._ammo_max_per_clip - self._ammo_remaining_in_clip) * 17 / 30
+	local ammo_remaining_in_clip = self:get_ammo_remaining_in_clip()
+	return math.min(self:get_ammo_total() - ammo_remaining_in_clip, self:get_ammo_max_per_clip() - ammo_remaining_in_clip) * 17 / 30
 end
 function NewShotgunBase:reload_enter_expire_t()
 	return 0.3
 end
 function NewShotgunBase:reload_exit_expire_t()
-	return 1.3
+	return 0.7
 end
 function NewShotgunBase:reload_not_empty_exit_expire_t()
-	return 1
+	return 0.3
 end
 function NewShotgunBase:start_reload(...)
 	NewShotgunBase.super.start_reload(self, ...)
@@ -156,7 +157,7 @@ function NewShotgunBase:update_reloading(t, dt, time_left)
 	if t > self._next_shell_reloded_t then
 		local speed_multiplier = self:reload_speed_multiplier()
 		self._next_shell_reloded_t = self._next_shell_reloded_t + 0.56666666 / speed_multiplier
-		self._ammo_remaining_in_clip = math.min(self._ammo_max_per_clip, self._ammo_remaining_in_clip + 1)
+		self:set_ammo_remaining_in_clip(math.min(self:get_ammo_max_per_clip(), self:get_ammo_remaining_in_clip() + 1))
 		return true
 	end
 end

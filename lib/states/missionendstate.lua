@@ -152,92 +152,50 @@ function MissionEndState:is_success()
 	return self._success
 end
 function MissionEndState:_get_xp_dissected(success, num_winners)
-	local has_active_job = managers.job:has_active_job()
-	local job_and_difficulty_stars = has_active_job and managers.job:current_job_and_difficulty_stars() or 1
-	local job_stars = has_active_job and managers.job:current_job_stars() or 1
-	local difficulty_stars = job_and_difficulty_stars - job_stars
-	local player_stars = managers.experience:level_to_stars()
-	local days_multiplier = managers.experience:get_current_job_day_multiplier()
-	local is_level_limited = job_and_difficulty_stars > player_stars
-	local total_stars = math.min(job_and_difficulty_stars, player_stars)
-	local total_difficulty_stars = math.max(0, total_stars - job_stars)
-	local xp_multiplier = managers.experience:get_contract_difficulty_multiplier(total_difficulty_stars)
-	total_stars = math.min(job_stars, total_stars)
-	local contract_xp = 0
-	local total_xp = 0
-	local stage_xp_dissect = 0
-	local job_xp_dissect = 0
-	local level_limit_dissect = 0
-	local risk_dissect = 0
-	local failed_level_dissect = 0
-	local alive_crew_dissect = 0
-	local skill_dissect = 0
-	local base_xp = 0
-	local days_dissect = 0
-	if success and has_active_job and managers.job:on_last_stage() then
-		job_xp_dissect = managers.experience:get_job_xp_by_stars(job_stars)
-		contract_xp = contract_xp + managers.experience:get_job_xp_by_stars(total_stars)
-		level_limit_dissect = level_limit_dissect + job_xp_dissect
-	end
-	stage_xp_dissect = managers.experience:get_stage_xp_by_stars(job_stars)
-	contract_xp = contract_xp + managers.experience:get_stage_xp_by_stars(total_stars)
-	level_limit_dissect = level_limit_dissect + stage_xp_dissect
-	base_xp = contract_xp
-	contract_xp = contract_xp + math.round(contract_xp * xp_multiplier)
-	risk_dissect = math.round(level_limit_dissect * managers.experience:get_contract_difficulty_multiplier(difficulty_stars))
-	level_limit_dissect = math.round(level_limit_dissect + risk_dissect)
-	if is_level_limited then
-		local level_limit_tweak_data = tweak_data.experience_manager.level_limit
-		if managers.experience:current_level() <= level_limit_tweak_data.low_cap_level then
-			contract_xp = contract_xp + contract_xp * level_limit_tweak_data.low_cap_multiplier
-			contract_xp = math.round(math.min(contract_xp, level_limit_dissect))
-		else
-			local diff_in_experience = level_limit_dissect - contract_xp
-			local diff_in_stars = job_and_difficulty_stars - player_stars
-			local tweak_multiplier = level_limit_tweak_data.pc_difference_multipliers[diff_in_stars] or 0
-			contract_xp = contract_xp + diff_in_experience * tweak_multiplier
-			contract_xp = math.round(math.min(contract_xp, level_limit_dissect))
+	local total_xp, dissection_table = managers.experience:get_xp_dissected(success, num_winners)
+	if managers.job:has_active_job() then
+		local job_stars = managers.job:current_job_stars()
+		local job_and_difficulty_stars = managers.job:current_job_and_difficulty_stars()
+		local difficulty_stars = job_and_difficulty_stars - job_stars
+		local xp_multiplier = managers.experience:get_contract_difficulty_multiplier(difficulty_stars)
+		local xp_stage_stars = dissection_table.stage_xp
+		local xp_job_stars = dissection_table.job_xp
+		local xp_risk_stars = dissection_table.bonus_risk
+		local xp_total_diff_pre = xp_stage_stars + xp_job_stars + xp_risk_stars + dissection_table.bonus_low_level
+		local plvl = managers.experience:current_level()
+		local player_stars = math.max(math.ceil(plvl / 10), 1)
+		local experience_manager = tweak_data.experience_manager.level_limit
+		if player_stars <= job_and_difficulty_stars + tweak_data:get_value("experience_manager", "level_limit", "low_cap_level") then
+			local diff_stars = math.clamp(job_and_difficulty_stars - player_stars, 1, #experience_manager.pc_difference_multipliers)
+			local level_limit_mul = tweak_data:get_value("experience_manager", "level_limit", "pc_difference_multipliers", diff_stars)
+			local plr_difficulty_stars = math.max(difficulty_stars - diff_stars, 0)
+			local plr_xp_multiplier = managers.experience:get_contract_difficulty_multiplier(plr_difficulty_stars) or 0
+			local white_player_stars = player_stars - plr_difficulty_stars
+			local xp_plr_stage_stars = managers.experience:get_stage_xp_by_stars(white_player_stars)
+			xp_plr_stage_stars = xp_plr_stage_stars + xp_plr_stage_stars * plr_xp_multiplier
+			local xp_stage = xp_stage_stars + xp_stage_stars * xp_multiplier
+			local diff_stage = xp_stage - xp_plr_stage_stars
+			local new_xp_stage = xp_plr_stage_stars + diff_stage * level_limit_mul
+			xp_stage_stars = xp_stage_stars * (new_xp_stage / xp_stage)
+			if success and managers.job:on_last_stage() then
+				local xp_plr_job_stars = managers.experience:get_job_xp_by_stars(white_player_stars)
+				xp_plr_job_stars = xp_plr_job_stars + xp_plr_job_stars * plr_xp_multiplier
+				local xp_job = xp_job_stars + xp_job_stars * xp_multiplier
+				local diff_job = xp_job - xp_plr_job_stars
+				local new_xp_job = xp_plr_job_stars + diff_job * level_limit_mul
+				xp_job_stars = xp_job_stars * (new_xp_job / xp_job)
+			end
+			xp_risk_stars = (xp_stage_stars + xp_job_stars) * xp_multiplier
 		end
+		dissection_table.stage_xp = math.round(xp_stage_stars)
+		dissection_table.job_xp = math.round(xp_job_stars)
+		dissection_table.bonus_risk = math.round(xp_risk_stars)
+		local xp_total_diff_post = dissection_table.stage_xp + dissection_table.job_xp + dissection_table.bonus_risk
+		local diff_in_xp = xp_total_diff_post - xp_total_diff_pre
+		total_xp = total_xp + diff_in_xp
+		dissection_table.total = dissection_table.total + diff_in_xp
 	end
-	level_limit_dissect = contract_xp - level_limit_dissect
-	if not success then
-		failed_level_dissect = contract_xp
-		contract_xp = math.round(contract_xp * (tweak_data.experience_manager.stage_failed_multiplier or 1))
-		failed_level_dissect = contract_xp - failed_level_dissect
-	end
-	total_xp = contract_xp
-	if success then
-		local num_players_bonus = num_winners and tweak_data.experience_manager.alive_humans_multiplier[num_winners] or 1
-		alive_crew_dissect = math.round(contract_xp * num_players_bonus - contract_xp)
-		total_xp = total_xp + alive_crew_dissect
-	end
-	local multiplier = managers.player:upgrade_value("player", "xp_multiplier", 1)
-	multiplier = multiplier * managers.player:upgrade_value("player", "passive_xp_multiplier", 1)
-	multiplier = multiplier * managers.player:team_upgrade_value("xp", "multiplier", 1)
-	skill_dissect = math.round(contract_xp * multiplier - contract_xp)
-	total_xp = total_xp + skill_dissect
-	days_dissect = math.round(contract_xp * days_multiplier - contract_xp)
-	total_xp = total_xp + days_dissect
-	local dissection_table = {
-		bonus_risk = math.round(risk_dissect),
-		bonus_num_players = math.round(alive_crew_dissect),
-		bonus_failed = math.round(failed_level_dissect),
-		bonus_low_level = math.round(level_limit_dissect),
-		bonus_skill = math.round(skill_dissect),
-		bonus_days = math.round(days_dissect),
-		stage_xp = math.round(stage_xp_dissect),
-		job_xp = math.round(job_xp_dissect),
-		base = math.round(base_xp),
-		total = math.round(total_xp),
-		last_stage = success and has_active_job and managers.job:on_last_stage()
-	}
-	if Application:production_build() then
-		local rounding_error = dissection_table.total - (dissection_table.stage_xp + dissection_table.job_xp + dissection_table.bonus_risk + dissection_table.bonus_num_players + dissection_table.bonus_failed + dissection_table.bonus_low_level + dissection_table.bonus_skill + dissection_table.bonus_days)
-		dissection_table.rounding_error = rounding_error
-	else
-		dissection_table.rounding_error = 0
-	end
-	return math.round(total_xp), dissection_table
+	return total_xp, dissection_table
 end
 function MissionEndState:_get_contract_xp(success)
 	local has_active_job = managers.job:has_active_job()
@@ -261,7 +219,7 @@ function MissionEndState:_get_contract_xp(success)
 		contract_xp = contract_xp + managers.experience:get_stage_xp_by_stars(total_stars)
 	end
 	contract_xp = contract_xp + contract_xp * xp_multiplier
-	contract_xp = contract_xp * (not success and tweak_data.experience_manager.stage_failed_multiplier or 1)
+	contract_xp = contract_xp * (not success and tweak_data:get_value("experience_manager", "stage_failed_multiplier") or 1)
 	if not success then
 		self._bonuses[4] = true
 	end

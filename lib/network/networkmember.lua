@@ -165,11 +165,16 @@ function NetworkMember:sync_lobby_data(peer)
 	local character = local_peer:character()
 	local mask_set = "remove"
 	local progress = managers.upgrades:progress()
+	local menu_state = managers.menu:get_peer_state(local_peer:id())
+	local menu_state_index = tweak_data:menu_sync_state_to_index(menu_state)
 	cat_print("multiplayer_base", "NetworkMember:sync_lobby_data to", peer:id(), " : ", peer_id, level)
 	local_peer:set_outfit_string(managers.blackmarket:outfit_string())
 	peer:send_after_load("lobby_info", peer_id, level, character, mask_set, progress[1], progress[2], progress[3], progress[4] or -1)
 	peer:send_after_load("sync_profile", level)
 	peer:send_after_load("sync_outfit", managers.blackmarket:outfit_string())
+	if menu_state_index then
+		peer:send_after_load("set_menu_sync_state_index", menu_state_index)
+	end
 	if Network:is_server() then
 		local level_id_index = tweak_data.levels:get_index_from_level_id(Global.game_settings.level_id)
 		peer:send_after_load("lobby_sync_update_level_id", level_id_index)

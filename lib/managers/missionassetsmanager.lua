@@ -1,4 +1,5 @@
 MissionAssetsManager = MissionAssetsManager or class()
+MissionAssetsManager.ALLOW_CLIENTS_UNLOCK = false
 function MissionAssetsManager:init()
 	self:_setup()
 end
@@ -146,8 +147,11 @@ function MissionAssetsManager:_check_triggers(type)
 	end
 	for id, cb_data in pairs(self._triggers[type]) do
 		local asset = self:_get_asset_by_id(cb_data.id)
-		if type ~= "asset" or asset and asset.unlocked then
+		if type ~= "asset" or asset and asset.unlocked and not asset.is_triggered then
 			cb_data.callback()
+			if asset then
+				asset.is_triggered = true
+			end
 		end
 	end
 end
@@ -155,12 +159,15 @@ function MissionAssetsManager:unlock_asset(asset_id)
 	if Idstring(asset_id) == Idstring("none") then
 		return
 	end
-	if Network:is_server() then
+	if Network:is_server() and not self:get_asset_triggered_by_id(asset_id) then
 		self._money_spent = self._money_spent + managers.money:on_buy_mission_asset(asset_id)
 		self:server_unlock_asset(asset_id)
-		if WalletGuiObject then
-			WalletGuiObject.refresh()
-		end
+	elseif self.ALLOW_CLIENTS_UNLOCK and not self:get_asset_unlocked_by_id(asset_id) then
+		self._money_spent = self._money_spent + managers.money:on_buy_mission_asset(asset_id)
+		managers.network:session():send_to_host("server_unlock_asset", asset_id)
+	end
+	if WalletGuiObject then
+		WalletGuiObject.refresh()
 	end
 end
 function MissionAssetsManager:get_money_spent()
@@ -221,6 +228,10 @@ end
 function MissionAssetsManager:get_asset_unlocked_by_id(id)
 	local asset = self:_get_asset_by_id(id)
 	return asset and asset.unlocked or false
+end
+function MissionAssetsManager:get_asset_triggered_by_id(id)
+	local asset = self:_get_asset_by_id(id)
+	return asset and asset.is_triggered or false
 end
 function MissionAssetsManager:get_asset_no_mystery_by_id(id)
 	local asset = self:_get_asset_by_id(id)

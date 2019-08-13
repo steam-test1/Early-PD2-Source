@@ -64,7 +64,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.ukrainian_job_cam.visible_if_locked = true
 	self.ukrainian_job_cam.unlock_desc_id = "menu_asset_cam_desc"
 	self.ukrainian_job_cam.no_mystery = true
-	self.ukrainian_job_cam.money_lock = tweak_data.money_manager.mission_asset_cost_small[6]
+	self.ukrainian_job_cam.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 6)
 	self.ukrainian_job_metal_detector = {}
 	self.ukrainian_job_metal_detector.name_id = "menu_asset_test_jewelry_store_blueprint"
 	self.ukrainian_job_metal_detector.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset05"
@@ -79,7 +79,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 		"ukrainian_job"
 	}
 	self.ukrainian_job_shutter.no_mystery = true
-	self.ukrainian_job_shutter.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.ukrainian_job_shutter.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.security_safe_05x05 = {}
 	self.security_safe_05x05.name_id = "menu_asset_test_jewelry_store_safe"
 	self.security_safe_05x05.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset04"
@@ -150,7 +150,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	}
 	self.election_day_2_gold.visible_if_locked = true
 	self.election_day_2_gold.unlock_desc_id = "menu_asset_election_day_2_gold_desc"
-	self.election_day_2_gold.money_lock = tweak_data.money_manager.mission_asset_cost_small[4]
+	self.election_day_2_gold.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 4)
 	self.election_day_2_gold.no_mystery = true
 	self.election_day_2_money = {}
 	self.election_day_2_money.name_id = "menu_asset_election_day_2_money"
@@ -161,7 +161,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.election_day_2_money.visible_if_locked = true
 	self.election_day_2_money.unlock_desc_id = "menu_asset_election_day_2_money_desc"
 	self.election_day_2_money.no_mystery = true
-	self.election_day_2_money.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.election_day_2_money.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.election_day_2_painting = {}
 	self.election_day_2_painting.name_id = "menu_asset_election_day_2_painting"
 	self.election_day_2_painting.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset06"
@@ -171,7 +171,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.election_day_2_painting.visible_if_locked = true
 	self.election_day_2_painting.unlock_desc_id = "menu_asset_election_day_2_painting_desc"
 	self.election_day_2_painting.no_mystery = true
-	self.election_day_2_painting.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.election_day_2_painting.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.watchdogs_1_ammo = {}
 	self.watchdogs_1_ammo.name_id = "menu_asset_ammo"
 	self.watchdogs_1_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
@@ -181,7 +181,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.watchdogs_1_ammo.visible_if_locked = true
 	self.watchdogs_1_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.watchdogs_1_ammo.no_mystery = true
-	self.watchdogs_1_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.watchdogs_1_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.watchdogs_1_health = {}
 	self.watchdogs_1_health.name_id = "menu_asset_health"
 	self.watchdogs_1_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
@@ -191,7 +191,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.watchdogs_1_health.visible_if_locked = true
 	self.watchdogs_1_health.unlock_desc_id = "menu_asset_health_desc"
 	self.watchdogs_1_health.no_mystery = true
-	self.watchdogs_1_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.watchdogs_1_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.watchdogs_1_escape_car = {}
 	self.watchdogs_1_escape_car.name_id = "menu_asset_watchdogs_escape"
 	self.watchdogs_1_escape_car.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/escapecar"
@@ -201,7 +201,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.watchdogs_1_escape_car.visible_if_locked = true
 	self.watchdogs_1_escape_car.unlock_desc_id = "menu_asset_watchdogs_escape_desc"
 	self.watchdogs_1_escape_car.no_mystery = true
-	self.watchdogs_1_escape_car.money_lock = tweak_data.money_manager.mission_asset_cost_small[7]
+	self.watchdogs_1_escape_car.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 7)
 	self.watchdogs_2_ammo = {}
 	self.watchdogs_2_ammo.name_id = "menu_asset_ammo"
 	self.watchdogs_2_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day2/assets_watchdogs2_ammo"
@@ -211,7 +211,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.watchdogs_2_ammo.visible_if_locked = true
 	self.watchdogs_2_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.watchdogs_2_ammo.no_mystery = true
-	self.watchdogs_2_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.watchdogs_2_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.watchdogs_2_health = {}
 	self.watchdogs_2_health.name_id = "menu_asset_health"
 	self.watchdogs_2_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day2/assets_watchdogs2_medic"
@@ -221,7 +221,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.watchdogs_2_health.visible_if_locked = true
 	self.watchdogs_2_health.unlock_desc_id = "menu_asset_health_desc"
 	self.watchdogs_2_health.no_mystery = true
-	self.watchdogs_2_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.watchdogs_2_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.watchdogs_2_sniper = {}
 	self.watchdogs_2_sniper.name_id = "menu_asset_sniper"
 	self.watchdogs_2_sniper.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day2/assets_watchdogs_sniper"
@@ -231,7 +231,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.watchdogs_2_sniper.visible_if_locked = true
 	self.watchdogs_2_sniper.unlock_desc_id = "menu_asset_sniper_desc"
 	self.watchdogs_2_sniper.no_mystery = true
-	self.watchdogs_2_sniper.money_lock = tweak_data.money_manager.mission_asset_cost_small[6]
+	self.watchdogs_2_sniper.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 6)
 	self.firestarter_1_ammo = {}
 	self.firestarter_1_ammo.name_id = "menu_asset_ammo"
 	self.firestarter_1_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
@@ -241,7 +241,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.firestarter_1_ammo.visible_if_locked = true
 	self.firestarter_1_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.firestarter_1_ammo.no_mystery = true
-	self.firestarter_1_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.firestarter_1_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.firestarter_1_health = {}
 	self.firestarter_1_health.name_id = "menu_asset_health"
 	self.firestarter_1_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
@@ -251,7 +251,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.firestarter_1_health.visible_if_locked = true
 	self.firestarter_1_health.unlock_desc_id = "menu_asset_health_desc"
 	self.firestarter_1_health.no_mystery = true
-	self.firestarter_1_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.firestarter_1_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.firestarter_2_cam = {}
 	self.firestarter_2_cam.name_id = "menu_asset_cam"
 	self.firestarter_2_cam.texture = "guis/textures/pd2/mission_briefing/assets/big_oil/day2/asset03"
@@ -261,7 +261,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.firestarter_2_cam.visible_if_locked = true
 	self.firestarter_2_cam.unlock_desc_id = "menu_asset_cam_desc"
 	self.firestarter_2_cam.no_mystery = true
-	self.firestarter_2_cam.money_lock = tweak_data.money_manager.mission_asset_cost_small[7]
+	self.firestarter_2_cam.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 7)
 	self.firestarter_3_insiderinfo = {}
 	self.firestarter_3_insiderinfo.name_id = "menu_asset_branchbank_insiderinfo"
 	self.firestarter_3_insiderinfo.texture = "guis/textures/pd2/mission_briefing/assets/bank/assets_bank_insiderinfo"
@@ -271,7 +271,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.firestarter_3_insiderinfo.visible_if_locked = true
 	self.firestarter_3_insiderinfo.unlock_desc_id = "menu_asset_branchbank_insiderinfo_desc"
 	self.firestarter_3_insiderinfo.no_mystery = true
-	self.firestarter_3_insiderinfo.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.firestarter_3_insiderinfo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.firestarter_3_map_basic = {}
 	self.firestarter_3_map_basic.name_id = "menu_asset_branchbank_blueprint"
 	self.firestarter_3_map_basic.texture = "guis/textures/pd2/mission_briefing/assets/bank/assets_bank_blueprint"
@@ -296,7 +296,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_1_ammo.visible_if_locked = true
 	self.framing_frame_1_ammo.unlock_desc_id = "menu_asset_framing_frame_1_ammo_desc"
 	self.framing_frame_1_ammo.no_mystery = true
-	self.framing_frame_1_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[4]
+	self.framing_frame_1_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 4)
 	self.framing_frame_1_health = {}
 	self.framing_frame_1_health.name_id = "menu_asset_health"
 	self.framing_frame_1_health.texture = "guis/textures/pd2/mission_briefing/assets/framing_frame/day1/assets_framingframe_medic"
@@ -306,7 +306,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_1_health.visible_if_locked = true
 	self.framing_frame_1_health.unlock_desc_id = "menu_asset_framing_frame_1_health_desc"
 	self.framing_frame_1_health.no_mystery = true
-	self.framing_frame_1_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[4]
+	self.framing_frame_1_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 4)
 	self.framing_frame_1_cam = {}
 	self.framing_frame_1_cam.name_id = "menu_asset_cam"
 	self.framing_frame_1_cam.texture = "guis/textures/pd2/mission_briefing/assets/framing_frame/day1/assets_framingframe_cam"
@@ -316,7 +316,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_1_cam.visible_if_locked = true
 	self.framing_frame_1_cam.unlock_desc_id = "menu_asset_cam_desc"
 	self.framing_frame_1_cam.no_mystery = true
-	self.framing_frame_1_cam.money_lock = tweak_data.money_manager.mission_asset_cost_small[6]
+	self.framing_frame_1_cam.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 6)
 	self.framing_frame_1_keycard = {}
 	self.framing_frame_1_keycard.name_id = "menu_asset_framing_frame_1_keycard"
 	self.framing_frame_1_keycard.texture = "guis/textures/pd2/mission_briefing/assets/framing_frame/day1/assets_framingframe_keycard"
@@ -326,7 +326,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_1_keycard.visible_if_locked = true
 	self.framing_frame_1_keycard.unlock_desc_id = "menu_asset_framing_frame_1_keycard_desc"
 	self.framing_frame_1_keycard.no_mystery = true
-	self.framing_frame_1_keycard.money_lock = tweak_data.money_manager.mission_asset_cost_small[10]
+	self.framing_frame_1_keycard.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 10)
 	self.framing_frame_1_keycard.upgrade_lock = {
 		category = "player",
 		upgrade = "additional_assets"
@@ -340,7 +340,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_1_art.visible_if_locked = true
 	self.framing_frame_1_art.unlock_desc_id = "menu_asset_framing_frame_art_desc"
 	self.framing_frame_1_art.no_mystery = true
-	self.framing_frame_1_art.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.framing_frame_1_art.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.framing_frame_1_truck = {}
 	self.framing_frame_1_truck.name_id = "menu_asset_framing_frame_truck"
 	self.framing_frame_1_truck.texture = "guis/textures/pd2/mission_briefing/assets/framing_frame/day1/assets_framingframe_roofaccess"
@@ -350,7 +350,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_1_truck.visible_if_locked = true
 	self.framing_frame_1_truck.unlock_desc_id = "menu_asset_framing_frame_truck_desc"
 	self.framing_frame_1_truck.no_mystery = true
-	self.framing_frame_1_truck.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.framing_frame_1_truck.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.framing_frame_2_sniper = {}
 	self.framing_frame_2_sniper.name_id = "menu_asset_sniper"
 	self.framing_frame_2_sniper.texture = "guis/textures/pd2/mission_briefing/assets/framing_frame/day2/asset01"
@@ -360,7 +360,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_2_sniper.visible_if_locked = true
 	self.framing_frame_2_sniper.unlock_desc_id = "menu_asset_sniper_desc"
 	self.framing_frame_2_sniper.no_mystery = true
-	self.framing_frame_2_sniper.money_lock = tweak_data.money_manager.mission_asset_cost_small[6]
+	self.framing_frame_2_sniper.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 6)
 	self.framing_frame_3_ammo = {}
 	self.framing_frame_3_ammo.name_id = "menu_asset_ammo"
 	self.framing_frame_3_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
@@ -370,7 +370,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_3_ammo.visible_if_locked = true
 	self.framing_frame_3_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.framing_frame_3_ammo.no_mystery = true
-	self.framing_frame_3_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.framing_frame_3_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.framing_frame_3_health = {}
 	self.framing_frame_3_health.name_id = "menu_asset_health"
 	self.framing_frame_3_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
@@ -380,7 +380,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_3_health.visible_if_locked = true
 	self.framing_frame_3_health.unlock_desc_id = "menu_asset_health_desc"
 	self.framing_frame_3_health.no_mystery = true
-	self.framing_frame_3_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.framing_frame_3_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.framing_frame_3_vent = {}
 	self.framing_frame_3_vent.name_id = "menu_asset_framing3_vent"
 	self.framing_frame_3_vent.texture = "guis/textures/pd2/mission_briefing/assets/framing_frame/day3/asset01"
@@ -390,7 +390,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.framing_frame_3_vent.visible_if_locked = true
 	self.framing_frame_3_vent.unlock_desc_id = "menu_asset_framing3_vent_desc"
 	self.framing_frame_3_vent.no_mystery = true
-	self.framing_frame_3_vent.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.framing_frame_3_vent.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.election_day_2_ammo = {}
 	self.election_day_2_ammo.name_id = "menu_asset_ammo"
 	self.election_day_2_ammo.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset06"
@@ -400,7 +400,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.election_day_2_ammo.visible_if_locked = true
 	self.election_day_2_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.election_day_2_ammo.no_mystery = true
-	self.election_day_2_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.election_day_2_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.election_day_2_health = {}
 	self.election_day_2_health.name_id = "menu_asset_h"
 	self.election_day_2_health.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset06"
@@ -410,7 +410,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.election_day_2_health.visible_if_locked = true
 	self.election_day_2_health.unlock_desc_id = "menu_asset_health_desc"
 	self.election_day_2_health.no_mystery = true
-	self.election_day_2_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.election_day_2_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.election_day_3_ammo = {}
 	self.election_day_3_ammo.name_id = "menu_asset_ammo"
 	self.election_day_3_ammo.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset06"
@@ -420,7 +420,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.election_day_3_ammo.visible_if_locked = true
 	self.election_day_3_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.election_day_3_ammo.no_mystery = true
-	self.election_day_3_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.election_day_3_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.election_day_3_health = {}
 	self.election_day_3_health.name_id = "menu_asset_health"
 	self.election_day_3_health.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset06"
@@ -430,7 +430,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.election_day_3_health.visible_if_locked = true
 	self.election_day_3_health.unlock_desc_id = "menu_asset_health_desc"
 	self.election_day_3_health.no_mystery = true
-	self.election_day_3_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.election_day_3_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.jungle_1_bikers = {}
 	self.jungle_1_bikers.name_id = "menu_asset_big_oil_1_bikers"
 	self.jungle_1_bikers.texture = "guis/textures/pd2/mission_briefing/assets/big_oil/day1/big_oil_1_biker_gang"
@@ -449,7 +449,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.jungle_2_gas.visible_if_locked = true
 	self.jungle_2_gas.unlock_desc_id = "menu_asset_jungle_2_gas_desc"
 	self.jungle_2_gas.no_mystery = true
-	self.jungle_2_gas.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.jungle_2_gas.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.jungle_2_cam = {}
 	self.jungle_2_cam.name_id = "menu_asset_cam"
 	self.jungle_2_cam.texture = "guis/textures/pd2/mission_briefing/assets/big_oil/day2/asset03"
@@ -459,7 +459,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.jungle_2_cam.visible_if_locked = true
 	self.jungle_2_cam.unlock_desc_id = "menu_asset_cam_desc"
 	self.jungle_2_cam.no_mystery = true
-	self.jungle_2_cam.money_lock = tweak_data.money_manager.mission_asset_cost_small[6]
+	self.jungle_2_cam.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.jungle_2_ammo = {}
 	self.jungle_2_ammo.name_id = "menu_asset_jungle_2_ammo"
 	self.jungle_2_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
@@ -469,7 +469,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.jungle_2_ammo.visible_if_locked = true
 	self.jungle_2_ammo.unlock_desc_id = "menu_asset_jungle_2_ammo_desc"
 	self.jungle_2_ammo.no_mystery = true
-	self.jungle_2_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[1]
+	self.jungle_2_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.branchbank_ammo = {}
 	self.branchbank_ammo.name_id = "menu_asset_branchbank_ammo"
 	self.branchbank_ammo.texture = "guis/textures/pd2/mission_briefing/assets/bank/assets_bank_ammo"
@@ -477,7 +477,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.branchbank_ammo.visible_if_locked = true
 	self.branchbank_ammo.unlock_desc_id = "menu_asset_branchbank_ammo_desc"
 	self.branchbank_ammo.no_mystery = true
-	self.branchbank_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.branchbank_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.branchbank_health = {}
 	self.branchbank_health.name_id = "menu_asset_health"
 	self.branchbank_health.texture = "guis/textures/pd2/mission_briefing/assets/bank/assets_bank_medicbag"
@@ -485,7 +485,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.branchbank_health.visible_if_locked = true
 	self.branchbank_health.unlock_desc_id = "menu_asset_health_desc"
 	self.branchbank_health.no_mystery = true
-	self.branchbank_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.branchbank_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.branchbank_cam = {}
 	self.branchbank_cam.name_id = "menu_asset_cam"
 	self.branchbank_cam.texture = "guis/textures/pd2/mission_briefing/assets/big_oil/day2/asset03"
@@ -493,7 +493,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.branchbank_cam.visible_if_locked = true
 	self.branchbank_cam.unlock_desc_id = "menu_asset_cam_desc"
 	self.branchbank_cam.no_mystery = true
-	self.branchbank_cam.money_lock = tweak_data.money_manager.mission_asset_cost_small[6]
+	self.branchbank_cam.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 6)
 	self.branchbank_insiderinfo = {}
 	self.branchbank_insiderinfo.name_id = "menu_asset_branchbank_insiderinfo"
 	self.branchbank_insiderinfo.texture = "guis/textures/pd2/mission_briefing/assets/bank/assets_bank_insiderinfo"
@@ -501,7 +501,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.branchbank_insiderinfo.visible_if_locked = true
 	self.branchbank_insiderinfo.unlock_desc_id = "menu_asset_branchbank_insiderinfo_desc"
 	self.branchbank_insiderinfo.no_mystery = true
-	self.branchbank_insiderinfo.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.branchbank_insiderinfo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.branchbank_map_basic = {}
 	self.branchbank_map_basic.name_id = "menu_asset_branchbank_blueprint"
 	self.branchbank_map_basic.texture = "guis/textures/pd2/mission_briefing/assets/bank/assets_bank_blueprint"
@@ -517,7 +517,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.rat_1_ammo.visible_if_locked = true
 	self.rat_1_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.rat_1_ammo.no_mystery = true
-	self.rat_1_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.rat_1_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.rat_1_health = {}
 	self.rat_1_health.name_id = "menu_asset_health"
 	self.rat_1_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
@@ -525,7 +525,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.rat_1_health.visible_if_locked = true
 	self.rat_1_health.unlock_desc_id = "menu_asset_health_desc"
 	self.rat_1_health.no_mystery = true
-	self.rat_1_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.rat_1_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.rat_1_lights = {}
 	self.rat_1_lights.name_id = "menu_asset_lights"
 	self.rat_1_lights.texture = "guis/textures/pd2/mission_briefing/assets/rat/day1/asset01"
@@ -533,7 +533,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.rat_1_lights.visible_if_locked = true
 	self.rat_1_lights.unlock_desc_id = "menu_asset_lights_desc"
 	self.rat_1_lights.no_mystery = true
-	self.rat_1_lights.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.rat_1_lights.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.rat_3_pilot = {}
 	self.rat_3_pilot.name_id = "menu_asset_pilot"
 	self.rat_3_pilot.texture = "guis/textures/pd2/mission_briefing/assets/rat/day3/asset01"
@@ -541,7 +541,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.rat_3_pilot.visible_if_locked = true
 	self.rat_3_pilot.unlock_desc_id = "menu_asset_pilot_desc"
 	self.rat_3_pilot.no_mystery = true
-	self.rat_3_pilot.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.rat_3_pilot.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.mallcrasher_ammo = {}
 	self.mallcrasher_ammo.name_id = "menu_asset_ammo"
 	self.mallcrasher_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
@@ -551,7 +551,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.mallcrasher_ammo.visible_if_locked = true
 	self.mallcrasher_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.mallcrasher_ammo.no_mystery = true
-	self.mallcrasher_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.mallcrasher_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.mallcrasher_health = {}
 	self.mallcrasher_health.name_id = "menu_asset_health"
 	self.mallcrasher_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
@@ -561,7 +561,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.mallcrasher_health.visible_if_locked = true
 	self.mallcrasher_health.unlock_desc_id = "menu_asset_health_desc"
 	self.mallcrasher_health.no_mystery = true
-	self.mallcrasher_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.mallcrasher_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.mallcrasher_gascan_south = {}
 	self.mallcrasher_gascan_south.name_id = "menu_asset_mallcrasher_gascan_south"
 	self.mallcrasher_gascan_south.texture = "guis/textures/pd2/mission_briefing/assets/mallcrasher/asset01"
@@ -571,7 +571,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.mallcrasher_gascan_south.visible_if_locked = true
 	self.mallcrasher_gascan_south.unlock_desc_id = "menu_asset_mallcrasher_gascan_south_desc"
 	self.mallcrasher_gascan_south.no_mystery = true
-	self.mallcrasher_gascan_south.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.mallcrasher_gascan_south.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.mallcrasher_gascan_north = {}
 	self.mallcrasher_gascan_north.name_id = "menu_asset_mallcrasher_gascan_north"
 	self.mallcrasher_gascan_north.texture = "guis/textures/pd2/mission_briefing/assets/mallcrasher/asset02"
@@ -581,7 +581,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.mallcrasher_gascan_north.visible_if_locked = true
 	self.mallcrasher_gascan_north.unlock_desc_id = "menu_asset_mallcrasher_gascan_north_desc"
 	self.mallcrasher_gascan_north.no_mystery = true
-	self.mallcrasher_gascan_north.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.mallcrasher_gascan_north.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.nightclub_ammo = {}
 	self.nightclub_ammo.name_id = "menu_asset_ammo"
 	self.nightclub_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
@@ -589,7 +589,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.nightclub_ammo.visible_if_locked = true
 	self.nightclub_ammo.unlock_desc_id = "menu_asset_ammo_desc"
 	self.nightclub_ammo.no_mystery = true
-	self.nightclub_ammo.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.nightclub_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.nightclub_health = {}
 	self.nightclub_health.name_id = "menu_asset_health"
 	self.nightclub_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
@@ -597,7 +597,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.nightclub_health.visible_if_locked = true
 	self.nightclub_health.unlock_desc_id = "menu_asset_health_desc"
 	self.nightclub_health.no_mystery = true
-	self.nightclub_health.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.nightclub_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.nightclub_fire1 = {}
 	self.nightclub_fire1.name_id = "menu_asset_nightclub_fire1"
 	self.nightclub_fire1.texture = "guis/textures/pd2/mission_briefing/assets/nightclub/asset04"
@@ -605,7 +605,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.nightclub_fire1.visible_if_locked = true
 	self.nightclub_fire1.unlock_desc_id = "menu_asset_nightclub_fire1_desc"
 	self.nightclub_fire1.no_mystery = true
-	self.nightclub_fire1.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.nightclub_fire1.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.nightclub_fire2 = {}
 	self.nightclub_fire2.name_id = "menu_asset_nightclub_fire2"
 	self.nightclub_fire2.texture = "guis/textures/pd2/mission_briefing/assets/nightclub/asset03"
@@ -613,7 +613,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.nightclub_fire2.visible_if_locked = true
 	self.nightclub_fire2.unlock_desc_id = "menu_asset_nightclub_fire2_desc"
 	self.nightclub_fire2.no_mystery = true
-	self.nightclub_fire2.money_lock = tweak_data.money_manager.mission_asset_cost_small[2]
+	self.nightclub_fire2.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
 	self.nightclub_badmusic = {}
 	self.nightclub_badmusic.name_id = "menu_asset_nightclub_badmusic"
 	self.nightclub_badmusic.texture = "guis/textures/pd2/mission_briefing/assets/nightclub/asset02"
@@ -621,7 +621,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.nightclub_badmusic.visible_if_locked = true
 	self.nightclub_badmusic.unlock_desc_id = "menu_asset_nightclub_badmusic_desc"
 	self.nightclub_badmusic.no_mystery = true
-	self.nightclub_badmusic.money_lock = tweak_data.money_manager.mission_asset_cost_small[3]
+	self.nightclub_badmusic.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.nightclub_lootpickup = {}
 	self.nightclub_lootpickup.name_id = "menu_asset_nightclub_lootpickup"
 	self.nightclub_lootpickup.texture = "guis/textures/pd2/mission_briefing/assets/nightclub/asset01"
@@ -629,7 +629,7 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.nightclub_lootpickup.visible_if_locked = true
 	self.nightclub_lootpickup.unlock_desc_id = "menu_asset_nightclub_lootpickup_desc"
 	self.nightclub_lootpickup.no_mystery = true
-	self.nightclub_lootpickup.money_lock = tweak_data.money_manager.mission_asset_cost_small[5]
+	self.nightclub_lootpickup.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 5)
 	self.four_stores_overview = {}
 	self.four_stores_overview.name_id = "menu_asset_four_stores_overview"
 	self.four_stores_overview.texture = "guis/textures/pd2/mission_briefing/assets/four_stores/asset01"

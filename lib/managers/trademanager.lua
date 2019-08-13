@@ -92,7 +92,7 @@ function TradeManager:update(t, dt)
 	if not self._hostage_remind_t or t > self._hostage_remind_t then
 		if not self._trading_hostage and not self._hostage_trade_clbk and #self._criminals_to_respawn > 0 and 0 >= managers.groupai:state():hostage_count() and managers.groupai:state():is_AI_enabled() and managers.groupai:state():bain_state() then
 			local cable_tie_data = managers.player:has_special_equipment("cable_tie")
-			if cable_tie_data and 0 < cable_tie_data.amount then
+			if cable_tie_data and 0 < Application:digest_value(cable_tie_data.amount, false) then
 				managers.dialog:queue_dialog("ban_h01x", {})
 			elseif self:get_criminal_to_trade() ~= nil then
 				managers.dialog:queue_dialog("Play_ban_h22x", {})

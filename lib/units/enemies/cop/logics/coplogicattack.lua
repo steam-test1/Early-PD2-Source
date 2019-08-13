@@ -99,6 +99,12 @@ function CopLogicAttack.update(data)
 		CopLogicAttack._update_cover(data)
 		CopLogicAttack._upd_combat_movement(data)
 	end
+	if data.is_converted and (not data.objective or data.objective.type == "free") and (not data.path_fail_t or data.t - data.path_fail_t > 6) then
+		managers.groupai:state():on_criminal_jobless(data.unit)
+		if my_data ~= data.internal_data then
+			return
+		end
+	end
 	if not my_data.update_queue_id then
 		data.unit:brain():set_update_enabled_state(false)
 		my_data.update_queue_id = "CopLogicAttack.queued_update" .. tostring(data.key)
@@ -145,8 +151,8 @@ function CopLogicAttack._upd_combat_movement(data)
 				local path = my_data.charge_path
 				my_data.charge_path = nil
 				action_taken = CopLogicAttack._chk_request_action_walk_to_cover_shoot_pos(data, my_data, path)
-			elseif not my_data.charge_path_search_id then
-				my_data.charge_pos = CopLogicTravel._get_pos_on_wall(data.attention_obj.m_pos, my_data.weapon_range.optimal, 45, nil)
+			elseif not my_data.charge_path_search_id and data.attention_obj.nav_tracker then
+				my_data.charge_pos = CopLogicTravel._get_pos_on_wall(data.attention_obj.nav_tracker:field_position(), my_data.weapon_range.optimal, 45, nil)
 				if my_data.charge_pos then
 					my_data.charge_path_search_id = "charge" .. tostring(data.key)
 					unit:brain():search_for_path(my_data.charge_path_search_id, my_data.charge_pos, nil, nil, nil)
@@ -166,7 +172,6 @@ function CopLogicAttack._upd_combat_movement(data)
 				local my_tracker = unit:movement():nav_tracker()
 				local shoot_from_pos = CopLogicAttack._peek_for_pos_sideways(data, my_data, my_tracker, focus_enemy.m_head_pos, height)
 				if shoot_from_pos then
-					local my_tracker = unit:movement():nav_tracker()
 					local path = {
 						my_tracker:position(),
 						shoot_from_pos

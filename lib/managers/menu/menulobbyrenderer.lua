@@ -65,6 +65,7 @@ function MenuLobbyRenderer:open(...)
 		t.player = {}
 		t.free = true
 		t.kit_slots = {}
+		t.params = {}
 		for slot = 1, PlayerManager.WEAPON_SLOTS + 3 do
 			table.insert(t.kit_slots, slot)
 		end
@@ -148,9 +149,11 @@ function MenuLobbyRenderer:set_player_slots_kit(slot)
 	Application:debug("set_player_slots_kit", slot)
 end
 function MenuLobbyRenderer:set_slot_outfit(slot, criminal_name, outfit_string)
-	local outfit = managers.blackmarket:unpack_outfit_from_string(outfit_string)
-	self._player_slots[slot].outfit = outfit
-	managers.menu_component:set_slot_outfit_mission_briefing_gui(slot, criminal_name, outfit)
+	if self._player_slots then
+		local outfit = managers.blackmarket:unpack_outfit_from_string(outfit_string)
+		self._player_slots[slot].outfit = outfit
+		managers.menu_component:set_slot_outfit_mission_briefing_gui(slot, criminal_name, outfit)
+	end
 end
 function MenuLobbyRenderer:set_kit_selection(peer_id, category, id, slot)
 	managers.hud:set_kit_selection(peer_id, category, id, slot)

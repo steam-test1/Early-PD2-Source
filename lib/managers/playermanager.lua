@@ -1041,7 +1041,7 @@ function PlayerManager:_add_equipment(params)
 	local use_function = use_function_name or nil
 	table.insert(self._equipment.selections, {
 		equipment = equipment,
-		amount = 0,
+		amount = Application:digest_value(0, true),
 		use_function = use_function,
 		action_timer = tweak_data.action_timer
 	})
@@ -1053,8 +1053,17 @@ end
 function PlayerManager:add_equipment_amount(equipment, amount)
 	local data, index = self:equipment_data_by_name(equipment)
 	if data then
-		data.amount = data.amount + amount
-		managers.hud:set_item_amount(index, data.amount)
+		local new_amount = Application:digest_value(data.amount, false) + amount
+		data.amount = Application:digest_value(new_amount, true)
+		managers.hud:set_item_amount(index, new_amount)
+	end
+end
+function PlayerManager:set_equipment_amount(equipment, amount)
+	local data, index = self:equipment_data_by_name(equipment)
+	if data then
+		local new_amount = amount
+		data.amount = Application:digest_value(new_amount, true)
+		managers.hud:set_item_amount(index, new_amount)
 	end
 end
 function PlayerManager:equipment_data_by_name(equipment)
@@ -1065,6 +1074,14 @@ function PlayerManager:equipment_data_by_name(equipment)
 	end
 	return nil
 end
+function PlayerManager:get_equipment_amount(equipment)
+	for i, equipments in ipairs(self._equipment.selections) do
+		if equipments.equipment == equipment then
+			return Application:digest_value(equipments.amount, false)
+		end
+	end
+	return 0
+end
 function PlayerManager:has_equipment(equipment)
 	for i, equipments in ipairs(self._equipment.selections) do
 		if equipments.equipment == equipment then
@@ -1074,12 +1091,7 @@ function PlayerManager:has_equipment(equipment)
 	return false
 end
 function PlayerManager:has_deployable_left(equipment)
-	for i, equipments in ipairs(self._equipment.selections) do
-		if equipments.equipment == equipment then
-			return equipments.amount > 0
-		end
-	end
-	return false
+	return self:get_equipment_amount(equipment) > 0
 end
 function PlayerManager:select_next_item()
 	if not self._equipment.selected_index then
@@ -1097,9 +1109,9 @@ function PlayerManager:select_previous_item()
 end
 function PlayerManager:clear_equipment()
 	for i, equipment in ipairs(self._equipment.selections) do
-		equipment.amount = 0
-		managers.hud:set_item_amount(i, equipment.amount)
-		self:update_deployable_equipment_amount_to_peers(equipment.equipment, equipment.amount)
+		equipment.amount = Application:digest_value(0, true)
+		managers.hud:set_item_amount(i, 0)
+		self:update_deployable_equipment_amount_to_peers(equipment.equipment, 0)
 	end
 end
 function PlayerManager:from_server_equipment_place_result(selected_index, unit)
@@ -1110,20 +1122,33 @@ function PlayerManager:from_server_equipment_place_result(selected_index, unit)
 	if not equipment then
 		return
 	end
-	equipment.amount = equipment.amount - 1
-	managers.hud:set_item_amount(self._equipment.selected_index, equipment.amount)
-	self:update_deployable_equipment_amount_to_peers(equipment.equipment, equipment.amount)
+	local new_amount = Application:digest_value(equipment.amount, false) - 1
+	equipment.amount = Application:digest_value(new_amount, true)
+	do break end
+	if new_amount == 0 then
+		if equipment.equipment == "trip_mine" and not self:has_equipment("sentry_gun") then
+			self:add_equipment({equipment = "sentry_gun"})
+			self:select_next_item()
+			return
+		elseif equipment.equipment == "sentry_gun" and not self:has_equipment("trip_mine") then
+			self:add_equipment({equipment = "trip_mine"})
+			self:select_next_item()
+			return
+		end
+	end
+	managers.hud:set_item_amount(self._equipment.selected_index, new_amount)
+	self:update_deployable_equipment_amount_to_peers(equipment.equipment, new_amount)
 end
 function PlayerManager:can_use_selected_equipment(unit)
 	local equipment = self._equipment.selections[self._equipment.selected_index]
-	if not equipment or equipment.amount == 0 then
+	if not equipment or Application:digest_value(equipment.amount, false) == 0 then
 		return false
 	end
 	return true
 end
 function PlayerManager:selected_equipment()
 	local equipment = self._equipment.selections[self._equipment.selected_index]
-	if not equipment or equipment.amount == 0 then
+	if not equipment or Application:digest_value(equipment.amount, false) == 0 then
 		return nil
 	end
 	return equipment
@@ -1144,7 +1169,7 @@ function PlayerManager:selected_equipment_name()
 end
 function PlayerManager:use_selected_equipment(unit)
 	local equipment = self._equipment.selections[self._equipment.selected_index]
-	if not equipment or equipment.amount == 0 then
+	if not equipment or Application:digest_value(equipment.amount, false) == 0 then
 		return
 	end
 	local used_one = false
@@ -1188,9 +1213,22 @@ function PlayerManager:selected_equipment_deploy_timer()
 end
 function PlayerManager:remove_equipment(equipment_id)
 	local equipment, index = self:equipment_data_by_name(equipment_id)
-	equipment.amount = equipment.amount - 1
-	managers.hud:set_item_amount(index, equipment.amount)
-	self:update_deployable_equipment_amount_to_peers(equipment.equipment, equipment.amount)
+	local new_amount = Application:digest_value(equipment.amount, false) - 1
+	equipment.amount = Application:digest_value(new_amount, true)
+	do break end
+	if new_amount == 0 then
+		if equipment.equipment == "trip_mine" and not self:has_equipment("sentry_gun") then
+			self:add_equipment({equipment = "sentry_gun"})
+			self:select_next_item()
+			return
+		elseif equipment.equipment == "sentry_gun" and not self:has_equipment("trip_mine") then
+			self:add_equipment({equipment = "trip_mine"})
+			self:select_next_item()
+			return
+		end
+	end
+	managers.hud:set_item_amount(index, new_amount)
+	self:update_deployable_equipment_amount_to_peers(equipment.equipment, new_amount)
 end
 function PlayerManager:add_special(params)
 	local name = params.equipment or params.name
@@ -1201,17 +1239,20 @@ function PlayerManager:add_special(params)
 	local unit = self:player_unit()
 	local respawn = params.amount and true or false
 	local equipment = tweak_data.equipments.specials[name]
+	local special_equipment = self._equipment.specials[name]
 	local amount = params.amount or equipment.quantity
 	local extra = self:_equipped_upgrade_value(equipment) + self:upgrade_value(name, "quantity")
-	if self._equipment.specials[name] then
+	if special_equipment then
 		if equipment.quantity then
-			self._equipment.specials[name].amount = self:has_category_upgrade(name, "quantity_unlimited") and -1 or math.min(self._equipment.specials[name].amount + amount, equipment.quantity + extra)
-			if self._equipment.specials[name].is_cable_tie then
-				managers.hud:set_cable_ties_amount(HUDManager.PLAYER_PANEL, self._equipment.specials[name].amount)
-				self:update_synced_cable_ties_to_peers(self._equipment.specials[name].amount)
+			local dedigested_amount = Application:digest_value(special_equipment.amount, false)
+			local new_amount = self:has_category_upgrade(name, "quantity_unlimited") and -1 or math.min(dedigested_amount + amount, equipment.quantity + extra)
+			special_equipment.amount = Application:digest_value(new_amount, true)
+			if special_equipment.is_cable_tie then
+				managers.hud:set_cable_ties_amount(HUDManager.PLAYER_PANEL, new_amount)
+				self:update_synced_cable_ties_to_peers(new_amount)
 			else
-				managers.hud:set_special_equipment_amount(name, self._equipment.specials[name].amount)
-				self:update_equipment_possession_to_peers(name, self._equipment.specials[name].amount)
+				managers.hud:set_special_equipment_amount(name, new_amount)
+				self:update_equipment_possession_to_peers(name, new_amount)
 			end
 		end
 		return
@@ -1252,7 +1293,7 @@ function PlayerManager:add_special(params)
 		self:update_equipment_possession_to_peers(name, quantity)
 	end
 	self._equipment.specials[name] = {
-		amount = quantity or nil,
+		amount = quantity and Application:digest_value(quantity, true) or nil,
 		is_cable_tie = is_cable_tie
 	}
 	if equipment.player_rule then
@@ -1272,32 +1313,36 @@ function PlayerManager:has_special_equipment(name)
 	return self._equipment.specials[name]
 end
 function PlayerManager:can_pickup_equipment(name)
-	if self._equipment.specials[name] then
-		if self._equipment.specials[name].amount then
+	local special_equipment = self._equipment.specials[name]
+	if special_equipment then
+		if special_equipment.amount then
 			local equipment = tweak_data.equipments.specials[name]
 			local extra = self:_equipped_upgrade_value(equipment)
-			return self._equipment.specials[name].amount < equipment.quantity + extra
+			return Application:digest_value(special_equipment.amount, false) < equipment.quantity + extra
 		end
 		return false
 	end
 	return true
 end
 function PlayerManager:remove_special(name)
-	if not self._equipment.specials[name] then
+	local special_equipment = self._equipment.specials[name]
+	if not special_equipment then
 		return
 	end
-	if self._equipment.specials[name].amount and self._equipment.specials[name].amount ~= -1 then
-		self._equipment.specials[name].amount = math.max(0, self._equipment.specials[name].amount - 1)
-		if self._equipment.specials[name].is_cable_tie then
-			managers.hud:set_cable_ties_amount(HUDManager.PLAYER_PANEL, self._equipment.specials[name].amount)
-			self:update_synced_cable_ties_to_peers(self._equipment.specials[name].amount)
+	local special_amount = special_equipment.amount and Application:digest_value(special_equipment.amount, false)
+	if special_amount and special_amount ~= -1 then
+		special_amount = math.max(0, special_amount - 1)
+		if special_equipment.is_cable_tie then
+			managers.hud:set_cable_ties_amount(HUDManager.PLAYER_PANEL, special_amount)
+			self:update_synced_cable_ties_to_peers(special_amount)
 		else
-			managers.hud:set_special_equipment_amount(name, self._equipment.specials[name].amount)
-			self:update_equipment_possession_to_peers(name, self._equipment.specials[name].amount)
+			managers.hud:set_special_equipment_amount(name, special_amount)
+			self:update_equipment_possession_to_peers(name, special_amount)
 		end
+		special_equipment.amount = Application:digest_value(special_amount, true)
 	end
-	if not self._equipment.specials[name].amount or self._equipment.specials[name].amount == 0 then
-		if not self._equipment.specials[name].is_cable_tie then
+	if not special_amount or special_amount == 0 then
+		if not special_equipment.is_cable_tie then
 			managers.hud:remove_special_equipment(name)
 			managers.network:session():send_to_peers_loaded("sync_remove_equipment_possession", managers.network:session():local_peer():id(), name)
 			self:remove_equipment_possession(managers.network:session():local_peer():id(), name)

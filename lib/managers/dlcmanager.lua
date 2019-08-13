@@ -36,7 +36,7 @@ function GenericDLCManager:give_dlc_package()
 				for _, loot_drop in ipairs(data.content.loot_drops or {}) do
 					for i = 1, loot_drop.amount do
 						local entry = tweak_data.blackmarket[loot_drop.type_items][loot_drop.item_entry]
-						local global_value = package_id
+						local global_value = loot_drop.global_value or data.content.loot_global_value or package_id
 						print(i .. "  give", loot_drop.type_items, loot_drop.item_entry, global_value)
 						managers.blackmarket:add_to_inventory(global_value, loot_drop.type_items, loot_drop.item_entry)
 					end
@@ -64,6 +64,8 @@ function GenericDLCManager:on_reset_profile()
 	Global.dlc_save = nil
 	self:_set_dlc_save_table()
 	self:give_dlc_package()
+end
+function GenericDLCManager:on_signin_complete()
 end
 function GenericDLCManager:has_dlc(dlc)
 	local dlc_data = Global.dlc_manager.all_dlc_data[dlc]
@@ -283,6 +285,9 @@ function X360DLCManager:_verify_dlcs()
 		self._has_corrupt_data = true
 	end
 end
+function X360DLCManager:on_signin_complete()
+	self:_verify_dlcs()
+end
 WINDLCManager = WINDLCManager or class(GenericDLCManager)
 DLCManager.PLATFORM_CLASS_MAP[Idstring("WIN32"):key()] = WINDLCManager
 function WINDLCManager:init()
@@ -291,7 +296,7 @@ function WINDLCManager:init()
 		Global.dlc_manager = {}
 		Global.dlc_manager.all_dlc_data = {
 			full_game = {app_id = "218620", verified = true},
-			preorder = {app_id = "207811", no_install = true}
+			preorder = {app_id = "247450", no_install = true}
 		}
 		self:_verify_dlcs()
 	end

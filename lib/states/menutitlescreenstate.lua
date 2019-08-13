@@ -145,6 +145,7 @@ function MenuTitlescreenState:check_confirm_pressed()
 	end
 end
 function MenuTitlescreenState:check_user_callback(success)
+	managers.dlc:on_signin_complete()
 	if success then
 		managers.user:check_storage(callback(self, self, "check_storage_callback"), true)
 	else

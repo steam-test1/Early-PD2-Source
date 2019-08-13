@@ -14,10 +14,11 @@ function NewNPCRaycastWeaponBase:init(unit)
 	self._blank_slotmask = managers.slot:get_mask("bullet_blank_impact_targets")
 	self:_create_use_setups()
 	self._setup = {}
-	self._ammo_max = tweak_data.weapon[self._name_id].AMMO_MAX
-	self._ammo_total = self._ammo_max
-	self._ammo_max_per_clip = tweak_data.weapon[self._name_id].CLIP_AMMO_MAX
-	self._ammo_remaining_in_clip = self._ammo_max_per_clip
+	self._digest_values = false
+	self:set_ammo_max(tweak_data.weapon[self._name_id].AMMO_MAX)
+	self:set_ammo_total(self:get_ammo_max())
+	self:set_ammo_max_per_clip(tweak_data.weapon[self._name_id].CLIP_AMMO_MAX)
+	self:set_ammo_remaining_in_clip(self:get_ammo_max_per_clip())
 	self._damage = tweak_data.weapon[self._name_id].DAMAGE
 	self._next_fire_allowed = -1000
 	self._obj_fire = self._unit:get_object(Idstring("fire"))

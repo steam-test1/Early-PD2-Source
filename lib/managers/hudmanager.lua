@@ -1913,6 +1913,17 @@ function HUDManager:set_mugshot_custody(id)
 	local data = self:_set_mugshot_state(id, "mugshot_in_custody", managers.localization:text("debug_mugshot_in_custody"))
 	if data then
 		data.location_text:set_visible(false)
+		local i = managers.criminals:character_data_by_name(data.character_name_id).panel_id
+		self:set_teammate_health(i, {
+			current = 0,
+			total = 100,
+			no_hint = true
+		})
+		self:set_teammate_armor(i, {
+			current = 0,
+			total = 100,
+			no_hint = true
+		})
 	end
 end
 function HUDManager:set_mugshot_cuffed(id)
@@ -1926,7 +1937,8 @@ function HUDManager:_set_mugshot_state(id, icon_data, text)
 	if not data then
 		return
 	end
-	self:set_teammate_condition(managers.criminals:character_data_by_name(data.character_name_id).panel_id, icon_data, text)
+	local i = managers.criminals:character_data_by_name(data.character_name_id).panel_id
+	self:set_teammate_condition(i, icon_data, text)
 	data.state_name = icon_data
 	data.mask:set_color(data.mask:color():with_alpha(0.5))
 	data.state_icon:set_visible(true)

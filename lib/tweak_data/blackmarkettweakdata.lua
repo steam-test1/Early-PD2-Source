@@ -39,8 +39,11 @@ function BlackMarketTweakData:_init_weapon_mods(tweak_data)
 	self.weapon_mods = {}
 	for id, data in pairs(tweak_data.weapon.factory.parts) do
 		self.weapon_mods[id] = {
+			max_in_inventory = 2,
 			pc = data.pc,
 			pcs = data.pcs,
+			dlc = data.dlc,
+			dlcs = data.dlcs,
 			name_id = data.name_id,
 			desc_id = data.desc_id,
 			infamous = data.infamous,
@@ -48,6 +51,9 @@ function BlackMarketTweakData:_init_weapon_mods(tweak_data)
 		}
 	end
 	self:_add_desc_from_name_macro(self.weapon_mods)
+	if Application:production_build() and managers.lootdrop then
+		managers.lootdrop:add_qlvl_to_weapon_mods(self.weapon_mods)
+	end
 end
 function BlackMarketTweakData:_init_masks()
 	self.masks = {}
@@ -60,6 +66,8 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skull = {}
 	self.masks.skull.unit = "units/payday2/masks/msk_skull/msk_skull"
 	self.masks.skull.name_id = "bm_msk_skull"
+	self.masks.skull.pc = 100
+	self.masks.skull.dlc = "preorder"
 	self.masks.skull.value = 1
 	self.masks.wolf_clean = {}
 	self.masks.wolf_clean.unit = "units/payday2/masks/msk_wolf_clean/msk_wolf_clean"
@@ -67,24 +75,28 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.wolf_clean.pc = 100
 	self.masks.wolf_clean.infamous = true
 	self.masks.wolf_clean.value = 9
+	self.masks.wolf_clean.qlvl = 0
 	self.masks.hoxton_clean = {}
 	self.masks.hoxton_clean.unit = "units/payday2/masks/msk_hoxton_clean/msk_hoxton_clean"
 	self.masks.hoxton_clean.name_id = "bm_msk_hoxton_clean"
 	self.masks.hoxton_clean.pc = 100
 	self.masks.hoxton_clean.infamous = true
 	self.masks.hoxton_clean.value = 9
+	self.masks.hoxton_clean.qlvl = 0
 	self.masks.dallas_clean = {}
 	self.masks.dallas_clean.unit = "units/payday2/masks/msk_dallas_clean/msk_dallas_clean"
 	self.masks.dallas_clean.name_id = "bm_msk_dallas_clean"
 	self.masks.dallas_clean.pc = 100
 	self.masks.dallas_clean.infamous = true
 	self.masks.dallas_clean.value = 10
+	self.masks.dallas_clean.qlvl = 0
 	self.masks.chains_clean = {}
 	self.masks.chains_clean.unit = "units/payday2/masks/msk_chains_clean/msk_chains_clean"
 	self.masks.chains_clean.name_id = "bm_msk_chains_clean"
 	self.masks.chains_clean.pc = 100
 	self.masks.chains_clean.infamous = true
 	self.masks.chains_clean.value = 9
+	self.masks.chains_clean.qlvl = 0
 	self.masks.dallas = {}
 	self.masks.dallas.unit = "units/payday2/masks/msk_dallas/msk_dallas"
 	self.masks.dallas.name_id = "bm_msk_dallas"
@@ -115,24 +127,28 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.cthulhu.pc = 100
 	self.masks.cthulhu.infamous = true
 	self.masks.cthulhu.value = 8
+	self.masks.cthulhu.qlvl = 0
 	self.masks.grin = {}
 	self.masks.grin.unit = "units/payday2/masks/msk_grin/msk_grin"
 	self.masks.grin.name_id = "bm_msk_grin"
 	self.masks.grin.pc = 100
 	self.masks.grin.infamous = true
 	self.masks.grin.value = 8
+	self.masks.grin.qlvl = 0
 	self.masks.anonymous = {}
 	self.masks.anonymous.unit = "units/payday2/masks/msk_anonymous/msk_anonymous"
 	self.masks.anonymous.name_id = "bm_msk_anonymous"
 	self.masks.anonymous.pc = 100
 	self.masks.anonymous.infamous = true
 	self.masks.anonymous.value = 6
+	self.masks.anonymous.qlvl = 0
 	self.masks.dillinger_death_mask = {}
 	self.masks.dillinger_death_mask.unit = "units/payday2/masks/msk_dillinger_death_mask/msk_dillinger_death_mask"
 	self.masks.dillinger_death_mask.name_id = "bm_msk_dillinger_death_mask"
 	self.masks.dillinger_death_mask.pc = 100
 	self.masks.dillinger_death_mask.infamous = true
 	self.masks.dillinger_death_mask.value = 9
+	self.masks.dillinger_death_mask.qlvl = 0
 	self.masks.alienware = {}
 	self.masks.alienware.unit = "units/payday2/masks/msk_alienware/msk_alienware"
 	self.masks.alienware.name_id = "bm_msk_alienware"
@@ -143,6 +159,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.greek_tragedy.name_id = "bm_msk_greek_tragedy"
 	self.masks.greek_tragedy.pc = 100
 	self.masks.greek_tragedy.value = 7
+	self.masks.greek_tragedy.qlvl = 0
 	self.masks.jaw = {}
 	self.masks.jaw.unit = "units/payday2/masks/msk_jaw/msk_jaw"
 	self.masks.jaw.name_id = "bm_msk_jaw"
@@ -181,7 +198,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.clowncry = {}
 	self.masks.clowncry.unit = "units/payday2/masks/msk_clowncry/msk_clowncry"
 	self.masks.clowncry.name_id = "bm_msk_clowncry"
-	self.masks.clowncry.pc = 60
+	self.masks.clowncry.pc = 100
 	self.masks.clowncry.value = 4
 	self.masks.mr_sinister = {}
 	self.masks.mr_sinister.unit = "units/payday2/masks/msk_mr_sinister/msk_mr_sinister"
@@ -198,6 +215,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.dripper.name_id = "bm_msk_dripper"
 	self.masks.dripper.pc = 100
 	self.masks.dripper.value = 8
+	self.masks.dripper.qlvl = 0
 	self.masks.buha = {}
 	self.masks.buha.unit = "units/payday2/masks/msk_buha/msk_buha"
 	self.masks.buha.name_id = "bm_msk_buha"
@@ -228,6 +246,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.hog.name_id = "bm_msk_hog"
 	self.masks.hog.pc = 100
 	self.masks.hog.value = 3
+	self.masks.hog.qlvl = 0
 	self.masks.outlandish_a = {}
 	self.masks.outlandish_a.unit = "units/payday2/masks/msk_outlandish_a/msk_outlandish_a"
 	self.masks.outlandish_a.name_id = "bm_msk_outlandish_a"
@@ -268,6 +287,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.scarecrow.name_id = "bm_msk_scarecrow"
 	self.masks.scarecrow.pc = 100
 	self.masks.scarecrow.value = 7
+	self.masks.scarecrow.qlvl = 0
 	self.masks.mummy = {}
 	self.masks.mummy.unit = "units/payday2/masks/msk_mummy/msk_mummy"
 	self.masks.mummy.name_id = "bm_msk_mummy"
@@ -283,6 +303,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.day_of_the_dead.name_id = "bm_msk_day_of_the_dead"
 	self.masks.day_of_the_dead.pc = 100
 	self.masks.day_of_the_dead.value = 3
+	self.masks.day_of_the_dead.qlvl = 0
 	self.masks.dawn_of_the_dead = {}
 	self.masks.dawn_of_the_dead.unit = "units/payday2/masks/msk_dawn_of_the_dead/msk_dawn_of_the_dead"
 	self.masks.dawn_of_the_dead.name_id = "bm_msk_dawn_of_the_dead"
@@ -293,6 +314,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.demon.name_id = "bm_msk_demon"
 	self.masks.demon.pc = 100
 	self.masks.demon.value = 10
+	self.masks.demon.qlvl = 0
 	self.masks.stonekisses = {}
 	self.masks.stonekisses.unit = "units/payday2/masks/msk_stonekisses/msk_stonekisses"
 	self.masks.stonekisses.name_id = "bm_msk_stonekisses"
@@ -515,6 +537,8 @@ function BlackMarketTweakData:_init_colors()
 	self.colors.red_black = {}
 	self.colors.red_black.colors = {red, black}
 	self.colors.red_black.name_id = "bm_clr_red_black"
+	self.colors.red_black.pc = 100
+	self.colors.red_black.dlc = "preorder"
 	self.colors.red_black.value = 1
 	self.colors.yellow_blue = {}
 	self.colors.yellow_blue.colors = {yellow, blue}
@@ -1199,9 +1223,10 @@ function BlackMarketTweakData:_init_textures()
 	self.textures.hearts.value = 4
 	self.textures.electric = {}
 	self.textures.electric.name_id = "bm_txt_electric"
-	self.textures.electric.pc = 30
+	self.textures.electric.pc = 100
 	self.textures.electric.texture = "units/payday2/masks/shared_textures/patterns/pattern_electric_df"
 	self.textures.electric.value = 3
+	self.textures.electric.infamous = true
 	self.textures.puzzle = {}
 	self.textures.puzzle.name_id = "bm_txt_puzzle"
 	self.textures.puzzle.pc = 100
@@ -1469,6 +1494,8 @@ function BlackMarketTweakData:_init_textures()
 	self.textures.compass.value = 2
 	self.textures.fan = {}
 	self.textures.fan.name_id = "bm_txt_fan"
+	self.textures.fan.pc = 100
+	self.textures.fan.dlc = "preorder"
 	self.textures.fan.texture = "units/payday2/masks/shared_textures/patterns/pattern_fan_df"
 	self.textures.fan.value = 1
 	self.textures.pd2 = {}
@@ -1652,42 +1679,51 @@ function BlackMarketTweakData:_init_cash()
 	self.cash.cash10.name_id = "bm_csh_cash10"
 	self.cash.cash10.value_id = "cash10"
 	self.cash.cash10.multiplier = 1
-	self.cash.cash10.pc = 10
+	self.cash.cash10.pcs = {10, 40}
 	self.cash.cash20 = {}
 	self.cash.cash20.name_id = "bm_csh_cash20"
 	self.cash.cash20.value_id = "cash20"
 	self.cash.cash20.multiplier = 1
-	self.cash.cash20.pc = 10
+	self.cash.cash20.pcs = {20, 40}
 	self.cash.cash30 = {}
 	self.cash.cash30.name_id = "bm_csh_cash30"
 	self.cash.cash30.multiplier = 1
 	self.cash.cash30.value_id = "cash30"
-	self.cash.cash30.pc = 20
+	self.cash.cash30.pcs = {30, 40}
 	self.cash.cash40 = {}
 	self.cash.cash40.name_id = "bm_csh_cash40"
 	self.cash.cash40.multiplier = 1
 	self.cash.cash40.value_id = "cash40"
-	self.cash.cash40.pc = 20
+	self.cash.cash40.pcs = {
+		10,
+		20,
+		30,
+		40
+	}
 	self.cash.cash50 = {}
 	self.cash.cash50.name_id = "bm_csh_cash50"
 	self.cash.cash50.multiplier = 1
 	self.cash.cash50.value_id = "cash50"
-	self.cash.cash50.pc = 30
+	self.cash.cash50.pcs = {
+		20,
+		30,
+		40
+	}
 	self.cash.cash60 = {}
 	self.cash.cash60.name_id = "bm_csh_cash60"
 	self.cash.cash60.value_id = "cash60"
 	self.cash.cash60.multiplier = 1
-	self.cash.cash60.pc = 30
+	self.cash.cash60.pcs = {30, 40}
 	self.cash.cash70 = {}
 	self.cash.cash70.name_id = "bm_csh_cash70"
 	self.cash.cash70.value_id = "cash70"
 	self.cash.cash70.multiplier = 1
-	self.cash.cash70.pc = 40
+	self.cash.cash70.pcs = {30, 40}
 	self.cash.cash80 = {}
 	self.cash.cash80.name_id = "bm_csh_cash80"
 	self.cash.cash80.value_id = "cash80"
 	self.cash.cash80.multiplier = 1
-	self.cash.cash80.pc = 40
+	self.cash.cash80.pcs = {40}
 	self.cash.cash90 = {}
 	self.cash.cash90.name_id = "bm_csh_cash90"
 	self.cash.cash90.value_id = "cash90"
@@ -1709,43 +1745,43 @@ function BlackMarketTweakData:_init_armors()
 	self.armors.level_1.name_id = "bm_armor_level_1"
 	self.armors.level_1.sequence = "var_model_01"
 	self.armors.level_1.upgrade_level = 0
-	self.armors.level_1.concealment = 10
+	self.armors.level_1.concealment = 30
 	self.armors.level_1.movement_penalty = 0
 	self.armors.level_2 = {}
 	self.armors.level_2.name_id = "bm_armor_level_2"
 	self.armors.level_2.sequence = "var_model_02"
 	self.armors.level_2.upgrade_level = 1
-	self.armors.level_2.concealment = 9
+	self.armors.level_2.concealment = 27
 	self.armors.level_2.movement_penalty = 1
 	self.armors.level_3 = {}
 	self.armors.level_3.name_id = "bm_armor_level_3"
 	self.armors.level_3.sequence = "var_model_03"
 	self.armors.level_3.upgrade_level = 2
-	self.armors.level_3.concealment = 6
+	self.armors.level_3.concealment = 21
 	self.armors.level_3.movement_penalty = 3
 	self.armors.level_4 = {}
 	self.armors.level_4.name_id = "bm_armor_level_4"
 	self.armors.level_4.sequence = "var_model_04"
 	self.armors.level_4.upgrade_level = 3
-	self.armors.level_4.concealment = 5
+	self.armors.level_4.concealment = 18
 	self.armors.level_4.movement_penalty = 4
 	self.armors.level_5 = {}
 	self.armors.level_5.name_id = "bm_armor_level_5"
 	self.armors.level_5.sequence = "var_model_05"
 	self.armors.level_5.upgrade_level = 4
-	self.armors.level_5.concealment = 1
+	self.armors.level_5.concealment = 15
 	self.armors.level_5.movement_penalty = 5
 	self.armors.level_6 = {}
 	self.armors.level_6.name_id = "bm_armor_level_6"
 	self.armors.level_6.sequence = "var_model_06"
 	self.armors.level_6.upgrade_level = 5
-	self.armors.level_6.concealment = 1
+	self.armors.level_6.concealment = 12
 	self.armors.level_6.movement_penalty = 6
 	self.armors.level_7 = {}
 	self.armors.level_7.name_id = "bm_armor_level_7"
 	self.armors.level_7.sequence = "var_model_07"
 	self.armors.level_7.upgrade_level = 6
-	self.armors.level_7.concealment = 1
+	self.armors.level_7.concealment = 6
 	self.armors.level_7.movement_penalty = 6
 	self:_add_desc_from_name_macro(self.armors)
 end

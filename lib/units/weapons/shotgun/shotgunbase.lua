@@ -127,7 +127,8 @@ function ShotgunBase:_fire_raycast(user_unit, from_pos, direction, dmg_mul, shoo
 	return result
 end
 function ShotgunBase:reload_expire_t()
-	return math.min(self._ammo_total - self._ammo_remaining_in_clip, self._ammo_max_per_clip - self._ammo_remaining_in_clip) * 20 / 30
+	local ammo_remaining_in_clip = self:get_ammo_remaining_in_clip()
+	return math.min(self:get_ammo_total() - ammo_remaining_in_clip, self:get_ammo_max_per_clip() - ammo_remaining_in_clip) * 20 / 30
 end
 function ShotgunBase:reload_enter_expire_t()
 	return 0.3
@@ -151,7 +152,7 @@ function ShotgunBase:update_reloading(t, dt, time_left)
 	if t > self._next_shell_reloded_t then
 		local speed_multiplier = self:reload_speed_multiplier()
 		self._next_shell_reloded_t = self._next_shell_reloded_t + 0.6666667 / speed_multiplier
-		self._ammo_remaining_in_clip = math.min(self._ammo_max_per_clip, self._ammo_remaining_in_clip + 1)
+		self:set_ammo_remaining_in_clip(math.min(self:get_ammo_max_per_clip(), self:get_ammo_remaining_in_clip() + 1))
 		return true
 	end
 end

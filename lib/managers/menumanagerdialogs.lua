@@ -389,7 +389,74 @@ function MenuManager:show_new_item_gained(params)
 	local ok_button = {}
 	ok_button.text = managers.localization:text("dialog_ok")
 	dialog_data.button_list = {ok_button}
+	local texture, render_template, shapes
+	local category = params.data[1]
+	local id = params.data[2]
+	if category == "weapon_mods" then
+		local part_id = id
+		texture = "guis/textures/pd2/blackmarket/icons/mods/" .. tostring(part_id)
+	elseif category == "colors" then
+		local color_tweak_data = _G.tweak_data.blackmarket.colors[id]
+		local shape_template = {
+			type = "bitmap",
+			texture = "guis/textures/pd2/blackmarket/icons/colors/color_bg",
+			color = tweak_data.screen_colors.text,
+			w = 128,
+			h = 128,
+			layer = 1,
+			x = 0.5,
+			y = 0.5
+		}
+		shapes = {}
+		table.insert(shapes, shape_template)
+		shape_template = deep_clone(shape_template)
+		shape_template.layer = 0
+		shape_template.color = color_tweak_data.colors[1]
+		shape_template.texture = "guis/textures/pd2/blackmarket/icons/colors/color_01"
+		table.insert(shapes, shape_template)
+		shape_template = deep_clone(shape_template)
+		shape_template.color = color_tweak_data.colors[2]
+		shape_template.texture = "guis/textures/pd2/blackmarket/icons/colors/color_02"
+		table.insert(shapes, shape_template)
+	elseif category == "primaries" or category == "secondaries" then
+		texture = "guis/textures/pd2/blackmarket/icons/weapons/" .. managers.weapon_factory:get_weapon_id_by_factory_id(id)
+	elseif category == "textures" then
+		texture = _G.tweak_data.blackmarket.textures[id].texture
+		render_template = Idstring("VertexColorTexturedPatterns")
+	else
+		texture = "guis/textures/pd2/blackmarket/icons/" .. tostring(category) .. "/" .. tostring(id)
+	end
+	dialog_data.texture = texture
+	dialog_data.render_template = render_template
+	dialog_data.shapes = shapes
 	dialog_data.sound_event = params.sound_event
+	managers.system_menu:show_new_unlock(dialog_data)
+end
+function MenuManager:show_mask_mods_available(params)
+	local dialog_data = {}
+	dialog_data.title = ""
+	dialog_data.text = params.text_block
+	local ok_button = {}
+	ok_button.text = managers.localization:text("dialog_ok")
+	dialog_data.button_list = {ok_button}
+	dialog_data.text_blend_mode = "add"
+	dialog_data.use_text_formating = true
+	dialog_data.text_formating_color = Color.white
+	dialog_data.text_formating_color_table = params.color_table
+	managers.system_menu:show_new_unlock(dialog_data)
+end
+function MenuManager:show_weapon_mods_available(params)
+	local dialog_data = {}
+	dialog_data.title = managers.localization:text("bm_menu_available_mods")
+	dialog_data.text = params.text_block
+	local ok_button = {}
+	ok_button.text = managers.localization:text("dialog_ok")
+	dialog_data.button_list = {ok_button}
+	dialog_data.texture = "guis/textures/pd2/blackmarket/icons/weapons/" .. tostring(params.weapon_id)
+	dialog_data.text_blend_mode = "add"
+	dialog_data.use_text_formating = true
+	dialog_data.text_formating_color = Color.white
+	dialog_data.text_formating_color_table = params.color_table
 	managers.system_menu:show_new_unlock(dialog_data)
 end
 function MenuManager:show_confirm_skillpoints(params)
@@ -749,5 +816,51 @@ function MenuManager:show_save_settings_failed(params)
 	local ok_button = {}
 	ok_button.text = managers.localization:text("dialog_continue")
 	dialog_data.button_list = {ok_button}
+	managers.system_menu:show(dialog_data)
+end
+function MenuManager:show_play_safehouse_question(params)
+	local dialog_data = {}
+	dialog_data.focus_button = 1
+	dialog_data.title = managers.localization:text("dialog_safehouse_title")
+	dialog_data.text = managers.localization:text("dialog_safehouse_goto_text")
+	local yes_button = {}
+	yes_button.text = managers.localization:text("dialog_yes")
+	yes_button.callback_func = params.yes_func
+	local no_button = {}
+	no_button.cancel_button = true
+	no_button.text = managers.localization:text("dialog_no")
+	dialog_data.button_list = {yes_button, no_button}
+	managers.system_menu:show(dialog_data)
+end
+function MenuManager:show_savefile_wrong_version(params)
+	local dialog_data = {}
+	dialog_data.title = managers.localization:text("dialog_information_title")
+	dialog_data.text = managers.localization:text(params.error_msg)
+	dialog_data.id = "wrong_version"
+	local ok_button = {}
+	ok_button.text = managers.localization:text("dialog_ok")
+	dialog_data.button_list = {ok_button}
+	managers.system_menu:add_init_show(dialog_data)
+end
+function MenuManager:show_savefile_wrong_user(params)
+	local dialog_data = {}
+	dialog_data.title = managers.localization:text("dialog_information_title")
+	dialog_data.text = managers.localization:text("dialog_load_wrong_user")
+	dialog_data.id = "wrong_user"
+	local ok_button = {}
+	ok_button.text = managers.localization:text("dialog_ok")
+	dialog_data.button_list = {ok_button}
+	managers.system_menu:add_init_show(dialog_data)
+end
+function MenuManager:show_abort_mission_dialog(params)
+	local dialog_data = {}
+	dialog_data.title = managers.localization:text("dialog_warning_title")
+	dialog_data.text = managers.localization:text("dialog_abort_mission_text")
+	local yes_button = {}
+	yes_button.text = managers.localization:text("dialog_yes")
+	yes_button.callback_func = params.yes_func
+	local no_button = {}
+	no_button.text = managers.localization:text("dialog_no")
+	dialog_data.button_list = {yes_button, no_button}
 	managers.system_menu:show(dialog_data)
 end

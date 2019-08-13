@@ -25,40 +25,37 @@ function WalletGuiObject.set_wallet(panel, layer)
 		text = managers.money:total_string_no_currency(),
 		font_size = tweak_data.menu.pd2_small_font_size,
 		font = tweak_data.menu.pd2_small_font,
-		color = tweak_data.screen_colors.text,
-		vertical = "center"
+		color = tweak_data.screen_colors.text
 	})
 	local level_text = Global.wallet_panel:text({
 		name = "wallet_level_text",
 		text = tostring(managers.experience:current_level()),
 		font_size = tweak_data.menu.pd2_small_font_size,
 		font = tweak_data.menu.pd2_small_font,
-		color = tweak_data.screen_colors.text,
-		vertical = "center"
+		color = tweak_data.screen_colors.text
 	})
 	local skillpoint_text = Global.wallet_panel:text({
 		name = "wallet_skillpoint_text",
-		text = managers.skilltree:points() > 1 and tostring(managers.skilltree:points()) or "",
+		text = tostring(managers.skilltree:points()),
 		font_size = tweak_data.menu.pd2_small_font_size,
 		font = tweak_data.menu.pd2_small_font,
-		color = tweak_data.screen_colors.text,
-		vertical = "center"
+		color = tweak_data.screen_colors.text
 	})
-	local mw, mh = WalletGuiObject.make_fine_text(money_text)
-	local lw, lh = WalletGuiObject.make_fine_text(level_text)
-	local sw, sh = WalletGuiObject.make_fine_text(skillpoint_text)
 	money_icon:set_leftbottom(2, Global.wallet_panel:h() - 2)
 	level_icon:set_leftbottom(2, money_icon:top() - 2)
 	skillpoint_icon:set_leftbottom(2, level_icon:top() - 2)
-	WalletGuiObject.make_fine_text(money_text)
+	local mw, mh = WalletGuiObject.make_fine_text(money_text)
+	local lw, lh = WalletGuiObject.make_fine_text(level_text)
+	local sw, sh = WalletGuiObject.make_fine_text(skillpoint_text)
 	money_text:set_left(money_icon:right() + 2)
 	money_text:set_center_y(money_icon:center_y())
-	WalletGuiObject.make_fine_text(level_text)
+	money_text:set_y(math.round(money_text:y()))
 	level_text:set_left(level_icon:right() + 2)
 	level_text:set_center_y(level_icon:center_y())
-	WalletGuiObject.make_fine_text(skillpoint_text)
+	level_text:set_y(math.round(level_text:y()))
 	skillpoint_text:set_left(skillpoint_icon:right() + 2)
 	skillpoint_text:set_center_y(skillpoint_icon:center_y())
+	skillpoint_text:set_y(math.round(skillpoint_text:y()))
 	local max_w = math.max(mw, lw, sw)
 	local bg_blur = Global.wallet_panel:bitmap({
 		name = "bg_blur",
@@ -71,17 +68,32 @@ function WalletGuiObject.set_wallet(panel, layer)
 	bg_blur:set_leftbottom(money_icon:leftbottom())
 	bg_blur:set_w(max_w + money_icon:w() + 2)
 	bg_blur:set_h(Global.wallet_panel:h() - skillpoint_icon:top())
-	WalletGuiObject.set_object_visible("wallet_skillpoint_icon", false)
-	WalletGuiObject.set_object_visible("wallet_skillpoint_text", false)
+	WalletGuiObject.set_object_visible("wallet_skillpoint_icon", 0 < managers.skilltree:points())
+	WalletGuiObject.set_object_visible("wallet_skillpoint_text", 0 < managers.skilltree:points())
 end
 function WalletGuiObject.refresh()
 	if Global.wallet_panel then
-		Global.wallet_panel:child("wallet_money_text"):set_text(managers.money:total_string_no_currency())
-		Global.wallet_panel:child("wallet_level_text"):set_text(tostring(managers.experience:current_level()))
-		Global.wallet_panel:child("wallet_skillpoint_text"):set_text(managers.skilltree:points() > 1 and tostring(managers.skilltree:points()) or "")
-		WalletGuiObject.make_fine_text(Global.wallet_panel:child("wallet_money_text"))
-		WalletGuiObject.make_fine_text(Global.wallet_panel:child("wallet_level_text"))
-		WalletGuiObject.make_fine_text(Global.wallet_panel:child("wallet_skillpoint_text"))
+		local money_icon = Global.wallet_panel:child("wallet_money_icon")
+		local level_icon = Global.wallet_panel:child("wallet_level_icon")
+		local skillpoint_icon = Global.wallet_panel:child("wallet_skillpoint_icon")
+		local money_text = Global.wallet_panel:child("wallet_money_text")
+		local level_text = Global.wallet_panel:child("wallet_level_text")
+		local skillpoint_text = Global.wallet_panel:child("wallet_skillpoint_text")
+		money_text:set_text(managers.money:total_string_no_currency())
+		WalletGuiObject.make_fine_text(money_text)
+		money_text:set_left(money_icon:right() + 2)
+		money_text:set_center_y(money_icon:center_y())
+		money_text:set_y(math.round(money_text:y()))
+		level_text:set_text(tostring(managers.experience:current_level()))
+		WalletGuiObject.make_fine_text(level_text)
+		level_text:set_left(level_icon:right() + 2)
+		level_text:set_center_y(level_icon:center_y())
+		level_text:set_y(math.round(level_text:y()))
+		skillpoint_text:set_text(tostring(managers.skilltree:points()))
+		WalletGuiObject.make_fine_text(skillpoint_text)
+		skillpoint_text:set_left(skillpoint_icon:right() + 2)
+		skillpoint_text:set_center_y(skillpoint_icon:center_y())
+		skillpoint_text:set_y(math.round(skillpoint_text:y()))
 	end
 end
 function WalletGuiObject.make_fine_text(text)

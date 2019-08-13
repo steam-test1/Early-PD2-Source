@@ -649,6 +649,8 @@ function HUDTeammate:remove_panel()
 	cable_ties_panel:child("amount"):set_visible(false)
 	self._player_panel:child("carry_panel"):set_visible(false)
 	self._player_panel:child("carry_panel"):child("value"):set_text("")
+	self:stop_timer()
+	self:teammate_progress(false, false, false, false)
 	self._peer_id = nil
 	self._ai = nil
 end

@@ -75,6 +75,7 @@ require("lib/network/extensions/cop/HuskCopInventory")
 require("lib/network/extensions/cop/HuskCopDamage")
 require("lib/network/extensions/cop/HuskCopBrain")
 require("lib/network/extensions/cop/HuskCopMovement")
+require("lib/units/characters/DummyCorpseBase")
 require("lib/units/civilians/DummyCivilianBase")
 require("lib/units/civilians/CivilianBase")
 require("lib/units/civilians/CivilianBrain")
@@ -381,7 +382,7 @@ function GameSetup:_update_debug_input()
 		elseif self._keyboard:pressed(60) then
 			if self._framerate_low then
 				self._framerate_low = nil
-				Application:cap_framerate(self._framerate_cap)
+				Application:cap_framerate(managers.user:get_setting("fps_cap"))
 			else
 				self._framerate_low = true
 				Application:cap_framerate(30)

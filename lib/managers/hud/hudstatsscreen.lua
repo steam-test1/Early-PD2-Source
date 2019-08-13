@@ -320,7 +320,7 @@ function HUDStatsScreen:init()
 	if job_data then
 		local job_stars = managers.job:current_job_stars()
 		local job_and_difficulty_stars = managers.job:current_job_and_difficulty_stars()
-		local risk_color = Color(255, 255, 204, 0) / 255
+		local risk_color = tweak_data.screen_colors.risk
 		local filled_star_rect = {
 			0,
 			32,
@@ -335,20 +335,27 @@ function HUDStatsScreen:init()
 		}
 		local cy = paygrade_title:center_y()
 		local sx = paygrade_title:right() + 8
-		for i = 1, 10 do
+		local level_data = {
+			texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
+			texture_rect = filled_star_rect,
+			w = 16,
+			h = 16,
+			color = tweak_data.screen_colors.text,
+			alpha = 1
+		}
+		local risk_data = {
+			texture = "guis/textures/pd2/crimenet_skull",
+			w = 16,
+			h = 16,
+			color = risk_color,
+			alpha = 1
+		}
+		for i = 1, job_and_difficulty_stars do
 			local x = sx + (i - 1) * 18
-			local alpha = i > job_and_difficulty_stars and 0.25 or 1
-			local color = (i > job_and_difficulty_stars or i <= job_stars) and Color.white or risk_color
-			local star = day_wrapper_panel:bitmap({
-				texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
-				texture_rect = filled_star_rect,
-				x = x,
-				y = 0,
-				w = 18,
-				h = 18,
-				alpha = alpha,
-				color = color
-			})
+			local is_risk = i > job_stars
+			local star_data = is_risk and risk_data or level_data
+			local star = day_wrapper_panel:bitmap(star_data)
+			star:set_x(x)
 			star:set_center_y(math.round(cy))
 		end
 	end
@@ -416,6 +423,17 @@ function HUDStatsScreen:init()
 		by / managers.gui_data:full_scaled_size().h,
 		0
 	})
+	self:_rec_round_object(left_panel)
+	self:_rec_round_object(right_panel)
+end
+function HUDStatsScreen:_rec_round_object(object)
+	if object.children then
+		for i, d in ipairs(object:children()) do
+			self:_rec_round_object(d)
+		end
+	end
+	local x, y = object:position()
+	object:set_position(math.round(x), math.round(y))
 end
 function HUDStatsScreen:show()
 	local safe = managers.hud.STATS_SCREEN_SAFERECT
@@ -517,7 +535,7 @@ function HUDStatsScreen:_create_stats_screen_profile(profile_wrapper_panel)
 	})
 	bg_ring:set_bottom(profile_wrapper_panel:h())
 	exp_ring:set_bottom(profile_wrapper_panel:h())
-	local gain_xp = managers.experience:get_on_completion_xp()
+	local gain_xp = managers.experience:get_xp_dissected(true, 0)
 	local at_max_level = managers.experience:current_level() == managers.experience:level_cap()
 	local can_lvl_up = not at_max_level and gain_xp >= next_level_data.points - next_level_data.current_points
 	local progress = (next_level_data.current_points or 1) / (next_level_data.points or 1)

@@ -53,7 +53,7 @@ function TeamAILogicTravel.enter(data, new_logic_name, enter_params)
 	end
 	data.unit:movement():set_allow_fire(false)
 	my_data.weapon_range = data.char_tweak.weapon[data.unit:inventory():equipped_unit():base():weapon_tweak_data().usage].range
-	if not data.unit:movement():chk_action_forbidden("walk") then
+	if not data.unit:movement():chk_action_forbidden("walk") or data.unit:anim_data().act_idle then
 		local new_action = {type = "idle", body_part = 2}
 		data.unit:brain():action_request(new_action)
 	end
@@ -98,7 +98,7 @@ function TeamAILogicTravel.update(data)
 			return
 		end
 	elseif my_data.advancing then
-		if data.objective.type == "follow" and not unit:movement():chk_action_forbidden("walk") then
+		if data.objective.type == "follow" and (not unit:movement():chk_action_forbidden("walk") or unit:anim_data().act_idle) then
 			local follow_unit_nav_seg = data.objective.follow_unit:movement():nav_tracker():nav_segment()
 			if follow_unit_nav_seg ~= my_data.coarse_path[my_data.coarse_path_index + 1][1] or my_data.coarse_path_index ~= #my_data.coarse_path - 1 then
 				local my_nav_seg = data.unit:movement():nav_tracker():nav_segment()
@@ -110,7 +110,7 @@ function TeamAILogicTravel.update(data)
 			end
 		end
 	elseif my_data.cover_leave_t then
-		if not my_data.turning and not unit:movement():chk_action_forbidden("walk") then
+		if not my_data.turning and (not unit:movement():chk_action_forbidden("walk") or not not unit:anim_data().act_idle) then
 			if t > my_data.cover_leave_t then
 				my_data.cover_leave_t = nil
 			elseif my_data.best_cover then
@@ -124,7 +124,7 @@ function TeamAILogicTravel.update(data)
 			end
 		end
 	elseif my_data.advance_path then
-		if not unit:movement():chk_action_forbidden("walk") then
+		if not unit:movement():chk_action_forbidden("walk") or unit:anim_data().act_idle then
 			local haste, no_strafe
 			if objective and objective.haste then
 				haste = objective.haste
@@ -179,7 +179,7 @@ function TeamAILogicTravel.update(data)
 		CopLogicBase._exit(data.unit, "idle", {scan = true})
 		return
 	end
-	local action_taken = data.unit:movement():chk_action_forbidden("walk")
+	local action_taken = data.unit:movement():chk_action_forbidden("walk") and not unit:anim_data().act_idle
 	local want_to_take_cover = TeamAILogicTravel._chk_wants_to_take_cover(data, my_data)
 	if not action_taken then
 		if want_to_take_cover or data.char_tweak.no_stand then
@@ -391,7 +391,7 @@ function TeamAILogicTravel._upd_enemy_detection(data)
 		local objective = data.objective
 		local allow_trans, obj_failed
 		local dont_exit = false
-		if data.unit:movement():chk_action_forbidden("walk") then
+		if data.unit:movement():chk_action_forbidden("walk") and not data.unit:anim_data().act_idle then
 			dont_exit = true
 		else
 			allow_trans, obj_failed = CopLogicBase.is_obstructed(data, objective, nil, new_attention)

@@ -7,7 +7,7 @@ core:register_module("lib/managers/SlotManager")
 core:register_module("lib/managers/DebugManager")
 core:register_module("lib/utils/game_state_machine/GameState")
 core:register_module("lib/utils/dev/FreeFlight")
-Global.DEBUG_MENU_ON = false
+Global.DEBUG_MENU_ON = Application:debug_enabled()
 core:import("CoreSetup")
 require("lib/managers/DLCManager")
 managers.dlc = DLCManager:new()
@@ -43,6 +43,7 @@ require("lib/managers/menu/FriendsBoxGui")
 require("lib/managers/menu/CircleGuiObject")
 require("lib/managers/menu/BoxGuiObject")
 require("lib/managers/menu/NewsFeedGui")
+require("lib/managers/menu/ImageBoxGui")
 require("lib/managers/menu/ProfileBoxGui")
 require("lib/managers/menu/ContractBoxGui")
 require("lib/managers/menu/ServerStatusBoxGui")
@@ -372,8 +373,6 @@ function Setup:init_finalize()
 	managers.player:aquire_default_upgrades()
 	managers.blackmarket:init_finalize()
 	managers.assets:init_finalize()
-	self._framerate_cap = 130
-	Application:cap_framerate(self._framerate_cap)
 end
 function Setup:update(t, dt)
 	local main_t, main_dt = TimerManager:main():time(), TimerManager:main():delta_time()
@@ -509,5 +508,10 @@ function Setup:set_main_thread_loading_screen_visible(visible)
 		cat_print("loading_environment", "[LoadingEnvironment] Main thread loading screen visible: " .. tostring(visible))
 		self._main_thread_loading_screen_gui_script:set_visible(visible, RenderSettings.resolution)
 		self._main_thread_loading_screen_gui_visible = visible
+	end
+end
+function Setup:set_fps_cap(value)
+	if not self._framerate_low then
+		Application:cap_framerate(value)
 	end
 end

@@ -102,7 +102,11 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 	local x = preset and preset.x or config and config.x or 0
 	local y = preset and preset.y or config and config.y or 0
 	local bottom = preset and preset.bottom or config and config.bottom
+	local use_text_formating = preset and preset.use_text_formating or config and config.use_text_formating or false
+	local text_formating_color = preset and preset.text_formating_color or config and config.text_formating_color or Color.white
+	local text_formating_color_table = preset and preset.text_formating_color_table or config and config.text_formating_color_table or nil
 	local is_title_outside = preset and preset.is_title_outside or config and config.is_title_outside or false
+	local text_blend_mode = preset and preset.text_blend_mode or config and config.text_blend_mode or "normal"
 	self._allow_moving = config and config.allow_moving or false
 	local preset_or_config_y = y ~= 0
 	title = title and utf8.to_upper(title)
@@ -132,15 +136,15 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		align = "left",
 		halign = "left",
 		vertical = "center",
-		hvertical = "top",
+		valign = "top",
 		x = 10,
 		y = 10
 	})
-	local _, _, w, h = title_text:text_rect()
-	h = h + 10
-	title_text:set_size(w, h)
+	local _, _, tw, th = title_text:text_rect()
+	th = th + 10
+	title_text:set_size(tw, th)
 	if is_title_outside then
-		h = 0
+		th = 0
 	end
 	self._indicator = main:bitmap({
 		name = "indicator",
@@ -157,7 +161,7 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		w = main:w(),
 		y = 0
 	})
-	top_line:set_bottom(h)
+	top_line:set_bottom(th)
 	local bottom_line = main:bitmap({
 		name = "bottom_line",
 		texture = "guis/textures/headershadow",
@@ -167,7 +171,7 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		w = main:w(),
 		y = 100
 	})
-	bottom_line:set_top(main:h() - h)
+	bottom_line:set_top(main:h() - th)
 	top_line:hide()
 	bottom_line:hide()
 	local lower_static_panel = main:panel({
@@ -184,7 +188,7 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		x = 0,
 		y = 0,
 		w = main:w(),
-		h = main:h() - h * 2,
+		h = main:h() - th * 2,
 		layer = 0
 	})
 	local info_bg = info_area:rect({
@@ -199,7 +203,7 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 	local scroll_panel = info_area:panel({
 		name = "scroll_panel",
 		x = 10,
-		y = math.round(h + 5),
+		y = math.round(th + 5),
 		w = info_area:w() - 20,
 		h = info_area:h(),
 		layer = 1
@@ -220,14 +224,54 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		align = "left",
 		halign = "left",
 		vertical = "top",
-		hvertical = "top",
-		blend_mode = "normal"
+		valign = "top",
+		blend_mode = text_blend_mode
 	})
-	local _, _, w, h = text:text_rect()
-	text:set_h(h)
-	scroll_panel:set_h(math.max(h, stats_panel:h()))
+	if use_text_formating then
+		local text_string = text:text()
+		local text_dissected = utf8.characters(text_string)
+		local idsp = Idstring("#")
+		local start_ci = {}
+		local end_ci = {}
+		local first_ci = true
+		for i, c in ipairs(text_dissected) do
+			if Idstring(c) == idsp then
+				local next_c = text_dissected[i + 1]
+				if next_c and Idstring(next_c) == idsp then
+					if first_ci then
+						table.insert(start_ci, i)
+					else
+						table.insert(end_ci, i)
+					end
+					first_ci = not first_ci
+				end
+			end
+		end
+		if #start_ci ~= #end_ci then
+		else
+			for i = 1, #start_ci do
+				start_ci[i] = start_ci[i] - ((i - 1) * 4 + 1)
+				end_ci[i] = end_ci[i] - (i * 4 - 1)
+			end
+		end
+		text_string = string.gsub(text_string, "##", "")
+		text:set_text(text_string)
+		text:clear_range_color(1, utf8.len(text_string))
+		if #start_ci ~= #end_ci then
+			Application:error("TextBoxGui: Not even amount of ##'s in skill description string!", #start_ci, #end_ci)
+		else
+			for i = 1, #start_ci do
+				text:set_range_color(start_ci[i], end_ci[i], text_formating_color_table and text_formating_color_table[i] or text_formating_color)
+			end
+		end
+	end
+	local _, _, ttw, tth = text:text_rect()
+	text:set_h(tth)
+	scroll_panel:set_h(math.min(h - th, tth))
 	info_area:set_h(scroll_panel:bottom() + buttons_panel:h() + 10 + 5)
 	buttons_panel:set_bottom(info_area:h() - 10)
+	top_line:set_world_bottom(scroll_panel:world_top())
+	bottom_line:set_world_top(scroll_panel:world_bottom())
 	if not preset_or_config_y then
 		main:set_h(info_area:h())
 		if bottom then
@@ -252,36 +296,44 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		layer = 5,
 		color = Color.white,
 		w = main:w() - buttons_panel:w(),
-		y = 100
+		y = 100,
+		halign = "right",
+		valign = "top"
 	})
-	scroll_up_indicator_shade:set_top(top_line:bottom() - 6)
+	scroll_up_indicator_shade:set_top(top_line:bottom())
 	local texture, rect = tweak_data.hud_icons:get_icon_data("scroll_up")
 	local scroll_up_indicator_arrow = main:bitmap({
 		name = "scroll_up_indicator_arrow",
 		texture = texture,
 		texture_rect = rect,
 		layer = 3,
-		color = Color.white
+		color = Color.white,
+		halign = "right",
+		valign = "top"
 	})
-	scroll_up_indicator_arrow:set_lefttop(scroll_panel:right() + 2, scroll_up_indicator_shade:top() + 8)
+	scroll_up_indicator_arrow:set_righttop(scroll_panel:right() + 2, scroll_up_indicator_shade:top() + 8)
 	local scroll_down_indicator_shade = main:bitmap({
 		name = "scroll_down_indicator_shade",
 		texture = "guis/textures/headershadow",
 		layer = 5,
 		color = Color.white,
 		w = main:w() - buttons_panel:w(),
-		y = 100
+		y = 100,
+		halign = "right",
+		valign = "bottom"
 	})
-	scroll_down_indicator_shade:set_bottom(bottom_line:top() + 6)
+	scroll_down_indicator_shade:set_bottom(bottom_line:top())
 	local texture, rect = tweak_data.hud_icons:get_icon_data("scroll_dn")
 	local scroll_down_indicator_arrow = main:bitmap({
 		name = "scroll_down_indicator_arrow",
 		texture = texture,
 		texture_rect = rect,
 		layer = 3,
-		color = Color.white
+		color = Color.white,
+		halign = "right",
+		valign = "bottom"
 	})
-	scroll_down_indicator_arrow:set_leftbottom(scroll_panel:right() + 2, scroll_down_indicator_shade:bottom() - 8)
+	scroll_down_indicator_arrow:set_rightbottom(scroll_panel:right() + 2, scroll_down_indicator_shade:bottom() - 8)
 	local bar_h = scroll_down_indicator_arrow:top() - scroll_up_indicator_arrow:bottom()
 	local texture, rect = tweak_data.hud_icons:get_icon_data("scrollbar")
 	local scroll_bar = main:bitmap({
@@ -290,7 +342,8 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		texture_rect = rect,
 		layer = 4,
 		h = bar_h,
-		color = Color.white
+		color = Color.white,
+		halign = "right"
 	})
 	scroll_bar:set_bottom(scroll_down_indicator_arrow:top())
 	scroll_bar:set_center_x(scroll_down_indicator_arrow:center_x())
@@ -301,10 +354,8 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		visible = use_minimize_legend,
 		font = tweak_data.menu.pd2_small_font,
 		font_size = tweak_data.menu.pd2_small_font_size,
-		align = "left",
 		halign = "left",
-		vertical = "top",
-		hvertical = "top"
+		valign = "top"
 	})
 	local _, _, lw, lh = legend_minimize:text_rect()
 	legend_minimize:set_size(lw, lh)
@@ -317,10 +368,8 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		visible = not no_close_legend,
 		font = tweak_data.menu.pd2_small_font,
 		font_size = tweak_data.menu.pd2_small_font_size,
-		align = "left",
 		halign = "left",
-		vertical = "top",
-		hvertical = "top"
+		valign = "top"
 	})
 	local _, _, lw, lh = legend_close:text_rect()
 	legend_close:set_size(lw, lh)
@@ -332,10 +381,8 @@ function TextBoxGui:_create_text_box(ws, title, text, content_data, config)
 		visible = not no_scroll_legend,
 		font = tweak_data.menu.pd2_small_font,
 		font_size = tweak_data.menu.pd2_small_font_size,
-		align = "right",
 		halign = "right",
-		vertical = "top",
-		hvertical = "top"
+		valign = "top"
 	})
 	local _, _, lw, lh = legend_scroll:text_rect()
 	legend_scroll:set_size(lw, lh)
@@ -394,7 +441,7 @@ function TextBoxGui:_setup_stats_panel(scroll_panel, stats_list, stats_text)
 					align = "left",
 					halign = "left",
 					vertical = "center",
-					hvertical = "center",
+					valign = "center",
 					blend_mode = "normal",
 					kern = 0
 				})
@@ -425,7 +472,7 @@ function TextBoxGui:_setup_stats_panel(scroll_panel, stats_list, stats_text)
 					align = "left",
 					halign = "left",
 					vertical = "center",
-					hvertical = "center",
+					valign = "center",
 					blend_mode = "normal",
 					kern = 0
 				})
@@ -464,7 +511,7 @@ function TextBoxGui:_setup_stats_panel(scroll_panel, stats_list, stats_text)
 					align = "left",
 					halign = "left",
 					vertical = "center",
-					hvertical = "center",
+					valign = "center",
 					blend_mode = "normal",
 					kern = 0
 				})
@@ -485,7 +532,7 @@ function TextBoxGui:_setup_stats_panel(scroll_panel, stats_list, stats_text)
 					align = "left",
 					halign = "left",
 					vertical = "top",
-					hvertical = "top",
+					valign = "top",
 					blend_mode = "normal",
 					kern = 0
 				})
@@ -507,7 +554,7 @@ function TextBoxGui:_setup_stats_panel(scroll_panel, stats_list, stats_text)
 			align = "left",
 			halign = "left",
 			vertical = "top",
-			hvertical = "top",
+			valign = "top",
 			blend_mode = "normal",
 			kern = 0
 		})
@@ -632,22 +679,25 @@ end
 function TextBoxGui:_set_scroll_indicator()
 	local info_area = self._text_box:child("info_area")
 	local scroll_panel = info_area:child("scroll_panel")
+	local scroll_text = scroll_panel:child("text")
 	local scroll_bar = self._text_box:child("scroll_bar")
 	local legend_scroll = self._text_box:child("legend_scroll")
 	local bar_h = self._text_box:child("scroll_down_indicator_arrow"):top() - self._text_box:child("scroll_up_indicator_arrow"):bottom()
-	if scroll_panel:h() ~= 0 then
-		scroll_bar:set_h(bar_h * info_area:h() / scroll_panel:h())
+	local is_visible = scroll_text:h() > info_area:h()
+	if scroll_text:h() ~= 0 then
+		scroll_bar:set_h(bar_h * scroll_panel:h() / scroll_text:h())
 	end
-	scroll_bar:set_visible(scroll_panel:h() > info_area:h())
-	legend_scroll:set_visible(not self._no_scroll_legend and scroll_panel:h() > info_area:h())
-	self._text_box:child("scroll_up_indicator_shade"):set_visible(scroll_panel:h() > info_area:h())
-	self._text_box:child("scroll_up_indicator_arrow"):set_visible(scroll_panel:h() > info_area:h())
-	self._text_box:child("scroll_down_indicator_shade"):set_visible(scroll_panel:h() > info_area:h())
-	self._text_box:child("scroll_down_indicator_arrow"):set_visible(scroll_panel:h() > info_area:h())
+	scroll_bar:set_visible(is_visible)
+	legend_scroll:set_visible(not self._no_scroll_legend and is_visible)
+	self._text_box:child("scroll_up_indicator_shade"):set_visible(is_visible)
+	self._text_box:child("scroll_up_indicator_arrow"):set_visible(is_visible)
+	self._text_box:child("scroll_down_indicator_shade"):set_visible(is_visible)
+	self._text_box:child("scroll_down_indicator_arrow"):set_visible(is_visible)
 end
 function TextBoxGui:_check_scroll_indicator_states()
 	local info_area = self._text_box:child("info_area")
 	local scroll_panel = info_area:child("scroll_panel")
+	local scroll_text = scroll_panel:child("text")
 	if not self._up_alpha then
 		self._up_alpha = {current = 0}
 		self._text_box:child("scroll_up_indicator_shade"):set_color(self._text_box:child("scroll_up_indicator_shade"):color():with_alpha(self._up_alpha.current))
@@ -658,12 +708,12 @@ function TextBoxGui:_check_scroll_indicator_states()
 		self._text_box:child("scroll_down_indicator_shade"):set_color(self._text_box:child("scroll_down_indicator_shade"):color():with_alpha(self._down_alpha.current))
 		self._text_box:child("scroll_down_indicator_arrow"):set_color(self._text_box:child("scroll_down_indicator_arrow"):color():with_alpha(self._down_alpha.current))
 	end
-	self._up_alpha.target = 0 > scroll_panel:top() and 1 or 0
-	self._down_alpha.target = info_area:h() < scroll_panel:bottom() and 1 or 0
+	self._up_alpha.target = 0 > scroll_text:top() and 1 or 0
+	self._down_alpha.target = scroll_text:bottom() > scroll_panel:h() and 1 or 0
 	local up_arrow = self._text_box:child("scroll_up_indicator_arrow")
 	local scroll_bar = self._text_box:child("scroll_bar")
-	local sh = scroll_panel:h() ~= 0 and scroll_panel:h() or 1
-	scroll_bar:set_y(up_arrow:bottom() - scroll_panel:y() * (info_area:h() - up_arrow:h() * 2) / sh)
+	local sh = scroll_text:h() ~= 0 and scroll_text:h() or 1
+	scroll_bar:set_top(up_arrow:bottom() - scroll_text:top() * (scroll_panel:h() - up_arrow:h() * 2 - 16) / sh)
 end
 function TextBoxGui:input_focus()
 	return false
@@ -781,7 +831,7 @@ function TextBoxGui:mouse_wheel_up(x, y)
 	local scroll_panel = self._text_box:child("info_area"):child("scroll_panel")
 	local info_area = self._text_box:child("info_area")
 	if info_area:inside(x, y) and scroll_panel:inside(x, y) then
-		self:scroll_up(16)
+		self:scroll_up(28)
 		return true
 	end
 end
@@ -792,7 +842,7 @@ function TextBoxGui:mouse_wheel_down(x, y)
 	local scroll_panel = self._text_box:child("info_area"):child("scroll_panel")
 	local info_area = self._text_box:child("info_area")
 	if info_area:inside(x, y) and scroll_panel:inside(x, y) then
-		self:scroll_down(16)
+		self:scroll_down(28)
 		return true
 	end
 end
@@ -801,12 +851,13 @@ function TextBoxGui:scroll_up(y)
 		return
 	end
 	local scroll_panel = self._text_box:child("info_area"):child("scroll_panel")
-	local top_y = self._is_title_outside and 0 or math.round(self._text_box:child("title"):bottom() + 5)
-	if 0 > scroll_panel:top() then
-		scroll_panel:set_y(scroll_panel:y() + (y or TimerManager:main():delta_time() * 200))
+	local scroll_text = scroll_panel:child("text")
+	local top_y = self._is_title_outside and 5 or math.round(self._text_box:child("title"):bottom() + 5)
+	if scroll_text:top() < 0 then
+		scroll_text:set_y(scroll_text:y() + (y or TimerManager:main():delta_time() * 200))
 	end
-	if top_y < scroll_panel:top() then
-		scroll_panel:set_top(top_y)
+	if top_y < scroll_text:top() then
+		scroll_text:set_top(top_y)
 	end
 	self:_check_scroll_indicator_states()
 end
@@ -816,27 +867,31 @@ function TextBoxGui:scroll_down(y)
 	end
 	local info_area = self._text_box:child("info_area")
 	local scroll_panel = info_area:child("scroll_panel")
-	if scroll_panel:bottom() > info_area:h() then
-		if info_area:h() < scroll_panel:bottom() then
-			scroll_panel:set_y(scroll_panel:y() - (y or TimerManager:main():delta_time() * 200))
+	local scroll_text = scroll_panel:child("text")
+	if scroll_text:bottom() > scroll_panel:h() then
+		if scroll_panel:h() < scroll_text:bottom() then
+			scroll_text:set_y(scroll_text:y() - (y or TimerManager:main():delta_time() * 200))
 		end
-		if info_area:h() > scroll_panel:bottom() then
-			scroll_panel:set_bottom(info_area:h())
+		if scroll_panel:h() > scroll_text:bottom() then
+			scroll_text:set_bottom(scroll_panel:h())
 		end
 	end
 	self:_check_scroll_indicator_states()
 end
 function TextBoxGui:scroll_with_bar(target_y, current_y)
 	local arrow_size = self._text_box:child("scroll_up_indicator_arrow"):size()
+	local info_area = self._text_box:child("info_area")
+	local scroll_panel = info_area:child("scroll_panel")
+	local scroll_text = scroll_panel:child("text")
 	if target_y < current_y then
-		if target_y < self._panel:child("info_area"):world_bottom() - arrow_size then
-			local mul = (self._panel:child("info_area"):h() - arrow_size * 2) / self._text_box:child("info_area"):child("scroll_panel"):h()
+		if target_y < scroll_panel:world_bottom() - arrow_size then
+			local mul = (scroll_panel:h() - arrow_size * 2) / scroll_text:h()
 			self:scroll_up((current_y - target_y) / mul)
 		end
 		current_y = target_y
 	elseif target_y > current_y then
-		if target_y > self._panel:child("info_area"):world_y() + arrow_size then
-			local mul = (self._panel:child("info_area"):h() - arrow_size * 2) / self._text_box:child("info_area"):child("scroll_panel"):h()
+		if target_y > scroll_panel:world_y() + arrow_size then
+			local mul = (scroll_panel:h() - arrow_size * 2) / scroll_text:h()
 			self:scroll_down((target_y - current_y) / mul)
 		end
 		current_y = target_y
@@ -858,6 +913,7 @@ function TextBoxGui:set_fade(fade)
 end
 function TextBoxGui:_set_alpha(alpha)
 	self._panel:set_alpha(alpha)
+	self._panel:set_visible(alpha ~= 0)
 end
 function TextBoxGui:_set_alpha_recursive(obj, alpha)
 	if obj.set_color then

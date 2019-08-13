@@ -1,19 +1,22 @@
 SkillTreeTweakData = SkillTreeTweakData or class()
 function SkillTreeTweakData:init()
+	local digest = function(value)
+		return Application:digest_value(value, true)
+	end
 	self.tier_unlocks = {
-		1,
-		5,
-		10,
-		20,
-		30,
-		40
+		digest(1),
+		digest(5),
+		digest(10),
+		digest(20),
+		digest(30),
+		digest(40)
 	}
 	self.costs = {
-		unlock_tree = 1,
-		default = 1,
-		pro = 3,
-		hightier = 4,
-		hightierpro = 8
+		unlock_tree = digest(1),
+		default = digest(1),
+		pro = digest(3),
+		hightier = digest(4),
+		hightierpro = digest(8)
 	}
 	self.skills = {}
 	self.skills.mastermind = {

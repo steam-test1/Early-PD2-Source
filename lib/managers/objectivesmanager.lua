@@ -281,7 +281,7 @@ function ObjectivesManager:_get_xp(level_id, id)
 		return 0
 	end
 	local xp_weight = self:_get_real_xp_weight(level_id, self._objectives_level_id[level_id][id].xp_weight)
-	return math.round(xp_weight * tweak_data.experience_manager.total_level_objectives)
+	return math.round(xp_weight * tweak_data:get_value("experience_manager", "total_level_objectives"))
 end
 function ObjectivesManager:_get_real_xp_weight(level_id, xp_weight)
 	local total_xp_weight = self:_total_xp_weight(level_id)
@@ -301,7 +301,7 @@ function ObjectivesManager:_check_xp_weight(level_id)
 	local total_xp = 0
 	local total_xp_weight = self:_total_xp_weight(level_id)
 	for obj, data in pairs(self._objectives_level_id[level_id]) do
-		local xp = math.round(data.xp_weight / total_xp_weight * tweak_data.experience_manager.total_level_objectives)
+		local xp = math.round(data.xp_weight / total_xp_weight * tweak_data:get_value("experience_manager", "total_level_objectives"))
 		total_xp = total_xp + xp
 		print(obj, xp)
 	end

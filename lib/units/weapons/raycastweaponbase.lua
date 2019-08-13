@@ -22,6 +22,7 @@ function RaycastWeaponBase:init(unit)
 	self._blank_slotmask = managers.slot:get_mask("bullet_blank_impact_targets")
 	self:_create_use_setups()
 	self._setup = {}
+	self._digest_values = SystemInfo:platform() == Idstring("WIN32")
 	self:replenish()
 	self._aim_assist_data = tweak_data.weapon[self._name_id].aim_assist
 	self._autohit_data = tweak_data.weapon[self._name_id].autohit
@@ -165,11 +166,11 @@ function RaycastWeaponBase:trigger_held(...)
 end
 function RaycastWeaponBase:fire(from_pos, direction, dmg_mul, shoot_player, spread_mul, autohit_mul, suppr_mul, target_unit)
 	if not managers.player:has_activate_temporary_upgrade("temporary", "no_ammo_cost") then
-		if self._ammo_remaining_in_clip == 0 then
+		if self:get_ammo_remaining_in_clip() == 0 then
 			return
 		end
-		self._ammo_remaining_in_clip = self._ammo_remaining_in_clip - 1
-		self._ammo_total = self._ammo_total - 1
+		self:set_ammo_remaining_in_clip(self:get_ammo_remaining_in_clip() - 1)
+		self:set_ammo_total(self:get_ammo_total() - 1)
 	end
 	local user_unit = self._setup.user_unit
 	self:_check_ammo_total(user_unit)
@@ -193,7 +194,7 @@ function RaycastWeaponBase:fire(from_pos, direction, dmg_mul, shoot_player, spre
 	return ray_res
 end
 function RaycastWeaponBase:_check_ammo_total(unit)
-	if self._ammo_total <= 0 and unit:base().is_local_player and unit:inventory():all_out_of_ammo() then
+	if self:get_ammo_total() <= 0 and unit:base().is_local_player and unit:inventory():all_out_of_ammo() then
 		PlayerStandard.say_line(unit:sound(), "g81x_plu")
 	end
 end
@@ -417,7 +418,7 @@ function RaycastWeaponBase:damage_player(col_ray, from_pos, direction)
 	return nil, ray_data
 end
 function RaycastWeaponBase:force_hit(from_pos, direction, user_unit, impact_pos, impact_normal, hit_unit, hit_body)
-	self._ammo_remaining_in_clip = math.max(0, self._ammo_remaining_in_clip - 1)
+	self:set_ammo_remaining_in_clip(math.max(0, self:get_ammo_remaining_in_clip() - 1))
 	local col_ray = {
 		position = impact_pos,
 		ray = direction,
@@ -452,13 +453,82 @@ end
 function RaycastWeaponBase:anim_stop(anim)
 	self._unit:anim_stop(Idstring(anim))
 end
+function RaycastWeaponBase:digest_value(value, digest)
+	if self._digest_values then
+		return Application:digest_value(value, digest)
+	else
+		return value
+	end
+end
+function RaycastWeaponBase:set_ammo_max_per_clip(ammo_max_per_clip)
+	if self._ammo_max_per_clip then
+		if self._ammo_max_per_clip2 then
+			print("haxor")
+		end
+		self._ammo_max_per_clip2 = self:digest_value(ammo_max_per_clip, true)
+		self._ammo_max_per_clip = nil
+	else
+		self._ammo_max_per_clip = self:digest_value(ammo_max_per_clip, true)
+		self._ammo_max_per_clip2 = nil
+	end
+end
+function RaycastWeaponBase:get_ammo_max_per_clip()
+	return self._ammo_max_per_clip and self:digest_value(self._ammo_max_per_clip, false) or self:digest_value(self._ammo_max_per_clip2, false)
+end
+function RaycastWeaponBase:set_ammo_max(ammo_max)
+	if self._ammo_max then
+		if self._ammo_max2 then
+			print("haxor")
+		end
+		self._ammo_max2 = self:digest_value(ammo_max, true)
+		self._ammo_max = nil
+	else
+		self._ammo_max = self:digest_value(ammo_max, true)
+		self._ammo_max2 = nil
+	end
+end
+function RaycastWeaponBase:get_ammo_max()
+	return self._ammo_max and self:digest_value(self._ammo_max, false) or self:digest_value(self._ammo_max2, false)
+end
+function RaycastWeaponBase:set_ammo_total(ammo_total)
+	if self._ammo_total then
+		if self._ammo_total2 then
+			print("haxor")
+		end
+		self._ammo_total2 = self:digest_value(ammo_total, true)
+		self._ammo_total = nil
+	else
+		self._ammo_total = self:digest_value(ammo_total, true)
+		self._ammo_total2 = nil
+	end
+end
+function RaycastWeaponBase:get_ammo_total()
+	return self._ammo_total and self:digest_value(self._ammo_total, false) or self:digest_value(self._ammo_total2, false)
+end
+function RaycastWeaponBase:set_ammo_remaining_in_clip(ammo_remaining_in_clip)
+	if self._ammo_remaining_in_clip then
+		if self._ammo_remaining_in_clip2 then
+			print("haxor")
+		end
+		self._ammo_remaining_in_clip2 = self:digest_value(ammo_remaining_in_clip, true)
+		self._ammo_remaining_in_clip = nil
+	else
+		self._ammo_remaining_in_clip = self:digest_value(ammo_remaining_in_clip, true)
+		self._ammo_remaining_in_clip2 = nil
+	end
+end
+function RaycastWeaponBase:get_ammo_remaining_in_clip()
+	return self._ammo_remaining_in_clip and self:digest_value(self._ammo_remaining_in_clip, false) or self:digest_value(self._ammo_remaining_in_clip2, false)
+end
 function RaycastWeaponBase:replenish()
 	local ammo_max_multiplier = managers.player:upgrade_value("player", "extra_ammo_multiplier", 1)
 	ammo_max_multiplier = ammo_max_multiplier * managers.player:upgrade_value(self:weapon_tweak_data().category, "extra_ammo_multiplier", 1)
-	self._ammo_max_per_clip = self:get_ammo_max_per_clip()
-	self._ammo_max = math.round((tweak_data.weapon[self._name_id].AMMO_MAX + managers.player:upgrade_value(self._name_id, "clip_amount_increase") * self._ammo_max_per_clip) * ammo_max_multiplier)
-	self._ammo_total = self._ammo_max
-	self._ammo_remaining_in_clip = self._ammo_max_per_clip
+	local ammo_max_per_clip = self:calculate_ammo_max_per_clip()
+	local ammo_max = math.round((tweak_data.weapon[self._name_id].AMMO_MAX + managers.player:upgrade_value(self._name_id, "clip_amount_increase") * ammo_max_per_clip) * ammo_max_multiplier)
+	self:set_ammo_max_per_clip(ammo_max_per_clip)
+	self:set_ammo_max(ammo_max)
+	self:set_ammo_total(ammo_max)
+	self:set_ammo_remaining_in_clip(ammo_max_per_clip)
 	self._ammo_pickup = tweak_data.weapon[self._name_id].AMMO_PICKUP
 	self:update_damage()
 end
@@ -471,7 +541,7 @@ function RaycastWeaponBase:upgrade_blocked(category, upgrade)
 	end
 	return table.contains(self:weapon_tweak_data().upgrade_blocks[category], upgrade)
 end
-function RaycastWeaponBase:get_ammo_max_per_clip()
+function RaycastWeaponBase:calculate_ammo_max_per_clip()
 	local ammo = tweak_data.weapon[self._name_id].CLIP_AMMO_MAX
 	ammo = ammo + managers.player:upgrade_value(self._name_id, "clip_ammo_increase")
 	if not self:upgrade_blocked("weapon", "clip_ammo_increase") then
@@ -553,27 +623,27 @@ function RaycastWeaponBase:melee_damage_info()
 	return dmg, dmg_effect
 end
 function RaycastWeaponBase:ammo_info()
-	return self._ammo_max_per_clip, self._ammo_remaining_in_clip, self._ammo_total, self._ammo_max
+	return self:get_ammo_max_per_clip(), self:get_ammo_remaining_in_clip(), self:get_ammo_total(), self:get_ammo_max()
 end
 function RaycastWeaponBase:set_ammo(ammo)
-	local ammo_num = math.floor(ammo * self._ammo_max)
-	self._ammo_total = ammo_num
-	self._ammo_remaining_in_clip = math.min(self._ammo_max_per_clip, ammo_num)
+	local ammo_num = math.floor(ammo * self:get_ammo_max())
+	self:set_ammo_total(ammo_num)
+	self:set_ammo_remaining_in_clip(math.min(self:get_ammo_max_per_clip(), ammo_num))
 end
 function RaycastWeaponBase:ammo_full()
-	return self._ammo_total == self._ammo_max
+	return self:get_ammo_total() == self:get_ammo_max()
 end
 function RaycastWeaponBase:clip_full()
-	return self._ammo_remaining_in_clip == self._ammo_max_per_clip
+	return self:get_ammo_remaining_in_clip() == self:get_ammo_max_per_clip()
 end
 function RaycastWeaponBase:clip_empty()
-	return self._ammo_remaining_in_clip == 0
+	return self:get_ammo_remaining_in_clip() == 0
 end
 function RaycastWeaponBase:clip_not_empty()
-	return self._ammo_remaining_in_clip > 0
+	return self:get_ammo_remaining_in_clip() > 0
 end
 function RaycastWeaponBase:remaining_full_clips()
-	return math.max(math.floor((self._ammo_total - self._ammo_remaining_in_clip) / self._ammo_max_per_clip), 0)
+	return math.max(math.floor((self:get_ammo_total() - self:get_ammo_remaining_in_clip()) / self:get_ammo_max_per_clip()), 0)
 end
 function RaycastWeaponBase:zoom()
 	return self._zoom
@@ -596,20 +666,20 @@ function RaycastWeaponBase:reload_interuptable()
 end
 function RaycastWeaponBase:on_reload()
 	if self._setup.expend_ammo then
-		self._ammo_remaining_in_clip = math.min(self._ammo_total, self._ammo_max_per_clip)
+		self:set_ammo_remaining_in_clip(math.min(self:get_ammo_total(), self:get_ammo_max_per_clip()))
 	else
-		self._ammo_remaining_in_clip = self._ammo_max_per_clip
-		self._ammo_total = self._ammo_max_per_clip
+		self:set_ammo_remaining_in_clip(self:get_ammo_max_per_clip())
+		self:set_ammo_total(self:get_ammo_max_per_clip())
 	end
 end
 function RaycastWeaponBase:ammo_max()
-	return self._ammo_max == self._ammo_total
+	return self:get_ammo_max() == self:get_ammo_total()
 end
 function RaycastWeaponBase:out_of_ammo()
-	return self._ammo_total == 0
+	return self:get_ammo_total() == 0
 end
 function RaycastWeaponBase:can_reload()
-	return self._ammo_total > self._ammo_remaining_in_clip
+	return self:get_ammo_total() > self:get_ammo_remaining_in_clip()
 end
 function RaycastWeaponBase:add_ammo()
 	if self:ammo_max() then
@@ -617,16 +687,19 @@ function RaycastWeaponBase:add_ammo()
 	end
 	local multiplier = managers.player:upgrade_value("player", "pick_up_ammo_multiplier", 1)
 	local add_amount = math.max(0, math.round(math.lerp(self._ammo_pickup[1] * multiplier, self._ammo_pickup[2] * multiplier, math.random())))
-	self._ammo_total = math.clamp(self._ammo_total + add_amount, 0, self._ammo_max)
+	self:set_ammo_total(math.clamp(self:get_ammo_total() + add_amount, 0, self:get_ammo_max()))
 	return true
 end
-function RaycastWeaponBase:add_ammo_from_bag(availible)
+function RaycastWeaponBase:add_ammo_from_bag(available)
 	if self:ammo_max() then
 		return 0
 	end
-	local wanted = 1 - self._ammo_total / self._ammo_max
-	local can_have = math.min(wanted, availible)
-	self._ammo_total = math.min(self._ammo_max, self._ammo_total + math.ceil(can_have * self._ammo_max))
+	local ammo_max = self:get_ammo_max()
+	local ammo_total = self:get_ammo_total()
+	local wanted = 1 - ammo_total / ammo_max
+	local can_have = math.min(wanted, available)
+	self:set_ammo_total(math.min(ammo_max, ammo_total + math.ceil(can_have * ammo_max)))
+	print(wanted, can_have, math.ceil(can_have * ammo_max), self:get_ammo_total())
 	return can_have
 end
 function RaycastWeaponBase:on_equip()

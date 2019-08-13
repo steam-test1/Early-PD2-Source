@@ -146,6 +146,12 @@ function CopLogicIdle.queued_update(data)
 		CopLogicBase._report_detections(data.detected_attention_objects)
 		return
 	end
+	if data.is_converted and (not data.objective or data.objective.type == "free") and (not data.path_fail_t or data.t - data.path_fail_t > 6) then
+		managers.groupai:state():on_criminal_jobless(data.unit)
+		if my_data ~= data.internal_data then
+			return
+		end
+	end
 	if CopLogicIdle._chk_relocate(data) then
 		return
 	end
@@ -445,7 +451,7 @@ function CopLogicIdle.on_intimidated(data, amount, aggressor_unit)
 	local surrender = false
 	local my_data = data.internal_data
 	data.t = TimerManager:game():time()
-	if managers.groupai:state():police_hostage_count() < 4 then
+	if managers.groupai:state():police_hostage_count() < 1 then
 		local i_am_special = managers.groupai:state():is_enemy_special(data.unit)
 		local required_skill = i_am_special and "intimidate_specials" or "intimidate_enemies"
 		local aggressor_can_intimidate
@@ -462,15 +468,10 @@ function CopLogicIdle.on_intimidated(data, amount, aggressor_unit)
 			if hold_chance then
 				hold_chance = hold_chance ^ aggressor_intimidation_mul
 				if hold_chance >= 1 then
-					if not data.unit:sound():speaking(data.t) then
-						data.unit:sound():say("Play_po1_r02", true, true)
-					end
 				else
 					local rand_nr = math.random()
 					if hold_chance < rand_nr then
 						surrender = true
-					elseif hold_chance < 0.9 and not data.unit:sound():speaking(data.t + 1) then
-						data.unit:sound():say("Play_po1_r03", true, true)
 					end
 				end
 			end
@@ -738,7 +739,7 @@ function CopLogicIdle._nav_point_pos(nav_point)
 end
 function CopLogicIdle._chk_relocate(data)
 	if data.objective and data.objective.type == "follow" then
-		if data.unit:in_slot(16) then
+		if data.is_converted then
 			if TeamAILogicIdle._check_should_relocate(data, data.internal_data, data.objective) then
 				data.objective.in_place = nil
 				CopLogicIdle._exit(data.unit, "travel")
@@ -980,7 +981,7 @@ function CopLogicIdle._upd_curious_reaction(data)
 		return attention_obj.m_pos - data.m_pos:to_polar_with_reference(data.unit:movement():m_rot():y(), math.UP).spin
 	end
 	local turned_around
-	if not attention_obj.settings.turn_around_range or dis < attention_obj.settings.turn_around_range then
+	if (not attention_obj.settings.turn_around_range or dis < attention_obj.settings.turn_around_range) and (not data.objective or not data.objective.rot) then
 		local suspect_spin = _get_spin_to_att_obj()
 		if turn_spin < suspect_spin then
 			CopLogicIdle._turn_by_spin(data, my_data, suspect_spin)

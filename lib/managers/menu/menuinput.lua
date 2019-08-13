@@ -210,6 +210,9 @@ function MenuInput:input_customize_controller(item, controller, mouse_click)
 		node_gui:activate_customize_controller(item)
 	end
 end
+function MenuInput:get_accept_input()
+	return self._accept_input and true or false
+end
 function MenuInput:mouse_pressed(o, button, x, y)
 	if not self._accept_input then
 		return

@@ -898,13 +898,13 @@ function HuskPlayerMovement:_upd_move_standard(t, dt)
 		local new_pos
 		local path_len_remaining = data.path_len - data.prog_in_seg
 		local wanted_str8_vel, max_velocity
-		local max_dis = 350
+		local max_dis = 400
 		local slowdown_dis = 170
 		if max_dis < data.path_len or not self:_chk_groun_ray() then
 			max_velocity = self:_get_max_move_speed(true) * 1.1
 			wanted_str8_vel = max_velocity
 		elseif slowdown_dis < data.path_len or not self:_chk_groun_ray() then
-			max_velocity = self:_get_max_move_speed(true) * 0.9
+			max_velocity = self:_get_max_move_speed(true) * 0.95
 			wanted_str8_vel = max_velocity
 		else
 			max_velocity = self:_get_max_move_speed(true) * 1.1

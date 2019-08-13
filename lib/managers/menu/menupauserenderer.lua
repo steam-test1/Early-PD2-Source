@@ -61,14 +61,15 @@ function MenuPauseRenderer:open(...)
 		valign = {0, 0.5},
 		color = Color.black,
 		w = self._fullscreen_panel:w(),
-		h = managers.gui_data:y_safe_to_full(0)
+		h = managers.gui_data:y_safe_to_full(0) + 2,
+		y = -2
 	})
 	self._bottom_rect = self._fullscreen_panel:rect({
 		valign = {0.5, 0.5},
 		color = Color.black,
-		y = managers.gui_data:y_safe_to_full(managers.gui_data:scaled_size().height),
+		y = managers.gui_data:y_safe_to_full(managers.gui_data:scaled_size().height) + 2,
 		w = self._fullscreen_panel:w(),
-		h = managers.gui_data:y_safe_to_full(0)
+		h = managers.gui_data:y_safe_to_full(0) + 2
 	})
 	MenuRenderer._create_framing(self)
 end

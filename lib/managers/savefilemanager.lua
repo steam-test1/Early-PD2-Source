@@ -18,15 +18,16 @@ SavefileManager.DEBUG_TASK_TYPE_NAME_LIST = {
 	"CheckSpaceRequired"
 }
 SavefileManager.RESERVED_BYTES = 204800
-SavefileManager.VERSION = 4
+SavefileManager.VERSION = 5
 if SystemInfo:platform() == Idstring("PS3") then
 	SavefileManager.VERSION_NAME = "1.03"
 	SavefileManager.LOWEST_COMPATIBLE_VERSION = "1.02"
 else
-	SavefileManager.VERSION_NAME = "1.8"
-	SavefileManager.LOWEST_COMPATIBLE_VERSION = "1.7"
+	SavefileManager.VERSION_NAME = ""
+	SavefileManager.LOWEST_COMPATIBLE_VERSION = ""
 end
 SavefileManager.SAVE_SYSTEM = "steam_cloud"
+SavefileManager._USER_ID_OVERRRIDE = nil
 function SavefileManager:init()
 	self._active_changed_callback_handler = CoreEvent.CallbackEventHandler:new()
 	self._save_begin_callback_handler = CoreEvent.CallbackEventHandler:new()
@@ -498,6 +499,10 @@ function SavefileManager:_save_cache(slot)
 		managers.mission:save_job_values(cache)
 		managers.dlc:save(cache)
 	end
+	if SystemInfo:platform() == Idstring("WIN32") then
+		cache.user_id = self._USER_ID_OVERRRIDE or Steam:userid()
+		print("[SavefileManager:_save_cache] user_id:", cache.user_id)
+	end
 	self:_set_cache(slot, cache)
 	self:_set_synched_cache(slot, false)
 end
@@ -569,7 +574,12 @@ function SavefileManager:_load_backup_callback(save_data)
 		local save_data_info = save_data:information()
 		local version = save_data_info.version or 0
 		local version_name = save_data_info.version_name
-		if version <= SavefileManager.VERSION then
+		if SystemInfo:platform() == Idstring("WIN32") then
+			if save_data_info.user_id ~= (self._USER_ID_OVERRRIDE or Steam:userid()) then
+				print("[SavefileManager:_load_backup_callback] User ID missmatch. cache.user_id:", save_data_info.user_id, ". expected user id:", self._USER_ID_OVERRRIDE or Steam:userid())
+				self._backup_data = false
+			end
+		elseif version <= SavefileManager.VERSION then
 			print("[SavefileManager:_load_backup_callback] backup loaded")
 			self._backup_data = {save_data = save_data}
 		else
@@ -588,13 +598,25 @@ function SavefileManager:_load_callback(save_data)
 	local cache
 	cat_print("savefile_manager", "[SavefileManager] Load of slot \"" .. tostring(slot) .. "\" done with status \"" .. tostring(SaveData.status_to_string(status)) .. "\" (" .. tostring(status) .. ").")
 	local wrong_user = status == SaveData.WRONG_USER
+	local wrong_version = status == SaveData.WRONG_VERSION
 	if status == SaveData.OK or wrong_user then
 		cache = save_data:information()
+	end
+	if cache and SystemInfo:platform() == Idstring("WIN32") and cache.version ~= SavefileManager.VERSION then
+		cache = nil
+		wrong_version = true
+	end
+	if cache and SystemInfo:platform() == Idstring("WIN32") then
+		if cache.user_id ~= (self._USER_ID_OVERRRIDE or Steam:userid()) then
+			print("[SavefileManager:_load_callback] User ID missmatch. cache.user_id:", cache.user_id, ". expected user id:", self._USER_ID_OVERRRIDE or Steam:userid())
+			cache = nil
+			wrong_user = true
+		end
 	end
 	self._save_sizes = self._save_sizes or {}
 	table.insert(self._save_sizes, size)
 	self:_set_cache(slot, cache)
-	self:_load_done(slot, false, wrong_user)
+	self:_load_done(slot, false, wrong_user, wrong_version)
 end
 function SavefileManager:_load_platform_setting_map_callback(platform_setting_map)
 	local cache
@@ -604,7 +626,7 @@ function SavefileManager:_load_platform_setting_map_callback(platform_setting_ma
 	self:_set_cache(self.SETTING_SLOT, cache)
 	self:_load_done(self.SETTING_SLOT, false)
 end
-function SavefileManager:_load_done(slot, cache_only, wrong_user)
+function SavefileManager:_load_done(slot, cache_only, wrong_user, wrong_version)
 	local is_setting_slot = slot == self.SETTING_SLOT
 	local is_progress_slot = slot == self.PROGRESS_SLOT
 	local meta_data = self:_meta_data(slot)
@@ -627,7 +649,17 @@ function SavefileManager:_load_done(slot, cache_only, wrong_user)
 		success = false
 	end
 	self._load_done_callback_handler:dispatch(slot, success, is_setting_slot, cache_only)
-	if not success then
+	if not success and wrong_version then
+		self._loading_save_games[slot] = nil
+		local error_msg = is_setting_slot and "dialog_fail_load_setting_wrong_version" or "dialog_fail_load_progress_wrong_version"
+		managers.menu:show_savefile_wrong_version({error_msg = error_msg})
+	elseif not success and wrong_user then
+		self._loading_save_games[slot] = nil
+		if not self._queued_wrong_user then
+			self._queued_wrong_user = true
+			managers.menu:show_savefile_wrong_user()
+		end
+	elseif not success then
 		self._try_again = self._try_again or {}
 		local dialog_data = {}
 		dialog_data.title = managers.localization:text("dialog_error_title")
@@ -749,6 +781,7 @@ function SavefileManager:_load_cache(slot)
 			managers.user:load(cache, version)
 			self:_set_setting_changed(false)
 		else
+			managers.blackmarket:load(cache, version)
 			managers.upgrades:load(cache, version)
 			managers.experience:load(cache, version)
 			managers.player:load(cache, version)
@@ -756,7 +789,6 @@ function SavefileManager:_load_cache(slot)
 			managers.challenges:load(cache, version)
 			managers.statistics:load(cache, version)
 			managers.skilltree:load(cache, version)
-			managers.blackmarket:load(cache, version)
 			managers.mission:load_job_values(cache, version)
 			managers.dlc:load(cache, version)
 		end

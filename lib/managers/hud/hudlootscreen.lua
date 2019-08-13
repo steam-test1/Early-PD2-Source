@@ -162,7 +162,7 @@ function HUDLootScreen:create_peer(peers_panel, peer_id)
 		name = "global_value_text",
 		font = small_font,
 		font_size = small_font_size,
-		text = managers.localization:to_upper_text("menu_l_infamous"),
+		text = managers.localization:to_upper_text("menu_l_global_value_infamous"),
 		color = tweak_data.lootdrop.global_values.infamous.color,
 		blend_mode = "add"
 	})
@@ -176,18 +176,6 @@ function HUDLootScreen:create_peer(peers_panel, peer_id)
 	global_value_text:set_y(main_text:bottom())
 	card_info_panel:set_h(main_text:bottom())
 	card_info_panel:set_center_y(panel:h() * 0.5)
-	local card_nums = {
-		"joker",
-		"two",
-		"three",
-		"four",
-		"five",
-		"six",
-		"seven",
-		"eight",
-		"nine",
-		"ace"
-	}
 	local total_cards_w = panel:w() - peer_info_panel:w() - card_info_panel:w() - 10
 	local card_w = math.round((total_cards_w - 10) / 3)
 	for i = 1, 3 do
@@ -196,7 +184,7 @@ function HUDLootScreen:create_peer(peers_panel, peer_id)
 			x = peer_info_panel:right() + (i - 1) * card_w + 10,
 			y = 10,
 			w = card_w - 2.5,
-			h = panel:h() - 20,
+			h = panel:h() - 10,
 			halign = "scale",
 			valign = "scale"
 		})
@@ -216,7 +204,7 @@ function HUDLootScreen:create_peer(peers_panel, peer_id)
 			downcard:set_rotation(1)
 		end
 		if not is_local_peer then
-			downcard:set_size(math.round(0.7111111 * card_panel:h() * 0.75), math.round(card_panel:h() * 0.75))
+			downcard:set_size(math.round(0.7111111 * card_panel:h() * 0.85), math.round(card_panel:h() * 0.85))
 		end
 		downcard:set_center(card_panel:w() * 0.5, card_panel:h() * 0.5)
 		local bg = card_panel:bitmap({
@@ -324,7 +312,7 @@ function HUDLootScreen:set_selected(peer_id, selected)
 		local downcard = card_panel:child("downcard")
 		local bg = card_panel:child("bg")
 		local cx, cy = downcard:center()
-		local size = card_panel:h() * (i == selected and 1.15 or 0.9) * (is_local_peer and 1 or 0.75)
+		local size = card_panel:h() * (i == selected and 1.15 or 0.9) * (is_local_peer and 1 or 0.85)
 		bg:set_color(tweak_data.screen_colors[i == selected and "button_stage_2" or "button_stage_3"])
 		downcard:set_size(math.round(aspect * size), math.round(size))
 		downcard:set_center(cx, cy)
@@ -583,7 +571,7 @@ function HUDLootScreen:texture_loaded_clbk(params, texture_idstring)
 	end
 end
 function HUDLootScreen:begin_choose_card(peer_id, card_id)
-	print("YOU CHOOSED " .. card_id .. "MR. " .. peer_id)
+	print("YOU CHOOSED " .. card_id .. ", mr." .. peer_id)
 	local panel = self._peers_panel:child("peer" .. tostring(peer_id))
 	panel:stop()
 	panel:set_alpha(1)
@@ -594,6 +582,7 @@ function HUDLootScreen:begin_choose_card(peer_id, card_id)
 	local _, _, _, hh = main_text:text_rect()
 	main_text:set_h(hh + 2)
 	local lootdrop_data = self._peer_data[peer_id].lootdrops
+	local item_category = lootdrop_data[3]
 	local item_pc = lootdrop_data[6]
 	local left_pc = lootdrop_data[7]
 	local right_pc = lootdrop_data[8]
@@ -605,27 +594,38 @@ function HUDLootScreen:begin_choose_card(peer_id, card_id)
 	local card_three = #cards + 1
 	cards[card_three] = right_pc
 	if item_pc == 0 then
-		self._peer_data[peer_id].joker = true
+		self._peer_data[peer_id].joker = 0 < tweak_data.lootdrop.joker_chance
 	end
+	local type_to_card = {
+		weapon_mods = 2,
+		cash = 3,
+		masks = 1,
+		materials = 1,
+		colors = 1,
+		textures = 1
+	}
 	local card_nums = {
-		"one",
-		"two",
-		"three",
-		"four",
-		"five",
-		"six",
-		"seven",
-		"eight",
-		"nine",
-		"ace"
+		"upcard_mask",
+		"upcard_weapon",
+		"upcard_cash"
 	}
 	for i, pc in ipairs(cards) do
+		local my_card = i == card_id
 		local card_panel = panel:child("card" .. i)
 		local downcard = card_panel:child("downcard")
-		local joker = pc == 0
-		if not joker or not "joker_of_spade" then
+		local joker = pc == 0 and 0 < tweak_data.lootdrop.joker_chance
+		local card_i = my_card and type_to_card[item_category] or math.max(pc, 1)
+		if not my_card then
+			local card_weights = tweak_data.lootdrop.WEIGHTED_TYPE_CHANCE[card_i * 10] or {}
+			if card_i == 10 then
+				card_i = 1
+			elseif math.rand((card_weights.weapon_mods or 0) + (card_weights.cash or 1)) < (card_weights.cash or 1) then
+				card_i = 3
+			else
+				card_i = 2
+			end
 		end
-		local texture, rect, coords = tweak_data.hud_icons:get_icon_data(card_nums[pc] .. "_of_spade")
+		local texture, rect, coords = tweak_data.hud_icons:get_icon_data(card_nums[card_i] or "downcard_overkill_deck")
 		local upcard = card_panel:bitmap({
 			name = "upcard",
 			texture = texture,
@@ -773,7 +773,7 @@ function HUDLootScreen:show_item(peer_id)
 		local item_text = managers.localization:text(loot_tweak.name_id)
 		if item_category == "cash" then
 			local value_id = tweak_data.blackmarket[item_category][item_id].value_id
-			local money = tweak_data.money_manager.loot_drop_cash[value_id] or 100
+			local money = tweak_data:get_value("money_manager", "loot_drop_cash", value_id) or 100
 			item_text = managers.experience:cash_string(money)
 		end
 		main_text:set_text(managers.localization:to_upper_text("menu_l_you_got", {
@@ -783,7 +783,12 @@ function HUDLootScreen:show_item(peer_id)
 		quality_text:set_text(managers.localization:to_upper_text("menu_l_quality", {
 			quality = item_pc == 0 and "?" or item_pc
 		}))
-		global_value_text:set_visible(loot_tweak.infamous)
+		if global_value ~= "normal" then
+			global_value_text:set_text(managers.localization:to_upper_text("menu_l_global_value_" .. global_value))
+			global_value_text:set_color(tweak_data.lootdrop.global_values[global_value].color)
+			self:make_fine_text(global_value_text)
+			global_value_text:set_visible(true)
+		end
 		if item_category == "weapon_mods" then
 			local list_of_weapons = managers.weapon_factory:get_weapons_uses_part(item_id) or {}
 			if table.size(list_of_weapons) == 1 then

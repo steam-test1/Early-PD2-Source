@@ -41,10 +41,12 @@ function CoreEnvironmentControllerManager:init()
 	self._HE_blinding = 0
 	self._downed_value = 0
 	self._last_life = false
-	self._near_plane_x = 2500
-	self._near_plane_y = 2500
-	self._far_plane_x = 500
-	self._far_plane_y = 2000
+	self:_create_dof_tweak_data()
+	self._current_dof_setting = "standard"
+	self._near_plane_x = self._dof_tweaks[self._current_dof_setting].steelsight.near_plane_x
+	self._near_plane_y = self._dof_tweaks[self._current_dof_setting].steelsight.near_plane_y
+	self._far_plane_x = self._dof_tweaks[self._current_dof_setting].steelsight.far_plane_x
+	self._far_plane_y = self._dof_tweaks[self._current_dof_setting].steelsight.far_plane_y
 	self._dof_override = false
 	self._dof_override_near = 5
 	self._dof_override_near_pad = 5
@@ -326,26 +328,7 @@ function CoreEnvironmentControllerManager:set_post_composite(t, dt)
 	self._material:set_variable(ids_radial_offset, Vector3((self._hit_left - self._hit_right) * 0.2, (self._hit_up - self._hit_down) * 0.2, self._hit_front - self._hit_back + blur_zone_flashbang * 0.1))
 	self._material:set_variable(Idstring("contrast"), 0.1 + self._hit_some * 0.25)
 	self._material:set_variable(Idstring("chromatic_amount"), 0.15 + blur_zone_val * 0.3 + flash_1 * 0.5)
-	if self._dof_override then
-		self._material:set_variable(ids_dof_near_plane, Vector3(self._dof_override_near, self._dof_override_near + self._dof_override_near_pad, 0))
-		self._material:set_variable(ids_dof_far_plane, Vector3(self._dof_override_far - self._dof_override_far_pad, self._dof_override_far, 1))
-	elseif self._in_steelsight then
-		local dof_plane_v = math.clamp(self._current_dof_distance / 5000, 0, 1)
-		self._near_plane_x = math.lerp(500, 2500, dof_plane_v)
-		self._near_plane_y = math.lerp(20, 2500, dof_plane_v)
-		self._far_plane_x = math.lerp(100, 500, dof_plane_v)
-		self._far_plane_y = math.lerp(500, 2000, dof_plane_v)
-		self._material:set_variable(ids_dof_near_plane, Vector3(math.max(self._current_dof_distance - self._near_plane_x, 5), self._near_plane_y, 0))
-		self._material:set_variable(ids_dof_far_plane, Vector3(self._current_dof_distance + self._far_plane_x, self._far_plane_y, 1))
-	else
-		local dof_speed = math.min(10 * dt, 1)
-		self._near_plane_x = math.lerp(self._near_plane_x, 10, dof_speed)
-		self._near_plane_y = math.lerp(self._near_plane_y, 12, dof_speed)
-		self._far_plane_x = math.lerp(self._far_plane_x, 4000, dof_speed)
-		self._far_plane_y = math.lerp(self._far_plane_y, 5000, dof_speed)
-		self._material:set_variable(ids_dof_near_plane, Vector3(self._near_plane_x, self._near_plane_y, 0))
-		self._material:set_variable(ids_dof_far_plane, Vector3(self._far_plane_x, self._far_plane_y, 1))
-	end
+	self:_update_dof(t, dt)
 	local lut_post = vp:vp():get_post_processor_effect("World", ids_LUT_post)
 	if lut_post then
 		local lut_modifier = lut_post:modifier(ids_LUT_settings)
@@ -372,6 +355,93 @@ function CoreEnvironmentControllerManager:set_post_composite(t, dt)
 	end
 	self._lut_modifier_material:set_variable(ids_LUT_settings_b, Vector3(last_life, flash_2 + math.clamp(hit_some_mod * 2, 0, 1) * 0.25 + blur_zone_val * 0.15, 0))
 	self._lut_modifier_material:set_variable(ids_LUT_contrast, flashbang * 0.5)
+end
+function CoreEnvironmentControllerManager:_create_dof_tweak_data()
+	local new_dof_settings = {}
+	new_dof_settings.none = {use_no_dof = true}
+	new_dof_settings.standard = {}
+	new_dof_settings.standard.steelsight = {}
+	new_dof_settings.standard.steelsight.near_plane_x = 2500
+	new_dof_settings.standard.steelsight.near_plane_y = 2500
+	new_dof_settings.standard.steelsight.far_plane_x = 500
+	new_dof_settings.standard.steelsight.far_plane_y = 2000
+	new_dof_settings.standard.other = {}
+	new_dof_settings.standard.other.near_plane_x = 10
+	new_dof_settings.standard.other.near_plane_y = 12
+	new_dof_settings.standard.other.far_plane_x = 4000
+	new_dof_settings.standard.other.far_plane_y = 5000
+	self._dof_tweaks = new_dof_settings
+end
+function CoreEnvironmentControllerManager:set_dof_setting(setting)
+	if not self._dof_tweaks[setting] then
+		Application:error("[CoreEnvironmentControllerManager:set_dof_setting] DOF setting do not exist!", setting)
+		return
+	end
+	self._current_dof_setting = setting
+	if self._material then
+		self:_update_dof(1, 1)
+	end
+end
+function CoreEnvironmentControllerManager:remove_dof_tweak_data(remove_setting_name)
+	if not self._dof_tweaks[new_setting_name] then
+		Application:error("[CoreEnvironmentControllerManager:remove_dof_tweak_data] DOF setting do not exist!", remove_setting_name)
+		return
+	end
+	self._dof_tweaks[remove_setting_name] = nil
+	if self._current_dof_setting == remove_setting_name then
+		if self._dof_tweaks.standard then
+			self._current_dof_setting = "standard"
+		else
+			self._current_dof_setting = next(self._dof_tweaks)
+		end
+	end
+end
+function CoreEnvironmentControllerManager:add_dof_tweak_data(new_setting_name, new_setting_tweak_data)
+	if self._dof_tweaks[new_setting_name] then
+		Application:error("[CoreEnvironmentControllerManager:add_dof_tweak_data] DOF setting already exists!", new_setting_name)
+		return
+	end
+	self._dof_tweaks[new_setting_name] = new_setting_tweak_data
+end
+function CoreEnvironmentControllerManager:_update_dof(t, dt)
+	local mvec_set = mvector3.set_static
+	local mvec = mvec1
+	if self._dof_override then
+		mvec_set(mvec, self._dof_override_near, self._dof_override_near + self._dof_override_near_pad, 0)
+		self._material:set_variable(ids_dof_near_plane, mvec)
+		mvec_set(mvec, self._dof_override_far - self._dof_override_far_pad, self._dof_override_far, 1)
+		self._material:set_variable(ids_dof_far_plane, mvec)
+	else
+		local dof_settings = self._dof_tweaks[self._current_dof_setting]
+		if dof_settings.use_no_dof == true then
+			mvec_set(mvec, 0, 0, 0)
+			self._material:set_variable(ids_dof_near_plane, mvec)
+			mvec_set(mvec, 10000, 10000, 1)
+			self._material:set_variable(ids_dof_far_plane, mvec)
+		elseif self._in_steelsight then
+			dof_settings = dof_settings.steelsight
+			local dof_plane_v = math.clamp(self._current_dof_distance / 5000, 0, 1)
+			self._near_plane_x = math.lerp(500, dof_settings.near_plane_x, dof_plane_v)
+			self._near_plane_y = math.lerp(20, dof_settings.near_plane_y, dof_plane_v)
+			self._far_plane_x = math.lerp(100, dof_settings.far_plane_x, dof_plane_v)
+			self._far_plane_y = math.lerp(500, dof_settings.far_plane_y, dof_plane_v)
+			mvec_set(mvec, math.max(self._current_dof_distance - self._near_plane_x, 5), self._near_plane_y, 0)
+			self._material:set_variable(ids_dof_near_plane, mvec)
+			mvec_set(mvec, self._current_dof_distance + self._far_plane_x, self._far_plane_y, 1)
+			self._material:set_variable(ids_dof_far_plane, mvec)
+		else
+			dof_settings = dof_settings.other
+			local dof_speed = math.min(10 * dt, 1)
+			self._near_plane_x = math.lerp(self._near_plane_x, dof_settings.near_plane_x, dof_speed)
+			self._near_plane_y = math.lerp(self._near_plane_y, dof_settings.near_plane_y, dof_speed)
+			self._far_plane_x = math.lerp(self._far_plane_x, dof_settings.far_plane_x, dof_speed)
+			self._far_plane_y = math.lerp(self._far_plane_y, dof_settings.far_plane_y, dof_speed)
+			mvec_set(mvec, self._near_plane_x, self._near_plane_y, 0)
+			self._material:set_variable(ids_dof_near_plane, mvec)
+			mvec_set(mvec, self._far_plane_x, self._far_plane_y, 1)
+			self._material:set_variable(ids_dof_far_plane, mvec)
+		end
+	end
 end
 function CoreEnvironmentControllerManager:set_flashbang(flashbang_pos, line_of_sight, travel_dis, linear_dis)
 	local flash = self.test_line_of_sight(flashbang_pos + flashbang_test_offset, 200, 1000, 3000)

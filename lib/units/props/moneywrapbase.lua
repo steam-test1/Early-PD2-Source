@@ -39,7 +39,7 @@ function MoneyWrapBase:sync_money_taken()
 	if self.give_exp then
 		self._money_amount = 0
 	else
-		local amount = self.money_action and tweak_data.money_manager.actions[self.money_action] or self._MONEY_MAX / 2
+		local amount = self.money_action and tweak_data:get_value("money_manager", "actions", self.money_action) or self._MONEY_MAX / 2
 		managers.money:perform_action_money_wrap(amount)
 		self._money_amount = math.max(self._money_amount - amount, 0)
 	end
@@ -49,7 +49,7 @@ function MoneyWrapBase:sync_money_taken()
 	self:_update_sequences()
 end
 function MoneyWrapBase:_take_money(unit)
-	local took = self.money_action and tweak_data.money_manager.actions[self.money_action] or self._MONEY_MAX / 2
+	local took = self.money_action and tweak_data:get_value("money_manager", "actions", self.money_action) or self._MONEY_MAX / 2
 	self._money_amount = math.max(self._money_amount - took, 0)
 	if self._money_amount <= 0 then
 		self:_set_empty()

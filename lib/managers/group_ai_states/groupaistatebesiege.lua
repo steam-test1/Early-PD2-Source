@@ -312,6 +312,11 @@ function GroupAIStateBesiege:_begin_assault_task(assault_areas)
 	assault_task.use_smoke_timer = 0
 	assault_task.use_spawn_event = true
 	assault_task.force_spawned = 0
+	if 0 < self._hostage_headcount then
+		assault_task.phase_end_t = assault_task.phase_end_t + self:_get_difficulty_dependent_value(tweak_data.group_ai.besiege.assault.hostage_hesitation_delay)
+		assault_task.is_hesitating = true
+		assault_task.voice_delay = self._t + (assault_task.phase_end_t - self._t) / 2
+	end
 	self._downs_during_assault = 0
 	if self._hunt_mode then
 		assault_task.phase_end_t = 0
@@ -345,11 +350,29 @@ function GroupAIStateBesiege:_upd_assault_task()
 			self:_set_rescue_state(false)
 			task_data.phase = "build"
 			task_data.phase_end_t = self._t + tweak_data.group_ai.besiege.assault.build_duration
+			task_data.is_hesitating = nil
 			self:set_assault_mode(true)
 			managers.trade:set_trade_countdown(false)
 		else
 			managers.hud:check_anticipation_voice(task_data.phase_end_t - t)
 			managers.hud:check_start_anticipation_music(task_data.phase_end_t - t)
+			if task_data.is_hesitating and self._t > task_data.voice_delay then
+				if 0 < self._hostage_headcount then
+					local best_group
+					for _, group in pairs(self._groups) do
+						if not best_group or group.objective.type == "reenforce_area" then
+							best_group = group
+						elseif best_group.objective.type ~= "reenforce_area" and group.objective.type ~= "retire" then
+							best_group = group
+						end
+					end
+					if best_group and self:_voice_delay_assault(best_group) then
+						task_data.is_hesitating = nil
+					end
+				else
+					task_data.is_hesitating = nil
+				end
+			end
 		end
 	elseif task_data.phase == "build" then
 		if task_spawn_allowance <= 0 then
@@ -531,10 +554,6 @@ function GroupAIStateBesiege:_end_regroup_task()
 		if not self._task_data.assault.next_dispatch_t then
 			local assault_delay = tweak_data.group_ai.besiege.assault.delay
 			self._task_data.assault.next_dispatch_t = self._t + self:_get_difficulty_dependent_value(assault_delay)
-			if 0 < self._hostage_headcount then
-				local hostage_hesitation_delay = self:_get_difficulty_dependent_value(tweak_data.group_ai.besiege.assault.hostage_hesitation_delay)
-				self._task_data.assault.next_dispatch_t = self._task_data.assault.next_dispatch_t + hostage_hesitation_delay
-			end
 		end
 		if self._draw_drama then
 			self._draw_drama.regroup_hist[#self._draw_drama.regroup_hist][2] = self._t
@@ -1795,7 +1814,7 @@ function GroupAIStateBesiege:on_enemy_weapons_hot(is_delayed_callback)
 	end
 	if not self._enemy_weapons_hot then
 		self._task_data.assault.disabled = nil
-		self._task_data.assault.next_dispatch_t = self._t + (self._hostage_headcount > 0 and self:_get_difficulty_dependent_value(tweak_data.group_ai.besiege.assault.hostage_hesitation_delay) or 0)
+		self._task_data.assault.next_dispatch_t = self._t
 	end
 	GroupAIStateBesiege.super.on_enemy_weapons_hot(self, is_delayed_callback)
 end
@@ -2670,6 +2689,16 @@ function GroupAIStateBesiege:_voice_move_complete(group)
 		else
 		end
 	end
+end
+function GroupAIStateBesiege:_voice_delay_assault(group)
+	local time = self._t
+	for u_key, unit_data in pairs(group.units) do
+		if not unit_data.unit:sound():speaking(time) then
+			unit_data.unit:sound():say("p01", true, nil)
+			return true
+		end
+	end
+	return false
 end
 function GroupAIStateBesiege:_chk_group_areas_tresspassed(group)
 	local objective = group.objective

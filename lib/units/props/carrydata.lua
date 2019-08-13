@@ -7,7 +7,7 @@ function CarryData:init(unit)
 	if self._carry_id then
 		self._value = managers.money:get_bag_value(self._carry_id)
 	else
-		self._value = tweak_data.money_manager.bag_values.default
+		self._value = tweak_data:get_value("money_manager", "bag_values", "default")
 	end
 end
 function CarryData:set_mission_element(mission_element)
@@ -49,6 +49,34 @@ function CarryData:_dye_exploded()
 		effect = Idstring("effects/payday2/particles/dye_pack/dye_pack_smoke"),
 		parent = self._unit:orientation_object()
 	})
+end
+function CarryData:clbk_out_of_world()
+	if self._bodies_to_revert then
+		for i_body, body in ipairs(self._bodies_to_revert) do
+			body:set_dynamic()
+		end
+		self._bodies_to_revert = nil
+		self._register_out_of_world_dynamic_clbk_id = nil
+		return
+	elseif self._unit:position().z < PlayerMovement.OUT_OF_WORLD_Z then
+		self._bodies_to_revert = {}
+		local bodies = self._unit:num_bodies()
+		for i_body = 0, bodies - 1 do
+			local body = self._unit:body(i_body)
+			if body:enabled() and body:dynamic() then
+				table.insert(self._bodies_to_revert, body)
+				body:set_keyframed()
+			end
+		end
+		local tracker = managers.navigation:create_nav_tracker(self._unit:position(), false)
+		self._unit:set_position(tracker:field_position())
+		managers.navigation:destroy_nav_tracker(tracker)
+		self._register_out_of_world_dynamic_clbk_id = "BagOutOfWorldDynamic" .. tostring(self._unit:key())
+		managers.enemy:add_delayed_clbk(self._register_out_of_world_dynamic_clbk_id, callback(self, self, "clbk_out_of_world"), TimerManager:game():time() + 0.2)
+		self._register_out_of_world_clbk_id = nil
+		return
+	end
+	managers.enemy:add_delayed_clbk(self._register_out_of_world_clbk_id, callback(self, self, "clbk_out_of_world"), TimerManager:game():time() + 2)
 end
 function CarryData:carry_id()
 	return self._carry_id
@@ -337,8 +365,16 @@ function CarryData:clbk_body_active_state(tag, unit, body, activated)
 		if not self._steal_SO_data or not self._steal_SO_data.picked_up then
 			self:_unregister_steal_SO()
 		end
+		if not self._register_out_of_world_clbk_id then
+			self._register_out_of_world_clbk_id = "BagOutOfWorld" .. tostring(self._unit:key())
+			managers.enemy:add_delayed_clbk(self._register_out_of_world_clbk_id, callback(self, self, "clbk_out_of_world"), TimerManager:game():time() + 2)
+		end
 	else
 		self:_chk_register_steal_SO()
+		if self._register_out_of_world_clbk_id then
+			managers.enemy:remove_delayed_clbk(self._register_out_of_world_clbk_id)
+			self._register_out_of_world_clbk_id = nil
+		end
 	end
 end
 function CarryData:clbk_send_link()
@@ -370,6 +406,14 @@ function CarryData:destroy()
 	if self._register_steal_SO_clbk_id then
 		managers.enemy:remove_delayed_clbk(self._register_steal_SO_clbk_id)
 		self._register_steal_SO_clbk_id = nil
+	end
+	if self._register_out_of_world_clbk_id then
+		managers.enemy:remove_delayed_clbk(self._register_out_of_world_clbk_id)
+		self._register_out_of_world_clbk_id = nil
+	end
+	if self._register_out_of_world_dynamic_clbk_id then
+		managers.enemy:remove_delayed_clbk(self._register_out_of_world_dynamic_clbk_id)
+		self._register_out_of_world_dynamic_clbk_id = nil
 	end
 	self:_unregister_steal_SO()
 end
