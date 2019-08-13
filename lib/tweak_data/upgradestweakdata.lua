@@ -19,8 +19,8 @@ function UpgradesTweakData:_init_pd2_values()
 		0.92,
 		0.88,
 		0.84,
-		0.8,
-		0.76
+		0.76,
+		0.64
 	}
 	self.values.player.special_enemy_highlight = {true}
 	self.values.player.hostage_trade = {true}
@@ -109,7 +109,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.damage_shake_multiplier = {0.5}
 	self.values.player.bleed_out_health_multiplier = {1.25}
 	self.values.shotgun.recoil_multiplier = {0.75}
-	self.values.shotgun.damage_multiplier = {1.2}
+	self.values.shotgun.damage_multiplier = {1.33}
 	self.values.ammo_bag.ammo_increase = {2}
 	self.values.ammo_bag.quantity = {1}
 	self.values.shotgun.reload_speed_multiplier = {1.5}
@@ -121,7 +121,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.assault_rifle.hip_fire_spread_multiplier = {0.8}
 	self.values.smg.hip_fire_spread_multiplier = {0.8}
 	self.values.saw.hip_fire_spread_multiplier = {0.8}
-	self.values.player.saw_speed_multiplier = {0.9, 0.7}
+	self.values.player.saw_speed_multiplier = {0.95, 0.65}
 	self.values.saw.lock_damage_multiplier = {1.2, 1.4}
 	self.values.saw.enemy_slicer = {true}
 	self.values.player.melee_damage_health_ratio_multiplier = {5}
@@ -200,21 +200,23 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.suspicion_multiplier = {0.75}
 	self.values.player.camouflage_bonus = {1.25}
 	self.values.player.walk_speed_multiplier = {1.25}
-	self.values.player.crouch_speed_multiplier = {1.25}
-	self.values.player.silent_kill = {400}
+	self.values.player.crouch_speed_multiplier = {1.1}
+	self.values.player.silent_kill = {100}
 	self.values.player.melee_knockdown_mul = {1.5}
 	self.values.player.damage_dampener = {0.5}
 	self.values.smg.reload_speed_multiplier = {1.33}
-	self.values.smg.recoil_multiplier = {0.75}
+	self.values.smg.fire_rate_multiplier = {1.2}
 	self.values.player.additional_lives = {1, 3}
 	self.values.player.cheat_death_chance = {0.1}
 	self.values.ecm_jammer.can_activate_feedback = {true}
 	self.values.ecm_jammer.feedback_duration_boost = {1.25}
+	self.values.ecm_jammer.affects_pagers = {true}
 	self.values.weapon.silencer_damage_multiplier = {1.15, 1.3}
+	self.values.weapon.armor_piercing_chance_silencer = {0.15}
 	self.values.ecm_jammer.duration_multiplier = {1.25}
 	self.values.ecm_jammer.can_open_sec_doors = {true}
 	self.values.player.pick_lock_easy = {true}
-	self.values.player.pick_lock_easy_speed_multiplier = {0.75, 0.6}
+	self.values.player.pick_lock_easy_speed_multiplier = {0.75, 0.65}
 	self.values.player.pick_lock_hard = {true}
 	self.values.weapon.silencer_recoil_multiplier = {0.5}
 	self.values.weapon.silencer_spread_multiplier = {0.5}
@@ -229,7 +231,11 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.passive_dodge_chance = {0.05, 0.15}
 	self.values.weapon.passive_swap_speed_multiplier = {1.2, 2}
 	self.values.player.passive_suspicion_multiplier = {0.75}
+	self.values.player.passive_armor_movement_penalty_multiplier = {0.75}
 	self.values.player.passive_loot_drop_multiplier = {1.1}
+	self.values.weapon.armor_piercing_chance = {0.15}
+	self.values.player.run_and_shoot = {true}
+	self.values.player.run_and_reload = {true}
 end
 function UpgradesTweakData:init()
 	self.level_tree = {}
@@ -1777,6 +1783,15 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_pick_lock_easy_speed_multiplier_2 = {
+		category = "feature",
+		name_id = "menu_player_pick_lock_easy_speed_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "pick_lock_easy_speed_multiplier",
+			value = 2
+		}
+	}
 	self.definitions.player_loot_drop_multiplier_1 = {
 		category = "feature",
 		name_id = "menu_player_loot_drop_multiplier",
@@ -1801,6 +1816,33 @@ function UpgradesTweakData:_player_definitions()
 		upgrade = {
 			category = "player",
 			upgrade = "passive_loot_drop_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.weapon_passive_armor_piercing_chance = {
+		category = "feature",
+		name_id = "menu_weapon_passive_armor_piercing_chance",
+		upgrade = {
+			category = "weapon",
+			upgrade = "armor_piercing_chance",
+			value = 1
+		}
+	}
+	self.definitions.weapon_silencer_armor_piercing_chance = {
+		category = "feature",
+		name_id = "menu_weapon_silencer_armor_piercing_chance",
+		upgrade = {
+			category = "weapon",
+			upgrade = "armor_piercing_chance_silencer",
+			value = 1
+		}
+	}
+	self.definitions.player_passive_armor_movement_penalty_multiplier = {
+		category = "feature",
+		name_id = "menu_passive_armor_movement_penalty_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "passive_armor_movement_penalty_multiplier",
 			value = 1
 		}
 	}
@@ -1954,6 +1996,24 @@ function UpgradesTweakData:_player_definitions()
 		upgrade = {
 			category = "player",
 			upgrade = "revive_health_boost",
+			value = 1
+		}
+	}
+	self.definitions.player_run_and_shoot = {
+		category = "feature",
+		name_id = "menu_player_run_and_shoot",
+		upgrade = {
+			category = "player",
+			upgrade = "run_and_shoot",
+			value = 1
+		}
+	}
+	self.definitions.player_run_and_reload = {
+		category = "feature",
+		name_id = "menu_player_run_and_reload",
+		upgrade = {
+			category = "player",
+			upgrade = "run_and_reload",
 			value = 1
 		}
 	}
@@ -2159,6 +2219,15 @@ function UpgradesTweakData:_ecm_jammer_definitions()
 		upgrade = {
 			category = "ecm_jammer",
 			upgrade = "affects_cameras",
+			value = 1
+		}
+	}
+	self.definitions.ecm_jammer_affects_pagers = {
+		category = "equipment_upgrade",
+		name_id = "",
+		upgrade = {
+			category = "ecm_jammer",
+			upgrade = "affects_pagers",
 			value = 1
 		}
 	}
@@ -3332,6 +3401,15 @@ function UpgradesTweakData:_smg_definitions()
 		upgrade = {
 			category = "smg",
 			upgrade = "recoil_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.smg_fire_rate_multiplier = {
+		category = "feature",
+		name_id = "menu_smg_fire_rate_multiplier",
+		upgrade = {
+			category = "smg",
+			upgrade = "fire_rate_multiplier",
 			value = 1
 		}
 	}

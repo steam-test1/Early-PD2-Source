@@ -126,13 +126,19 @@ function TradeManager:update(t, dt)
 			end
 		end
 	end
-	if not self._trade_countdown or not Network:is_server() or self._trading_hostage or self._hostage_trade_clbk or not (#self._criminals_to_respawn > 0) or Global.game_settings.single_player or managers.groupai:state():whisper_mode() or not self:get_criminal_to_trade() or 0 >= managers.groupai:state():hostage_count() then
-	else
-		self._cancel_trade = nil
-		local respawn_t = self._t + math.random(2, 5)
-		local clbk_id = "begin_hostage_trade_dialog"
-		self._hostage_trade_clbk = clbk_id
-		managers.enemy:add_delayed_clbk(clbk_id, callback(self, self, "begin_hostage_trade_dialog", 1), respawn_t)
+	if self._trade_countdown and Network:is_server() and not self._trading_hostage and not self._hostage_trade_clbk and #self._criminals_to_respawn > 0 and not managers.groupai:state():whisper_mode() then
+		local trade = self:get_criminal_to_trade()
+		if trade and Global.game_settings.single_player and not trade.ai then
+			trade = nil
+		end
+		if not trade or 0 >= managers.groupai:state():hostage_count() then
+		else
+			self._cancel_trade = nil
+			local respawn_t = self._t + math.random(2, 5)
+			local clbk_id = "begin_hostage_trade_dialog"
+			self._hostage_trade_clbk = clbk_id
+			managers.enemy:add_delayed_clbk(clbk_id, callback(self, self, "begin_hostage_trade_dialog", 1), respawn_t)
+		end
 	end
 end
 function TradeManager:num_in_trade_queue()

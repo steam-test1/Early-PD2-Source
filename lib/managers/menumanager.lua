@@ -1043,19 +1043,7 @@ function MenuCallbackHandler:quit_game()
 	managers.system_menu:show(dialog_data)
 end
 function MenuCallbackHandler:_dialog_quit_yes()
-	local dialog_data = {}
-	dialog_data.title = managers.localization:text("dialog_warning_title")
-	dialog_data.text = managers.localization:text("dialog_ask_save_progress_backup")
-	dialog_data.focus_button = 1
-	local yes_button = {}
-	yes_button.text = managers.localization:text("dialog_yes")
-	yes_button.callback_func = callback(self, self, "_dialog_save_progress_backup_yes")
-	local no_button = {}
-	no_button.text = managers.localization:text("dialog_no")
-	no_button.callback_func = callback(self, self, "_dialog_save_progress_backup_no")
-	no_button.cancel_button = true
-	dialog_data.button_list = {yes_button, no_button}
-	managers.system_menu:show(dialog_data)
+	self:_dialog_save_progress_backup_no()
 end
 function MenuCallbackHandler:_dialog_quit_no()
 end
@@ -1274,6 +1262,114 @@ function MenuCallbackHandler:choice_server_state_lobby(item)
 	end
 	managers.network.matchmake:add_lobby_filter("state", state_filter, "equal")
 	managers.network.matchmake:search_lobby(managers.network.matchmake:search_friends_only())
+end
+function MenuCallbackHandler:refresh_node(item)
+	local logic = managers.menu:active_menu().logic
+	if logic then
+		logic:refresh_node()
+	end
+end
+function MenuCallbackHandler:open_contract_node(item)
+	local is_professional = tweak_data.narrative.jobs[item:parameters().id].professional or false
+	managers.menu:open_node(Global.game_settings.single_player and "crimenet_contract_singleplayer" or "crimenet_contract_host", {
+		{
+			job_id = item:parameters().id,
+			difficulty = is_professional and "hard" or "normal",
+			difficulty_id = is_professional and 3 or 2,
+			professional = is_professional,
+			customize_contract = true
+		}
+	})
+end
+function MenuCallbackHandler:is_contract_difficulty_allowed(item)
+	if not managers.menu:active_menu() then
+		return false
+	end
+	if not managers.menu:active_menu().logic then
+		return false
+	end
+	if not managers.menu:active_menu().logic:selected_node() then
+		return false
+	end
+	if not managers.menu:active_menu().logic:selected_node():parameters().menu_component_data then
+		return false
+	end
+	local job_data = managers.menu:active_menu().logic:selected_node():parameters().menu_component_data
+	if not job_data.job_id then
+		return false
+	end
+	if job_data.professional and item:value() < 3 then
+		return false
+	end
+	local job_jc = tweak_data.narrative.jobs[job_data.job_id].jc
+	local difficulty_jc = (item:value() - 2) * 10
+	return managers.job:get_max_jc_for_player() >= job_jc + difficulty_jc
+end
+function MenuCallbackHandler:buy_crimenet_contract(item, node)
+	local job_data = item:parameters().gui_node.node:parameters().menu_component_data
+	if not managers.money:can_afford_buy_premium_contract(job_data.job_id, job_data.difficulty_id or 3) then
+		return
+	end
+	local params = {}
+	params.contract_fee = managers.experience:cash_string(managers.money:get_cost_of_premium_contract(job_data.job_id, job_data.difficulty_id or 3))
+	params.offshore = managers.experience:cash_string(managers.money:offshore())
+	params.yes_func = callback(self, self, "_buy_crimenet_contract", item, node)
+	managers.menu:show_confirm_buy_premium_contract(params)
+end
+function MenuCallbackHandler:_buy_crimenet_contract(item, node)
+	local job_data = item:parameters().gui_node.node:parameters().menu_component_data
+	if not managers.money:can_afford_buy_premium_contract(job_data.job_id, job_data.difficulty_id or 3) then
+		return
+	end
+	managers.money:on_buy_premium_contract(job_data.job_id, job_data.difficulty_id or 3)
+	managers.menu:active_menu().logic:navigate_back(true)
+	managers.menu:active_menu().logic:navigate_back(true)
+	self._sound_source:post_event("item_buy")
+	if Global.game_settings.single_player then
+		MenuCallbackHandler:start_single_player_job(job_data)
+	else
+		MenuCallbackHandler:start_job(job_data)
+	end
+	MenuCallbackHandler:save_progress()
+end
+function MenuCallbackHandler:not_customize_contract(item)
+	return not self:customize_contract(item)
+end
+function MenuCallbackHandler:customize_contract(item)
+	if not managers.menu:active_menu() then
+		return false
+	end
+	if not managers.menu:active_menu().logic then
+		return false
+	end
+	if not managers.menu:active_menu().logic:selected_node() then
+		return false
+	end
+	if not managers.menu:active_menu().logic:selected_node():parameters().menu_component_data then
+		return false
+	end
+	return managers.menu:active_menu().logic:selected_node():parameters().menu_component_data.customize_contract
+end
+function MenuCallbackHandler:change_contract_difficulty(item)
+	managers.menu_component:set_crimenet_contract_difficulty_id(item:value())
+	if not managers.menu:active_menu().logic then
+		return false
+	end
+	if not managers.menu:active_menu().logic:selected_node() then
+		return false
+	end
+	local job_data = item:parameters().gui_node.node:parameters().menu_component_data
+	if not job_data or not job_data.job_id then
+		return false
+	end
+	local buy_contract_item = managers.menu:active_menu().logic:selected_node():item("buy_contract")
+	if not buy_contract_item then
+		return false
+	end
+	local can_afford = managers.money:can_afford_buy_premium_contract(job_data.job_id, job_data.difficulty_id or 3)
+	buy_contract_item:parameters().text_id = can_afford and "menu_cn_premium_buy_accept" or "menu_cn_premium_cannot_buy"
+	buy_contract_item:set_enabled(can_afford)
+	self:refresh_node()
 end
 function MenuCallbackHandler:choice_difficulty_filter_ps3(item)
 	local diff_filter = item:value()
@@ -1935,7 +2031,7 @@ function MenuCallbackHandler:give_more_experience()
 	managers.experience:debug_add_points(250000, false)
 end
 function MenuCallbackHandler:give_max_experience()
-	managers.experience:debug_add_points(360000, false)
+	managers.experience:debug_add_points(100000000, false)
 end
 function MenuCallbackHandler:debug_next_stage()
 	game_state_machine:change_state_by_name("victoryscreen", {
@@ -1944,8 +2040,8 @@ function MenuCallbackHandler:debug_next_stage()
 	})
 end
 function MenuCallbackHandler:debug_give_alot_of_lootdrops()
-	for i = 1, 7 do
-		managers.lootdrop:debug_drop(1000, true, i)
+	for i = 1, 10 do
+		managers.lootdrop:new_debug_drop(1000, true, i)
 	end
 end
 function MenuCallbackHandler:debug_give_money()
@@ -3306,15 +3402,110 @@ function MenuCrimeNetContractInitiator:modify_node(original_node, data)
 		node:item("toggle_drop_in"):set_value(Global.game_settings.drop_in_allowed and "on" or "off")
 		node:item("toggle_ai"):set_value(Global.game_settings.team_ai and "on" or "off")
 	end
+	if data.customize_contract then
+		node:set_default_item_name("buy_contract")
+		local job_data = data
+		if job_data and job_data.job_id then
+			local buy_contract_item = node:item("buy_contract")
+			if buy_contract_item then
+				local can_afford = managers.money:can_afford_buy_premium_contract(job_data.job_id, job_data.difficulty_id or 3)
+				buy_contract_item:parameters().text_id = can_afford and "menu_cn_premium_buy_accept" or "menu_cn_premium_cannot_buy"
+				buy_contract_item:parameters().disabled_color = Color(1, 0.6, 0.2, 0.2)
+				buy_contract_item:set_enabled(can_afford)
+			end
+		end
+	end
 	if data and data.back_callback then
 		table.insert(node:parameters().back_callback, data.back_callback)
 	end
 	node:parameters().menu_component_data = data
 	return node
 end
+MenuCrimeNetSpecialInitiator = MenuCrimeNetSpecialInitiator or class()
+function MenuCrimeNetSpecialInitiator:modify_node(original_node, data)
+	local node = original_node
+	node:clean_items()
+	if not node:item("divider_end") then
+		local contacts = {}
+		for contact in pairs(tweak_data.narrative.contacts) do
+			table.insert(contacts, contact)
+		end
+		table.sort(contacts, function(x, y)
+			return x < y
+		end)
+		local max_jc = managers.job:get_max_jc_for_player()
+		local jobs = {}
+		for index, job_id in ipairs(tweak_data.narrative:get_jobs_index()) do
+			local contact = tweak_data.narrative.jobs[job_id].contact
+			if table.contains(contacts, contact) then
+				jobs[contact] = jobs[contact] or {}
+				if max_jc >= (tweak_data.narrative.jobs[job_id].jc or 0) + (tweak_data.narrative.jobs[job_id].professional and 1 or 0) and not tweak_data.narrative.jobs[job_id].wrapped_to_job then
+					table.insert(jobs[contact], job_id)
+				end
+			end
+		end
+		for _, contracts in pairs(jobs) do
+			table.sort(contracts, function(x, y)
+				return tweak_data.narrative.jobs[x].jc < tweak_data.narrative.jobs[y].jc
+			end)
+		end
+		self:create_divider(node, "title", "menu_cn_premium_buy_title", nil, tweak_data.screen_colors.text)
+		self:create_divider(node, "1")
+		for _, contact in ipairs(contacts) do
+			if jobs[contact] then
+				self:create_divider(node, contact, tweak_data.narrative.contacts[contact].name_id, nil, tweak_data.screen_colors.text)
+				for _, contract in pairs(jobs[contact]) do
+					self:create_job(node, contract)
+				end
+				self:create_divider(node, contact .. "_end")
+			end
+		end
+		self:create_divider(node, "end")
+	end
+	local params = {
+		name = "back",
+		text_id = "menu_back",
+		previous_node = "true",
+		align = "right",
+		last_item = "true"
+	}
+	local data_node = {}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
+	node:set_default_item_name("back")
+	return node
+end
+function MenuCrimeNetSpecialInitiator:create_divider(node, id, text_id, size, color)
+	local params = {
+		name = "divider_" .. id,
+		no_text = not text_id,
+		text_id = text_id,
+		size = size or 8,
+		color = color
+	}
+	local data_node = {
+		type = "MenuItemDivider"
+	}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
+end
+function MenuCrimeNetSpecialInitiator:create_job(node, id)
+	local job_tweak = tweak_data.narrative.jobs[id]
+	local params = {
+		name = "job_" .. id,
+		text_id = managers.localization:to_upper_text(job_tweak.name_id) .. (job_tweak.professional and " (" .. managers.localization:to_upper_text("cn_menu_pro_job") .. ")" or ""),
+		localize = "false",
+		callback = "open_contract_node",
+		id = id,
+		customize_contract = "true"
+	}
+	local data_node = {}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
+end
 MenuCrimeNetFiltersInitiator = MenuCrimeNetFiltersInitiator or class()
 function MenuCrimeNetFiltersInitiator:modify_node(original_node, data)
-	local node = deep_clone(original_node)
+	local node = original_node
 	node:item("toggle_friends_only"):set_value(Global.game_settings.search_friends_only and "on" or "off")
 	if MenuCallbackHandler:is_win32() then
 		local matchmake_filters = managers.network.matchmake:lobby_filters()
@@ -3325,6 +3516,13 @@ function MenuCrimeNetFiltersInitiator:modify_node(original_node, data)
 		node:item("difficulty_filter"):set_value(matchmake_filters.difficulty and matchmake_filters.difficulty.value or -1)
 		self:add_filters(node)
 	end
+	local not_friends_only = not Global.game_settings.search_friends_only
+	node:item("toggle_new_servers_only"):set_enabled(not_friends_only)
+	node:item("toggle_server_state_lobby"):set_enabled(not_friends_only)
+	node:item("max_lobbies_filter"):set_enabled(not_friends_only)
+	node:item("server_filter"):set_enabled(not_friends_only)
+	node:item("difficulty_filter"):set_enabled(not_friends_only)
+	node:item("job_id_filter"):set_enabled(not_friends_only)
 	if data and data.back_callback then
 		table.insert(node:parameters().back_callback, data.back_callback)
 	end
@@ -3332,8 +3530,22 @@ function MenuCrimeNetFiltersInitiator:modify_node(original_node, data)
 	return node
 end
 function MenuCrimeNetFiltersInitiator:update_node(node)
+	local not_friends_only = not Global.game_settings.search_friends_only
+	node:item("toggle_new_servers_only"):set_enabled(not_friends_only)
+	node:item("toggle_server_state_lobby"):set_enabled(not_friends_only)
+	node:item("max_lobbies_filter"):set_enabled(not_friends_only)
+	node:item("server_filter"):set_enabled(not_friends_only)
+	node:item("difficulty_filter"):set_enabled(not_friends_only)
+	node:item("job_id_filter"):set_enabled(not_friends_only)
 end
 function MenuCrimeNetFiltersInitiator:refresh_node(node)
+	local not_friends_only = not Global.game_settings.search_friends_only
+	node:item("toggle_new_servers_only"):set_enabled(not_friends_only)
+	node:item("toggle_server_state_lobby"):set_enabled(not_friends_only)
+	node:item("max_lobbies_filter"):set_enabled(not_friends_only)
+	node:item("server_filter"):set_enabled(not_friends_only)
+	node:item("difficulty_filter"):set_enabled(not_friends_only)
+	node:item("job_id_filter"):set_enabled(not_friends_only)
 end
 function MenuCrimeNetFiltersInitiator:add_filters(node)
 	if node:item("divider_end") then
@@ -3342,7 +3554,7 @@ function MenuCrimeNetFiltersInitiator:add_filters(node)
 	local params = {
 		name = "job_id_filter",
 		text_id = "menu_job_id_filter",
-		visible_callback = "is_win32 is_level_145",
+		visible_callback = "is_win32",
 		callback = "choice_job_id_filter",
 		filter = true
 	}

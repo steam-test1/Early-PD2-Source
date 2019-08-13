@@ -3768,6 +3768,7 @@ function BlackMarketGui:populate_mods(data)
 		table.insert(data[equipped], "wm_remove_preview_mod")
 		table.insert(data[equipped], "wm_remove_preview")
 		if not data[equipped].conflict then
+			do break end
 			if data[equipped].default_mod then
 				data[equipped].comparision_data = managers.blackmarket:get_weapon_stats_with_mod(data[equipped].category, data[equipped].slot, data[equipped].default_mod)
 			else

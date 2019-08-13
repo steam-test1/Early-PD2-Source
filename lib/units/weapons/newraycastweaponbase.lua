@@ -86,6 +86,9 @@ function NewRaycastWeaponBase:_update_fire_object()
 	local fire = managers.weapon_factory:get_part_from_weapon_by_type("barrel_ext", self._parts) or managers.weapon_factory:get_part_from_weapon_by_type("slide", self._parts) or managers.weapon_factory:get_part_from_weapon_by_type("barrel", self._parts)
 	self:change_fire_object(fire.unit:get_object(Idstring("fire")))
 end
+function NewRaycastWeaponBase:got_silencer()
+	return self._silencer
+end
 function NewRaycastWeaponBase:_update_stats_values()
 	self:_check_sound_switch()
 	self._silencer = managers.weapon_factory:has_perk("silencer", self._factory_id, self._blueprint)

@@ -147,11 +147,11 @@ function ConnectionNetworkHandler:set_dropin()
 		game_state_machine:current_state():set_dropin(Global.local_member:character_name())
 	end
 end
-function ConnectionNetworkHandler:spawn_dropin_penalty(dead, bleed_out, health, used_deployable)
+function ConnectionNetworkHandler:spawn_dropin_penalty(dead, bleed_out, health, used_deployable, used_cable_ties)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame_playing) then
 		return
 	end
-	managers.player:spawn_dropin_penalty(dead, bleed_out, health, used_deployable)
+	managers.player:spawn_dropin_penalty(dead, bleed_out, health, used_deployable, used_cable_ties)
 end
 function ConnectionNetworkHandler:ok_to_load_level(sender)
 	print("ConnectionNetworkHandler:ok_to_load_level")

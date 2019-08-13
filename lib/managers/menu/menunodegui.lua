@@ -23,8 +23,9 @@ function MenuNodeGui:init(node, layer, parameters)
 	self._bg_visible = self._bg_visible == nil
 	self._bg_area = node:parameters().area_bg
 	self._bg_area = not self._bg_area and "full" or self._bg_area
-	self.row_item_color = tweak_data.screen_color_blue:with_alpha(0.5)
-	self.row_item_hightlight_color = tweak_data.screen_color_blue
+	self.row_item_color = tweak_data.screen_colors.button_stage_3
+	self.row_item_hightlight_color = tweak_data.screen_colors.button_stage_2
+	self.row_item_disabled_text_color = tweak_data.menu.default_disabled_text_color
 	MenuNodeGui.super.init(self, node, layer, parameters)
 	if node:parameters().no_item_parent then
 		self._item_panel_parent:set_visible(false)
@@ -259,9 +260,11 @@ function MenuNodeGui:_setup_item_panel_parent(safe_rect, shape)
 	self._item_panel_parent:set_shape(x, y, w, h)
 	self._align_data.panel:set_h(self._item_panel_parent:h())
 	self._list_arrows.up:set_h(48 * tweak_data.scale.menu_arrow_padding_multiplier)
-	self._list_arrows.up:set_lefttop(self._align_data.panel:world_center(), self._align_data.panel:world_top())
+	self._list_arrows.up:set_world_left(self._align_data.panel:world_left())
+	self._list_arrows.up:set_world_top(self._align_data.panel:world_top())
 	self._list_arrows.down:set_h(48 * tweak_data.scale.menu_arrow_padding_multiplier)
-	self._list_arrows.down:set_leftbottom(self._align_data.panel:world_center(), self._align_data.panel:world_bottom())
+	self._list_arrows.down:set_world_left(self._align_data.panel:world_left())
+	self._list_arrows.down:set_world_bottom(self._align_data.panel:world_bottom())
 	self._legends_panel:set_bottom(self.ws:panel():bottom())
 	self._item_panel_parent:set_y(self._item_panel_parent:y() + 0 * tweak_data.scale.menu_arrow_padding_multiplier + (self._is_loadout and 300 or 0))
 	self._item_panel_parent:set_h(self._item_panel_parent:h() - 0 * tweak_data.scale.menu_arrow_padding_multiplier)
@@ -581,7 +584,7 @@ function MenuNodeGui:_setup_trial_buy(row_item)
 	row_item.gui_panel:set_font_size(row_item.font_size)
 end
 function MenuNodeGui:_setup_fake_disabled(row_item)
-	row_item.row_item_color = tweak_data.menu.default_disabled_text_color
+	row_item.row_item_color = row_item.disabled_color
 	row_item.gui_panel:set_color(row_item.row_item_color)
 end
 function MenuNodeGui:_create_info_panel(row_item)
@@ -1009,7 +1012,11 @@ function MenuNodeGui:scroll_update(dt)
 end
 function MenuNodeGui:reload_item(item)
 	local type = item:type()
-	if not item:reload(self:row_item(item), self) then
+	local row_item = self:row_item(item)
+	if row_item then
+		row_item.color = item:enabled() and (row_item.highlighted and self.row_item_hightlight_color or self.row_item_color) or row_item.disabled_color
+	end
+	if not item:reload(row_item, self) then
 		if type == "weapon_expand" or type == "weapon_upgrade_expand" then
 			self:_reload_expand(item)
 		elseif type == "expand" then
@@ -1020,11 +1027,8 @@ function MenuNodeGui:reload_item(item)
 			MenuNodeGui.super.reload_item(self, item)
 		end
 	end
-	if self._highlighted_item and self._highlighted_item == item then
-		local row_item = self:row_item(item)
-		if row_item then
-			self:_align_marker(row_item)
-		end
+	if self._highlighted_item and self._highlighted_item == item and row_item then
+		self:_align_marker(row_item)
 	end
 end
 function MenuNodeGui:_collaps_others(my_item)
@@ -1114,7 +1118,7 @@ function MenuNodeGui:_highlight_row_item(row_item, mouse_over)
 			active_menu.renderer:set_bottom_text(row_item.item:parameters().help_id)
 		end
 		self:_align_marker(row_item)
-		row_item.color = self.row_item_hightlight_color
+		row_item.color = row_item.item:enabled() and (row_item.hightlight_color or self.row_item_hightlight_color) or row_item.disabled_color
 		if row_item.type == "NOTHING" then
 		elseif row_item.type == "column" then
 			for _, gui in ipairs(row_item.gui_columns) do
@@ -1173,6 +1177,9 @@ function MenuNodeGui:_highlight_row_item(row_item, mouse_over)
 	end
 end
 function MenuNodeGui:_align_marker(row_item)
+	if self.marker_color then
+		self._marker_data.gradient:set_color(row_item.item:enabled() and self.marker_color or row_item.disabled_color)
+	end
 	if row_item.item:parameters().pd2_corner then
 		self._marker_data.marker:set_visible(true)
 		self._marker_data.gradient:set_visible(true)
@@ -1190,7 +1197,7 @@ function MenuNodeGui:_align_marker(row_item)
 	self._marker_data.marker:set_height(64 * row_item.gui_panel:height() / 32)
 	self._marker_data.gradient:set_height(64 * row_item.gui_panel:height() / 32)
 	self._marker_data.marker:set_left(row_item.menu_unselected:x())
-	self._marker_data.marker:set_center_y(row_item.gui_panel:center_y() - 2)
+	self._marker_data.marker:set_center_y(row_item.gui_panel:center_y())
 	local item_enabled = row_item.item:enabled()
 	if item_enabled then
 	else
@@ -1244,7 +1251,7 @@ end
 function MenuNodeGui:_fade_row_item(row_item)
 	if row_item then
 		row_item.highlighted = false
-		row_item.color = row_item.item:enabled() and self.row_item_color or tweak_data.menu.default_disabled_text_color
+		row_item.color = row_item.item:enabled() and (row_item.row_item_color or self.row_item_color) or row_item.disabled_color
 		if row_item.type == "NOTHING" then
 		elseif row_item.type == "column" then
 			for _, gui in ipairs(row_item.gui_columns) do
@@ -1374,8 +1381,8 @@ function MenuNodeGui:resolution_changed()
 	end
 	MenuNodeGui.super.resolution_changed(self)
 	self._align_data.panel:set_center_x(self:_mid_align())
-	self._list_arrows.up:set_left(self._align_data.panel:world_center())
-	self._list_arrows.down:set_left(self._align_data.panel:world_center())
+	self._list_arrows.up:set_world_left(self._align_data.panel:world_left())
+	self._list_arrows.down:set_world_left(self._align_data.panel:world_left())
 	self._legends_panel:set_shape(safe_rect.x, safe_rect.y, safe_rect.width, safe_rect.height)
 	self:_layout_legends()
 end

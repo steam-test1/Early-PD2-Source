@@ -195,14 +195,17 @@ function PlayerManager:_add_level_equipment(player)
 		self:add_equipment({equipment = eq, silent = true})
 	end
 end
-function PlayerManager:spawn_dropin_penalty(dead, bleed_out, health, used_deployable)
+function PlayerManager:spawn_dropin_penalty(dead, bleed_out, health, used_deployable, used_cable_ties)
 	local player = self:player_unit()
-	print("[PlayerManager:spawn_dropin_penalty]", dead, bleed_out, health)
+	print("[PlayerManager:spawn_dropin_penalty]", dead, bleed_out, health, used_deployable, used_cable_ties)
 	if not alive(player) then
 		return
 	end
 	if used_deployable then
 		managers.player:clear_equipment()
+	end
+	for i = 1, used_cable_ties do
+		self:remove_special("cable_tie")
 	end
 	local min_health
 	if dead or bleed_out then
@@ -538,7 +541,14 @@ function PlayerManager:body_armor_value()
 end
 function PlayerManager:body_armor_movement_penalty()
 	local armor_data = tweak_data.blackmarket.armors[managers.blackmarket:equipped_armor()]
-	return self:upgrade_value_by_level("player", "armor_movement_penalty", armor_data.movement_penalty, 1)
+	local movement_penalty = self:upgrade_value_by_level("player", "armor_movement_penalty", armor_data.movement_penalty, 1)
+	local skill_mods = self:upgrade_value("player", "passive_armor_movement_penalty_multiplier", 1)
+	if skill_mods < 1 then
+		local penalty = 1 - movement_penalty
+		penalty = penalty * skill_mods
+		movement_penalty = 1 - penalty
+	end
+	return movement_penalty
 end
 function PlayerManager:thick_skin_value()
 	if not self:has_category_upgrade("player", "thick_skin") then
@@ -721,6 +731,10 @@ function PlayerManager:update_synced_cable_ties_to_peers(amount)
 end
 function PlayerManager:set_synced_cable_ties(peer_id, amount)
 	local only_update_amount = false
+	if self._global.synced_cable_ties[peer_id] and amount < self._global.synced_cable_ties[peer_id].amount and managers.network:session() and managers.network:session():peer(peer_id) then
+		local peer = managers.network:session():peer(peer_id)
+		peer:on_used_cable_tie()
+	end
 	self._global.synced_cable_ties[peer_id] = {amount = amount}
 	local character_data = managers.criminals:character_data_by_peer_id(peer_id)
 	if character_data and character_data.panel_id then

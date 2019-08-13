@@ -1,4 +1,5 @@
 SecurityCamera = SecurityCamera or class()
+SecurityCamera.cameras = SecurityCamera.cameras or {}
 SecurityCamera._NET_EVENTS = {
 	sound_off = 1,
 	alarm_start = 2,
@@ -12,6 +13,7 @@ SecurityCamera._NET_EVENTS = {
 function SecurityCamera:init(unit)
 	self._unit = unit
 	self:set_update_enabled(false)
+	table.insert(SecurityCamera.cameras, self._unit)
 end
 function SecurityCamera:update(unit, t, dt)
 	if managers.groupai:state():is_ecm_jammer_active("camera") then
@@ -279,6 +281,13 @@ function SecurityCamera:generate_cooldown(amount)
 end
 function SecurityCamera:set_access_camera_mission_element(access_camera_mission_element)
 	self._access_camera_mission_element = access_camera_mission_element
+end
+function SecurityCamera:get_mark_check_position()
+	local obj = self._unit:get_object(Idstring("CameraLens")) or self._unit:get_object(Idstring("g_lamp"))
+	return obj:position()
+end
+function SecurityCamera:destroyed()
+	return self._destroyed
 end
 function SecurityCamera:_create_detected_attention_object_data(t, u_key, attention_info, settings)
 	attention_info.handler:add_listener("sec_cam_" .. tostring(self._u_key), callback(self, self, "on_detected_attention_obj_modified"))
@@ -562,6 +571,7 @@ function SecurityCamera:save(data)
 	elseif self._suspicion_sound then
 		data.suspicion_lvl = self._suspicion_lvl_sync
 	end
+	data.destroyed = self._destroyed
 	if self._yaw then
 		data.yaw = self._yaw
 		data.pitch = self._pitch
@@ -576,8 +586,10 @@ function SecurityCamera:load(data)
 	if data.yaw then
 		self:apply_rotations(data.yaw, data.pitch)
 	end
+	self._destroyed = data.destroyed
 end
 function SecurityCamera:destroy(unit)
+	table.delete(SecurityCamera.cameras, self._unit)
 	self._destroying = true
 	self:set_detection_enabled(false)
 	if self._call_police_clbk_id then

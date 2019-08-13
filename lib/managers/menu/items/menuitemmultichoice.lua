@@ -186,7 +186,8 @@ function MenuItemMultiChoice:setup_gui(node, row_item)
 		visible = self:arrow_visible(),
 		x = 0,
 		y = 0,
-		layer = node.layers.items
+		layer = node.layers.items,
+		blend_mode = node.row_item_blend_mode
 	})
 	row_item.arrow_right = row_item.gui_panel:bitmap({
 		texture = "guis/textures/menu_arrows",
@@ -200,7 +201,8 @@ function MenuItemMultiChoice:setup_gui(node, row_item)
 		visible = self:arrow_visible(),
 		x = 0,
 		y = 0,
-		layer = node.layers.items
+		layer = node.layers.items,
+		blend_mode = node.row_item_blend_mode
 	})
 	if self:info_panel() == "lobby_campaign" then
 		node._create_lobby_campaign(node, row_item)
@@ -227,11 +229,15 @@ function MenuItemMultiChoice:reload(row_item, node)
 	if self:selected_option():parameters().stencil_align then
 		managers.menu:active_menu().renderer:set_stencil_align(self:selected_option():parameters().stencil_align, self:selected_option():parameters().stencil_align_percent)
 	end
+	local arrow_alpha = row_item.highlighted and 1 or 0.5
 	row_item.arrow_left:set_visible(self:arrow_visible())
 	row_item.arrow_right:set_visible(self:arrow_visible())
-	row_item.arrow_left:set_color(self:left_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
-	row_item.arrow_right:set_color(self:right_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
-	row_item.choice_text:set_color(self:selected_option():parameters().color or node.row_item_hightlight_color)
+	row_item.arrow_left:set_color(not self._enabled and row_item.disabled_color or self:left_arrow_visible() and tweak_data.screen_colors.button_stage_2 or tweak_data.screen_colors.button_stage_3)
+	row_item.arrow_right:set_color(not self._enabled and row_item.disabled_color or self:right_arrow_visible() and tweak_data.screen_colors.button_stage_2 or tweak_data.screen_colors.button_stage_3)
+	row_item.arrow_left:set_alpha(arrow_alpha)
+	row_item.arrow_right:set_alpha(arrow_alpha)
+	row_item.gui_text:set_color(row_item.color)
+	row_item.choice_text:set_color(not self._enabled and row_item.disabled_color or self:selected_option():parameters().color or node.row_item_hightlight_color)
 	if self:info_panel() == "lobby_campaign" then
 		node._reload_lobby_campaign(node, row_item)
 	elseif self:info_panel() == "lobby_difficulty" then
@@ -241,11 +247,13 @@ function MenuItemMultiChoice:reload(row_item, node)
 end
 function MenuItemMultiChoice:highlight_row_item(node, row_item, mouse_over)
 	row_item.gui_text:set_color(row_item.color)
-	row_item.choice_text:set_color(self:selected_option():parameters().color or node.row_item_hightlight_color)
+	row_item.choice_text:set_color(not self._enabled and row_item.disabled_color or self:selected_option():parameters().color or node.row_item_hightlight_color)
 	row_item.arrow_left:set_image("guis/textures/menu_arrows", 24, 0, 24, 24)
 	row_item.arrow_right:set_image("guis/textures/menu_arrows", 48, 0, -24, 24)
-	row_item.arrow_left:set_color(self:left_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
-	row_item.arrow_right:set_color(self:right_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
+	row_item.arrow_left:set_color(not self._enabled and row_item.disabled_color or self:left_arrow_visible() and tweak_data.screen_colors.button_stage_2 or tweak_data.screen_colors.button_stage_3)
+	row_item.arrow_right:set_color(not self._enabled and row_item.disabled_color or self:right_arrow_visible() and tweak_data.screen_colors.button_stage_2 or tweak_data.screen_colors.button_stage_3)
+	row_item.arrow_left:set_alpha(1)
+	row_item.arrow_right:set_alpha(1)
 	if self:info_panel() == "lobby_campaign" then
 		node._highlight_lobby_campaign(node, row_item)
 	elseif self:info_panel() == "lobby_difficulty" then
@@ -256,12 +264,14 @@ function MenuItemMultiChoice:highlight_row_item(node, row_item, mouse_over)
 	return true
 end
 function MenuItemMultiChoice:fade_row_item(node, row_item, mouse_over)
-	row_item.gui_text:set_color(node.row_item_color)
-	row_item.choice_text:set_color(self:selected_option():parameters().color or node.row_item_hightlight_color)
+	row_item.gui_text:set_color(row_item.color)
+	row_item.choice_text:set_color(not self._enabled and row_item.disabled_color or self:selected_option():parameters().color or node.row_item_hightlight_color)
 	row_item.arrow_left:set_image("guis/textures/menu_arrows", 0, 0, 24, 24)
 	row_item.arrow_right:set_image("guis/textures/menu_arrows", 24, 0, -24, 24)
-	row_item.arrow_left:set_color(self:left_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
-	row_item.arrow_right:set_color(self:right_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
+	row_item.arrow_left:set_color(not self._enabled and row_item.disabled_color or self:left_arrow_visible() and tweak_data.screen_colors.button_stage_2 or tweak_data.screen_colors.button_stage_3)
+	row_item.arrow_right:set_color(not self._enabled and row_item.disabled_color or self:right_arrow_visible() and tweak_data.screen_colors.button_stage_2 or tweak_data.screen_colors.button_stage_3)
+	row_item.arrow_left:set_alpha(0.5)
+	row_item.arrow_right:set_alpha(0.5)
 	if self:info_panel() == "lobby_campaign" then
 		node._fade_lobby_campaign(node, row_item)
 	elseif self:info_panel() == "lobby_difficulty" then
