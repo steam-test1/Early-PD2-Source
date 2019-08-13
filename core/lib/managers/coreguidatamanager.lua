@@ -27,8 +27,26 @@ function GuiDataManager:create_fullscreen_16_9_workspace()
 	self:layout_fullscreen_16_9_workspace(ws)
 	return ws
 end
+function GuiDataManager:create_corner_saferect_workspace()
+	local ws = self._scene_gui or Overlay:gui():create_scaled_screen_workspace(10, 10, 10, 10, 10)
+	self:layout_corner_saferect_workspace(ws)
+	return ws
+end
+function GuiDataManager:create_1280_workspace()
+	local ws = self._scene_gui or Overlay:gui():create_scaled_screen_workspace(10, 10, 10, 10, 10)
+	self:layout_1280_workspace(ws)
+	return ws
+end
+function GuiDataManager:create_corner_saferect_1280_workspace()
+	local ws = self._scene_gui or Overlay:gui():create_scaled_screen_workspace(10, 10, 10, 10, 10)
+	self:layout_corner_saferect_1280_workspace(ws)
+	return ws
+end
 function GuiDataManager:destroy_workspace(ws)
 	self._scene_gui or Overlay:gui():destroy_workspace(ws)
+end
+function GuiDataManager:get_scene_gui()
+	return self._scene_gui or Overlay:gui()
 end
 function GuiDataManager:_get_safe_rect_pixels()
 	if self._safe_rect_pixels then
@@ -55,6 +73,8 @@ function GuiDataManager:_setup_workspace_data()
 	self._corner_saferect_data = {}
 	self._fullrect_data = {}
 	self._fullrect_16_9_data = {}
+	self._fullrect_1280_data = {}
+	self._corner_saferect_1280_data = {}
 	local safe_rect = self:_get_safe_rect_pixels()
 	local scaled_size = self:scaled_size()
 	local res = self._static_resolution or RenderSettings.resolution
@@ -74,23 +94,30 @@ function GuiDataManager:_setup_workspace_data()
 	self._saferect_data.y = y
 	self._saferect_data.on_screen_width = sw
 	local h_c = w / (safe_rect.width / safe_rect.height)
-	local w_c = h * (safe_rect.width / safe_rect.height)
+	h = math.max(h, h_c)
+	local w_c = h_c / h
+	w = math.max(w, w / w_c)
 	self._corner_saferect_data.w = w
-	self._corner_saferect_data.h = h_c
+	self._corner_saferect_data.h = h
 	self._corner_saferect_data.width = self._corner_saferect_data.w
 	self._corner_saferect_data.height = self._corner_saferect_data.h
 	self._corner_saferect_data.x = safe_rect.x
 	self._corner_saferect_data.y = safe_rect.y
 	self._corner_saferect_data.on_screen_width = safe_rect.width
-	self._fullrect_data.w = base_res.x
-	self._fullrect_data.h = base_res.x / self:_aspect_ratio()
+	sh = base_res.x / self:_aspect_ratio()
+	h = math.max(base_res.y, sh)
+	sw = sh / h
+	w = math.max(base_res.x, base_res.x / sw)
+	self._fullrect_data.w = w
+	self._fullrect_data.h = h
 	self._fullrect_data.width = self._fullrect_data.w
 	self._fullrect_data.height = self._fullrect_data.h
 	self._fullrect_data.x = 0
 	self._fullrect_data.y = 0
 	self._fullrect_data.on_screen_width = res.x
-	self._fullrect_data.convert_x = math.floor((base_res.x - self._saferect_data.w) / 2)
-	self._fullrect_data.convert_y = (base_res.x / self:_aspect_ratio() - scaled_size.height) / 2
+	self._fullrect_data.convert_x = math.floor((w - self._saferect_data.w) / 2)
+	self._fullrect_data.convert_y = (h - scaled_size.height) / 2
+	self._fullrect_data.corner_convert_x = math.floor((self._fullrect_data.width - self._corner_saferect_data.width) / 2)
 	self._fullrect_data.corner_convert_y = math.floor((self._fullrect_data.height - self._corner_saferect_data.height) / 2)
 	w = base_res.x
 	h = base_res.y
@@ -107,6 +134,38 @@ function GuiDataManager:_setup_workspace_data()
 	self._fullrect_16_9_data.on_screen_width = sw
 	self._fullrect_16_9_data.convert_x = math.floor((self._fullrect_16_9_data.w - self._saferect_data.w) / 2)
 	self._fullrect_16_9_data.convert_y = (self._fullrect_16_9_data.h - self._saferect_data.h) / 2
+	local aspect = math.clamp(res.x / res.y, 1, 1.7777778)
+	w = base_res.x
+	h = base_res.x / aspect
+	sw = math.min(res.x, res.y * aspect)
+	sh = sw / w * h
+	x = (res.x - sw) / 2
+	y = (res.y - sh) / 2
+	self._fullrect_1280_data.w = w
+	self._fullrect_1280_data.h = h
+	self._fullrect_1280_data.width = self._fullrect_1280_data.w
+	self._fullrect_1280_data.height = self._fullrect_1280_data.h
+	self._fullrect_1280_data.x = x
+	self._fullrect_1280_data.y = y
+	self._fullrect_1280_data.on_screen_width = sw
+	self._fullrect_1280_data.sw = sw
+	self._fullrect_1280_data.sh = sh
+	self._fullrect_1280_data.aspect = aspect
+	self._fullrect_1280_data.convert_x = math.floor((self._fullrect_data.w - self._fullrect_1280_data.w) / 2)
+	self._fullrect_1280_data.convert_y = math.floor((self._fullrect_data.h - self._fullrect_1280_data.h) / 2)
+	w = scaled_size.width
+	h = scaled_size.width / aspect
+	sw = math.min(safe_rect.width, safe_rect.height * aspect)
+	sh = sw / w * h
+	x = (res.x - sw) / 2
+	y = (res.y - sh) / 2
+	self._corner_saferect_1280_data.w = w
+	self._corner_saferect_1280_data.h = h
+	self._corner_saferect_1280_data.width = self._corner_saferect_1280_data.w
+	self._corner_saferect_1280_data.height = self._corner_saferect_1280_data.h
+	self._corner_saferect_1280_data.x = x
+	self._corner_saferect_1280_data.y = y
+	self._corner_saferect_1280_data.on_screen_width = sw
 end
 function GuiDataManager:layout_workspace(ws)
 	ws:set_screen(self._saferect_data.w, self._saferect_data.h, self._saferect_data.x, self._saferect_data.y, self._saferect_data.on_screen_width)
@@ -119,6 +178,12 @@ function GuiDataManager:layout_fullscreen_16_9_workspace(ws)
 end
 function GuiDataManager:layout_corner_saferect_workspace(ws)
 	ws:set_screen(self._corner_saferect_data.w, self._corner_saferect_data.h, self._corner_saferect_data.x, self._corner_saferect_data.y, self._corner_saferect_data.on_screen_width)
+end
+function GuiDataManager:layout_1280_workspace(ws)
+	ws:set_screen(self._fullrect_1280_data.w, self._fullrect_1280_data.h, self._fullrect_1280_data.x, self._fullrect_1280_data.y, self._fullrect_1280_data.on_screen_width)
+end
+function GuiDataManager:layout_corner_saferect_1280_workspace(ws)
+	ws:set_screen(self._corner_saferect_1280_data.w, self._corner_saferect_1280_data.h, self._corner_saferect_1280_data.x, self._corner_saferect_1280_data.y, self._corner_saferect_1280_data.on_screen_width)
 end
 function GuiDataManager:scaled_size()
 	local w = math.round(self:_get_safe_rect().width * base_res.x)
@@ -142,6 +207,12 @@ end
 function GuiDataManager:full_16_9_size()
 	return self._fullrect_16_9_data
 end
+function GuiDataManager:full_1280_size()
+	return self._fullrect_1280_data
+end
+function GuiDataManager:full_to_full_16_9(in_x, in_y)
+	return self._fullrect_16_9_data.convert_x + in_x, self._fullrect_16_9_data.convert_y + in_y
+end
 function GuiDataManager:safe_to_full_16_9(in_x, in_y)
 	return self._fullrect_16_9_data.convert_x + in_x, self._fullrect_16_9_data.convert_y + in_y
 end
@@ -155,7 +226,7 @@ function GuiDataManager:full_to_safe(in_x, in_y)
 	return in_x - self._fullrect_data.convert_x, in_y - self._fullrect_data.convert_y
 end
 function GuiDataManager:corner_safe_to_full(in_x, in_y)
-	return self._fullrect_data.convert_x + in_x, self._fullrect_data.corner_convert_y + in_y
+	return self._fullrect_data.corner_convert_x + in_x, self._fullrect_data.corner_convert_y + in_y
 end
 function GuiDataManager:y_safe_to_full(in_y)
 	return self._fullrect_data.convert_y + in_y

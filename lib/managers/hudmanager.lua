@@ -39,7 +39,7 @@ function HUDManager:init()
 	self._mid_saferect = managers.gui_data:create_saferect_workspace()
 	self._fullscreen_workspace = managers.gui_data:create_fullscreen_16_9_workspace()
 	self._saferect = managers.gui_data:create_saferect_workspace()
-	managers.gui_data:layout_corner_saferect_workspace(self._saferect)
+	managers.gui_data:layout_corner_saferect_1280_workspace(self._saferect)
 	self._workspace = Overlay:gui():create_scaled_screen_workspace(self._workspace_size.w, self._workspace_size.h, self._workspace_size.x, self._workspace_size.y, RenderSettings.resolution.x, RenderSettings.resolution.y)
 	managers.gui_data:layout_fullscreen_workspace(self._workspace)
 	self._updators = {}
@@ -507,13 +507,16 @@ function HUDManager:resolution_changed()
 	local res = RenderSettings.resolution
 	local safe_rect_pixels = managers.viewport:get_safe_rect_pixels()
 	local safe_rect = managers.viewport:get_safe_rect()
-	managers.gui_data:layout_corner_saferect_workspace(self._saferect)
+	managers.gui_data:layout_corner_saferect_1280_workspace(self._saferect)
 	managers.gui_data:layout_fullscreen_workspace(self._workspace)
 	managers.gui_data:layout_workspace(self._mid_saferect)
 	managers.gui_data:layout_fullscreen_16_9_workspace(self._fullscreen_workspace)
 	for name, gui in pairs(self._component_map) do
 		self:layout(gui.idstring)
 	end
+	self:_additional_layout()
+end
+function HUDManager:_additional_layout()
 end
 function HUDManager:update(t, dt)
 	for _, cb in pairs(self._updators) do
@@ -930,7 +933,8 @@ function HUDManager:add_waypoint(id, data)
 		layer = 0,
 		w = texture_rect[3],
 		h = texture_rect[4],
-		blend_mode = data.blend_mode
+		blend_mode = data.blend_mode,
+		rotation = 360
 	})
 	local arrow_icon, arrow_texture_rect = tweak_data.hud_icons:get_icon_data("wp_arrow")
 	local arrow = waypoint_panel:bitmap({
@@ -942,7 +946,8 @@ function HUDManager:add_waypoint(id, data)
 		layer = 0,
 		w = arrow_texture_rect[3],
 		h = arrow_texture_rect[4],
-		blend_mode = data.blend_mode
+		blend_mode = data.blend_mode,
+		rotation = 360
 	})
 	local distance
 	if data.distance then
@@ -957,7 +962,8 @@ function HUDManager:add_waypoint(id, data)
 			w = 128,
 			h = 24,
 			layer = 0,
-			blend_mode = data.blend_mode
+			blend_mode = data.blend_mode,
+			rotation = 360
 		})
 		distance:set_visible(false)
 	end
@@ -970,7 +976,8 @@ function HUDManager:add_waypoint(id, data)
 		vertical = "center",
 		w = 32,
 		h = 32,
-		layer = 0
+		layer = 0,
+		rotation = 360
 	})
 	text = waypoint_panel:text({
 		name = "text" .. id,
@@ -981,7 +988,8 @@ function HUDManager:add_waypoint(id, data)
 		vertical = "center",
 		w = 512,
 		h = 24,
-		layer = 0
+		layer = 0,
+		rotation = 360
 	})
 	local _, _, w, _ = text:text_rect()
 	text:set_w(w)

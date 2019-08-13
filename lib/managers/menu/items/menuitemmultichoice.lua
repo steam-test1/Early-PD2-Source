@@ -231,6 +231,7 @@ function MenuItemMultiChoice:reload(row_item, node)
 	row_item.arrow_right:set_visible(self:arrow_visible())
 	row_item.arrow_left:set_color(self:left_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
 	row_item.arrow_right:set_color(self:right_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
+	row_item.choice_text:set_color(self:selected_option():parameters().color or node.row_item_hightlight_color)
 	if self:info_panel() == "lobby_campaign" then
 		node._reload_lobby_campaign(node, row_item)
 	elseif self:info_panel() == "lobby_difficulty" then
@@ -240,6 +241,7 @@ function MenuItemMultiChoice:reload(row_item, node)
 end
 function MenuItemMultiChoice:highlight_row_item(node, row_item, mouse_over)
 	row_item.gui_text:set_color(row_item.color)
+	row_item.choice_text:set_color(self:selected_option():parameters().color or node.row_item_hightlight_color)
 	row_item.arrow_left:set_image("guis/textures/menu_arrows", 24, 0, 24, 24)
 	row_item.arrow_right:set_image("guis/textures/menu_arrows", 48, 0, -24, 24)
 	row_item.arrow_left:set_color(self:left_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))
@@ -255,6 +257,7 @@ function MenuItemMultiChoice:highlight_row_item(node, row_item, mouse_over)
 end
 function MenuItemMultiChoice:fade_row_item(node, row_item, mouse_over)
 	row_item.gui_text:set_color(node.row_item_color)
+	row_item.choice_text:set_color(self:selected_option():parameters().color or node.row_item_hightlight_color)
 	row_item.arrow_left:set_image("guis/textures/menu_arrows", 0, 0, 24, 24)
 	row_item.arrow_right:set_image("guis/textures/menu_arrows", 24, 0, -24, 24)
 	row_item.arrow_left:set_color(self:left_arrow_visible() and tweak_data.screen_color_blue or tweak_data.screen_color_blue:with_alpha(0.5))

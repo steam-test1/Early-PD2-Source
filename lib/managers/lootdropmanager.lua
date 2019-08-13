@@ -205,67 +205,73 @@ function LootDropManager:_make_drop(debug, add_to_inventory, debug_stars, return
 		print("normalized_chance", inspect(normalized_chance))
 	end
 	local has_result
-	repeat
-		while true do
-			if not has_result then
+	while not has_result do
+		local type_items = self:_get_type_items(normalized_chance, debug)
+		if not debug then
+			print(" Type result", type_items)
+		end
+		local items = pc_items[type_items]
+		local item_entry = items[math.random(#items)]
+		local global_value = "normal"
+		local block_item = false
+		if not tweak_data.blackmarket[type_items][item_entry].qlvl or plvl >= tweak_data.blackmarket[type_items][item_entry].qlvl then
+			local global_value_chance = math.rand(1)
+			local quality_mul = managers.player:upgrade_value("player", "passive_loot_drop_multiplier", 1) * managers.player:upgrade_value("player", "loot_drop_multiplier", 1)
+			if tweak_data.blackmarket[type_items][item_entry].infamous and global_value_chance < tweak_data.lootdrop.global_values.infamous.chance * quality_mul then
+				global_value = "infamous"
+			else
+				local dlcs = tweak_data.blackmarket[type_items][item_entry].dlcs or {}
 				do
-					local type_items = self:_get_type_items(normalized_chance, debug)
-					if not debug then
-						print(" Type result", type_items)
+					local dlc = tweak_data.blackmarket[type_items][item_entry].dlc
+					if dlc then
+						table.insert(dlcs, dlc)
 					end
-					local items = pc_items[type_items]
-					local item_entry = items[math.random(#items)]
-					local global_value = "normal"
-					if not tweak_data.blackmarket[type_items][item_entry].qlvl or plvl >= tweak_data.blackmarket[type_items][item_entry].qlvl then
-						local global_value_chance = math.rand(1)
-						local quality_mul = managers.player:upgrade_value("player", "passive_loot_drop_multiplier", 1) * managers.player:upgrade_value("player", "loot_drop_multiplier", 1)
-						if tweak_data.blackmarket[type_items][item_entry].infamous and global_value_chance < tweak_data.lootdrop.global_values.infamous.chance * quality_mul then
-							global_value = "infamous"
-						else
-							local dlcs = tweak_data.blackmarket[type_items][item_entry].dlcs or {}
-							do
-								local dlc = tweak_data.blackmarket[type_items][item_entry].dlc
-								if dlc then
-									table.insert(dlcs, dlc)
-								end
-							end
-							local dlc_global_values = {}
-							for _, dlc in pairs(dlcs) do
-								if managers.dlc:has_dlc(dlc) then
-									table.insert(dlc_global_values, dlc)
-								end
-							end
-							if #dlc_global_values > 0 then
-								global_value = dlc_global_values[math.random(#dlc_global_values)]
-							end
-						end
+				end
+				local dlc_global_values = {}
+				for _, dlc in pairs(dlcs) do
+					if managers.dlc:has_dlc(dlc) then
+						table.insert(dlc_global_values, dlc)
+					else
+						block_item = true
 					end
-					if tweak_data.blackmarket[type_items][item_entry].max_in_inventory and managers.blackmarket:get_item_amount(global_value, type_items, item_entry) >= tweak_data.blackmarket[type_items][item_entry].max_in_inventory then
-					end
-					has_result = true
-					if not debug then
-						print("You got", item_entry, "of type", type_items, "with global value", global_value)
-					end
-					if add_to_inventory then
-						if type_items == "cash" then
-							managers.blackmarket:add_to_inventory(global_value, type_items, item_entry)
-						else
-							managers.blackmarket:add_to_inventory(global_value, type_items, item_entry)
-						end
-						return_data.global_value = global_value
-						return_data.type_items = type_items
-						return_data.item_entry = item_entry
-					end
-					if not debug then
-						print(inspect(tweak_data.blackmarket[type_items][item_entry]))
-					end
-					if global_value == "infamous" then
-					end
-					return global_value, type_items, item_entry, pc
+				end
+				if #dlc_global_values > 0 then
+					global_value = dlc_global_values[math.random(#dlc_global_values)]
+					block_item = false
 				end
 			end
+			if block_item then
+				if not debug then
+					print("Item drop got blocked!", "type_items", type_items, "item_entry", item_entry, "global_value", global_value)
+				end
+			elseif tweak_data.blackmarket[type_items][item_entry].max_in_inventory and managers.blackmarket:get_item_amount(global_value, type_items, item_entry) >= tweak_data.blackmarket[type_items][item_entry].max_in_inventory then
+				if not debug then
+					print("Already got max of this item", item_entry)
+				end
+			elseif not tweak_data.blackmarket[type_items][item_entry].infamous or global_value == "infamous" then
+				has_result = true
+				if not debug then
+					print("You got", item_entry, "of type", type_items, "with global value", global_value)
+				end
+				if add_to_inventory then
+					if type_items == "cash" then
+						managers.blackmarket:add_to_inventory(global_value, type_items, item_entry)
+					else
+						managers.blackmarket:add_to_inventory(global_value, type_items, item_entry)
+					end
+					return_data.global_value = global_value
+					return_data.type_items = type_items
+					return_data.item_entry = item_entry
+				end
+				if not debug then
+					print(inspect(tweak_data.blackmarket[type_items][item_entry]))
+				end
+				if global_value == "infamous" then
+				end
+				return global_value, type_items, item_entry, pc
+			end
 		end
-	until not tweak_data.blackmarket[type_items][item_entry].infamous or global_value == "infamous"
+	end
 end
 function LootDropManager:_get_type_items(normalized_chance, debug)
 	local seed = math.rand(1)
