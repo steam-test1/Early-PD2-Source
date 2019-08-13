@@ -251,8 +251,10 @@ function PlayerDamage:play_whizby(position)
 	managers.rumble:play("bullet_whizby")
 end
 function PlayerDamage:clbk_kill_taunt(attack_data)
-	self._kill_taunt_clbk_id = nil
-	attack_data.attacker_unit:sound():say("post_kill_taunt")
+	if attack_data.attacker_unit and attack_data.attacker_unit:alive() then
+		self._kill_taunt_clbk_id = nil
+		attack_data.attacker_unit:sound():say("post_kill_taunt")
+	end
 end
 function PlayerDamage:damage_bullet(attack_data)
 	local damage_info = {

@@ -950,6 +950,9 @@ end
 function MenuCallbackHandler:has_dropin()
 	return NetworkManager.DROPIN_ENABLED
 end
+function MenuCallbackHandler:kicking_allowed()
+	return Global.game_settings.kicking_allowed
+end
 function MenuCallbackHandler:is_server()
 	return Network:is_server()
 end
@@ -975,7 +978,7 @@ function MenuCallbackHandler:singleplayer_restart()
 	return self:is_singleplayer() and self:has_full_game() and self:is_normal_job() and not managers.job:stage_success()
 end
 function MenuCallbackHandler:kick_player_visible()
-	return self:is_server() and self:is_multiplayer() and managers.platform:presence() ~= "Mission_end"
+	return self:is_server() and self:is_multiplayer() and managers.platform:presence() ~= "Mission_end" and Global.game_settings.kicking_allowed
 end
 function MenuCallbackHandler:abort_mission_visible()
 	if not self:is_not_editor() or not self:is_server() or not self:is_multiplayer() then
@@ -1255,6 +1258,14 @@ function MenuCallbackHandler:choice_new_servers_only(item)
 	managers.network.matchmake:add_lobby_filter("num_players", num_players_filter, "equal")
 	managers.network.matchmake:search_lobby(managers.network.matchmake:search_friends_only())
 end
+function MenuCallbackHandler:choice_kicking_allowed(item)
+	local kicking_filter = item:value()
+	if managers.network.matchmake:get_lobby_filter("kicking_allowed") == kicking_filter then
+		return
+	end
+	managers.network.matchmake:add_lobby_filter("kicking_allowed", kicking_filter, "equal")
+	managers.network.matchmake:search_lobby(managers.network.matchmake:search_friends_only())
+end
 function MenuCallbackHandler:choice_server_state_lobby(item)
 	local state_filter = item:value()
 	if managers.network.matchmake:get_lobby_filter("state") == state_filter then
@@ -1444,6 +1455,10 @@ function MenuCallbackHandler:choice_drop_in(item)
 		managers.network:session():chk_server_joinable_state()
 	end
 end
+function MenuCallbackHandler:choice_kicking_option(item)
+	local kick_option = item:value() == "on"
+	Global.game_settings.kicking_allowed = kick_option
+end
 function MenuCallbackHandler:choice_crimenet_lobby_permission(item)
 	local permission = item:value()
 	Global.game_settings.permission = permission
@@ -1490,6 +1505,7 @@ function MenuCallbackHandler:get_matchmake_attributes()
 	local min_lvl = Global.game_settings.reputation_permission or 0
 	local drop_in = Global.game_settings.drop_in_allowed and 1 or 0
 	local job_id = tweak_data.narrative:get_index_from_job_id(managers.job:current_job_id())
+	local kicking_allowed = Global.game_settings.kicking_allowed and 1 or 0
 	return {
 		numbers = {
 			level_id + 1000 * job_id,
@@ -1498,7 +1514,8 @@ function MenuCallbackHandler:get_matchmake_attributes()
 			nil,
 			nil,
 			drop_in,
-			min_lvl
+			min_lvl,
+			kicking_allowed
 		}
 	}
 end
@@ -3397,6 +3414,7 @@ function MenuCrimeNetContractInitiator:modify_node(original_node, data)
 	if Global.game_settings.single_player then
 		node:item("toggle_ai"):set_value(Global.game_settings.team_ai and "on" or "off")
 	elseif not data.server then
+		node:item("lobby_kicking_option"):set_value(Global.game_settings.kicking_allowed and "on" or "off")
 		node:item("lobby_permission"):set_value(Global.game_settings.permission)
 		node:item("lobby_reputation_permission"):set_value(Global.game_settings.reputation_permission)
 		node:item("toggle_drop_in"):set_value(Global.game_settings.drop_in_allowed and "on" or "off")
@@ -3475,6 +3493,9 @@ function MenuCrimeNetSpecialInitiator:modify_node(original_node, data)
 	node:set_default_item_name("back")
 	return node
 end
+function MenuCrimeNetSpecialInitiator:refresh_node(node)
+	return node
+end
 function MenuCrimeNetSpecialInitiator:create_divider(node, id, text_id, size, color)
 	local params = {
 		name = "divider_" .. id,
@@ -3518,6 +3539,7 @@ function MenuCrimeNetFiltersInitiator:modify_node(original_node, data)
 	end
 	local not_friends_only = not Global.game_settings.search_friends_only
 	node:item("toggle_new_servers_only"):set_enabled(not_friends_only)
+	node:item("kicking_allowed_filter"):set_enabled(not_friends_only)
 	node:item("toggle_server_state_lobby"):set_enabled(not_friends_only)
 	node:item("max_lobbies_filter"):set_enabled(not_friends_only)
 	node:item("server_filter"):set_enabled(not_friends_only)
@@ -3532,6 +3554,7 @@ end
 function MenuCrimeNetFiltersInitiator:update_node(node)
 	local not_friends_only = not Global.game_settings.search_friends_only
 	node:item("toggle_new_servers_only"):set_enabled(not_friends_only)
+	node:item("kicking_allowed_filter"):set_enabled(not_friends_only)
 	node:item("toggle_server_state_lobby"):set_enabled(not_friends_only)
 	node:item("max_lobbies_filter"):set_enabled(not_friends_only)
 	node:item("server_filter"):set_enabled(not_friends_only)
@@ -3546,6 +3569,7 @@ function MenuCrimeNetFiltersInitiator:refresh_node(node)
 	node:item("server_filter"):set_enabled(not_friends_only)
 	node:item("difficulty_filter"):set_enabled(not_friends_only)
 	node:item("job_id_filter"):set_enabled(not_friends_only)
+	node:item("kicking_allowed_filter"):set_enabled(not_friends_only)
 end
 function MenuCrimeNetFiltersInitiator:add_filters(node)
 	if node:item("divider_end") then
@@ -3554,7 +3578,7 @@ function MenuCrimeNetFiltersInitiator:add_filters(node)
 	local params = {
 		name = "job_id_filter",
 		text_id = "menu_job_id_filter",
-		visible_callback = "is_win32",
+		visible_callback = "is_multiplayer is_win32",
 		callback = "choice_job_id_filter",
 		filter = true
 	}
@@ -3562,7 +3586,7 @@ function MenuCrimeNetFiltersInitiator:add_filters(node)
 		type = "MenuItemMultiChoice",
 		{
 			_meta = "option",
-			text_id = "menu_all",
+			text_id = "menu_any",
 			value = -1
 		}
 	}
@@ -3576,6 +3600,41 @@ function MenuCrimeNetFiltersInitiator:add_filters(node)
 	end
 	local new_item = node:create_item(data_node, params)
 	new_item:set_value(managers.network.matchmake:get_lobby_filter("job_id") or -1)
+	node:add_item(new_item)
+	local params = {
+		name = "kicking_allowed_filter",
+		text_id = "menu_kicking_allowed_filter",
+		visible_callback = "is_multiplayer is_win32",
+		callback = "choice_kicking_allowed",
+		filter = true
+	}
+	local data_node = {
+		type = "MenuItemMultiChoice",
+		{
+			_meta = "option",
+			text_id = "menu_any",
+			value = -1
+		}
+	}
+	local kick_filters = {
+		{
+			text_id = "menu_kick_server",
+			value = 1
+		},
+		{
+			text_id = "menu_kick_disabled",
+			value = 0
+		}
+	}
+	for index, filter in ipairs(kick_filters) do
+		table.insert(data_node, {
+			_meta = "option",
+			text_id = filter.text_id,
+			value = filter.value
+		})
+	end
+	local new_item = node:create_item(data_node, params)
+	new_item:set_value(managers.network.matchmake:get_lobby_filter("kicking_allowed") or -1)
 	node:add_item(new_item)
 	local params = {
 		name = "divider_end",

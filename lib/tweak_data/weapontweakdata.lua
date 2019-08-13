@@ -100,7 +100,7 @@ function WeaponTweakData:_init_data_m4_npc()
 	self.m4_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.m4_npc.CLIP_AMMO_MAX = 20
 	self.m4_npc.NR_CLIPS_MAX = 5
-	self.m4_npc.auto.fire_rate = 0.2
+	self.m4_npc.auto.fire_rate = 0.175
 	self.m4_npc.hold = "rifle"
 	self.m4_npc.hud_icon = "m4"
 	self.m4_npc.alert_size = 5000
@@ -150,7 +150,7 @@ end
 function WeaponTweakData:_init_data_r870_npc()
 	self.r870_npc.sounds.prefix = "remington_npc"
 	self.r870_npc.use_data.selection_index = 2
-	self.r870_npc.DAMAGE = 6
+	self.r870_npc.DAMAGE = 7
 	self.r870_npc.muzzleflash = "effects/payday2/particles/weapons/762_auto"
 	self.r870_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_slug_semi"
 	self.r870_npc.CLIP_AMMO_MAX = 6
@@ -200,7 +200,7 @@ function WeaponTweakData:_init_data_mac11_npc()
 	self.mac11_npc.auto.fire_rate = 0.1
 	self.mac11_npc.hold = "pistol"
 	self.mac11_npc.hud_icon = "mac11"
-	self.mac11_npc.alert_size = 1000
+	self.mac11_npc.alert_size = 2500
 	self.mac11_npc.suppression = 1
 end
 function WeaponTweakData:_init_data_g36_npc()
@@ -211,7 +211,7 @@ function WeaponTweakData:_init_data_g36_npc()
 	self.g36_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.g36_npc.CLIP_AMMO_MAX = 20
 	self.g36_npc.NR_CLIPS_MAX = 5
-	self.g36_npc.auto.fire_rate = 0.2
+	self.g36_npc.auto.fire_rate = 0.15
 	self.g36_npc.hold = "rifle"
 	self.g36_npc.hud_icon = "m4"
 	self.g36_npc.alert_size = 5000
@@ -240,7 +240,7 @@ function WeaponTweakData:_init_data_mp9_npc()
 	self.mp9_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_9mm"
 	self.mp9_npc.CLIP_AMMO_MAX = 32
 	self.mp9_npc.NR_CLIPS_MAX = 5
-	self.mp9_npc.auto.fire_rate = 0.1
+	self.mp9_npc.auto.fire_rate = 0.125
 	self.mp9_npc.hold = "pistol"
 	self.mp9_npc.hud_icon = "mac11"
 	self.mp9_npc.alert_size = 1000
@@ -255,7 +255,7 @@ function WeaponTweakData:_init_data_olympic_npc()
 	self.olympic_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.olympic_npc.CLIP_AMMO_MAX = 32
 	self.olympic_npc.NR_CLIPS_MAX = 5
-	self.olympic_npc.auto.fire_rate = 0.1
+	self.olympic_npc.auto.fire_rate = 0.115
 	self.olympic_npc.hold = "rifle"
 	self.olympic_npc.hud_icon = "mac11"
 	self.olympic_npc.alert_size = 1000
@@ -269,7 +269,7 @@ function WeaponTweakData:_init_data_m16_npc()
 	self.m16_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.m16_npc.CLIP_AMMO_MAX = 12
 	self.m16_npc.NR_CLIPS_MAX = 8
-	self.m16_npc.auto.fire_rate = 0.2
+	self.m16_npc.auto.fire_rate = 0.215
 	self.m16_npc.hold = "rifle"
 	self.m16_npc.hud_icon = "m14"
 	self.m16_npc.alert_size = 5000
@@ -283,7 +283,7 @@ function WeaponTweakData:_init_data_aug_npc()
 	self.aug_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.aug_npc.CLIP_AMMO_MAX = 20
 	self.aug_npc.NR_CLIPS_MAX = 5
-	self.aug_npc.auto.fire_rate = 0.2
+	self.aug_npc.auto.fire_rate = 0.185
 	self.aug_npc.hold = "rifle"
 	self.aug_npc.hud_icon = "m4"
 	self.aug_npc.alert_size = 5000
@@ -297,7 +297,7 @@ function WeaponTweakData:_init_data_ak74_npc()
 	self.ak74_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.ak74_npc.CLIP_AMMO_MAX = 20
 	self.ak74_npc.NR_CLIPS_MAX = 5
-	self.ak74_npc.auto.fire_rate = 0.2
+	self.ak74_npc.auto.fire_rate = 0.19
 	self.ak74_npc.hold = "rifle"
 	self.ak74_npc.hud_icon = "ak"
 	self.ak74_npc.alert_size = 5000
@@ -326,7 +326,7 @@ function WeaponTweakData:_init_data_p90_npc()
 	self.p90_npc.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.p90_npc.CLIP_AMMO_MAX = 32
 	self.p90_npc.NR_CLIPS_MAX = 5
-	self.p90_npc.auto.fire_rate = 0.1
+	self.p90_npc.auto.fire_rate = 0.11
 	self.p90_npc.hold = "rifle"
 	self.p90_npc.hud_icon = "mac11"
 	self.p90_npc.alert_size = 1000
@@ -460,7 +460,7 @@ function WeaponTweakData:_init_data_saw_npc()
 end
 function WeaponTweakData:_init_data_sentry_gun_npc()
 	self.sentry_gun.name_id = "debug_sentry_gun"
-	self.sentry_gun.DAMAGE = 0.5
+	self.sentry_gun.DAMAGE = 1
 	self.sentry_gun.SPREAD = 5
 	self.sentry_gun.FIRE_RANGE = 5000
 	self.sentry_gun.muzzleflash = "effects/payday2/particles/weapons/9mm_auto"
@@ -470,7 +470,7 @@ function WeaponTweakData:_init_data_sentry_gun_npc()
 	self.sentry_gun.BAG_DMG_MUL = 0.25
 	self.sentry_gun.SHIELD_DMG_MUL = 0
 	self.sentry_gun.LOST_SIGHT_VERIFICATION = 0.1
-	self.sentry_gun.DEATH_VERIFICATION = {0.6, 0.9}
+	self.sentry_gun.DEATH_VERIFICATION = {0.4, 0.75}
 	self.sentry_gun.DETECTION_RANGE = 1800
 	self.sentry_gun.KEEP_FIRE_ANGLE = 0.8
 	self.sentry_gun.MAX_VEL_SPIN = 120
@@ -704,10 +704,11 @@ function WeaponTweakData:_init_stats()
 		2.7,
 		2.4,
 		2.2,
-		2,
-		1.7,
-		1.4,
-		1.2,
+		1.75,
+		1.5,
+		1.25,
+		1.1,
+		1,
 		1,
 		0.9,
 		0.8,
@@ -805,7 +806,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_m4.shell_ejection = "effects/payday2/particles/weapons/shells/shell_556"
 	self.new_m4.use_data = {}
 	self.new_m4.use_data.selection_index = 2
-	self.new_m4.DAMAGE = 2.25
+	self.new_m4.DAMAGE = 1
 	self.new_m4.CLIP_AMMO_MAX = 30
 	self.new_m4.NR_CLIPS_MAX = math.round(total_damage_primary / 2 / self.new_m4.CLIP_AMMO_MAX)
 	self.new_m4.AMMO_MAX = self.new_m4.CLIP_AMMO_MAX * self.new_m4.NR_CLIPS_MAX
@@ -821,8 +822,8 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_m4.spread.moving_steelsight = self.new_m4.spread.steelsight * 2
 	self.new_m4.kick = {}
 	self.new_m4.kick.standing = {
-		0.9,
-		1,
+		0.6,
+		0.8,
 		-1,
 		1
 	}
@@ -839,11 +840,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_m4.animations.equip_id = "equip_m4"
 	self.new_m4.animations.recoil_steelsight = false
 	self.new_m4.transition_duration = 0.02
+	self.new_m4.statistics = true
 	self.new_m4.stats = {
 		damage = 10,
-		spread = 6,
-		recoil = 10,
-		spread_moving = 7,
+		spread = 7,
+		recoil = 8,
+		spread_moving = 6,
 		zoom = 3,
 		concealment = 24,
 		suppression = 7,
@@ -921,10 +923,11 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.glock_17.animations.equip_id = "equip_glock"
 	self.glock_17.animations.recoil_steelsight = true
 	self.glock_17.transition_duration = 0
+	self.glock_17.statistics = true
 	self.glock_17.stats = {
-		damage = 4,
-		spread = 3,
-		recoil = 4,
+		damage = 6,
+		spread = 7,
+		recoil = 7,
 		spread_moving = 7,
 		zoom = 1,
 		concealment = 30,
@@ -963,7 +966,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.mp9.AMMO_MAX = self.mp9.CLIP_AMMO_MAX * self.mp9.NR_CLIPS_MAX
 	self.mp9.AMMO_PICKUP = self:_pickup_chance(self.mp9.AMMO_MAX, 1)
 	self.mp9.auto = {}
-	self.mp9.auto.fire_rate = 0.07
+	self.mp9.auto.fire_rate = 0.0675
 	self.mp9.spread = {}
 	self.mp9.spread.standing = self.new_m4.spread.standing * 0.75
 	self.mp9.spread.crouching = self.new_m4.spread.standing * 0.75
@@ -1002,11 +1005,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.mp9.animations = {}
 	self.mp9.animations.equip_id = "equip_mac11_rifle"
 	self.mp9.animations.recoil_steelsight = false
+	self.mp9.statistics = true
 	self.mp9.stats = {
-		damage = 5,
-		spread = 2,
-		recoil = 6,
-		spread_moving = 7,
+		damage = 7,
+		spread = 6,
+		recoil = 8,
+		spread_moving = 8,
 		zoom = 3,
 		concealment = 27,
 		suppression = 7,
@@ -1037,7 +1041,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.r870.use_data.align_place = "right_hand"
 	self.r870.DAMAGE = 6
 	self.r870.damage_near = 700
-	self.r870.damage_far = 2000
+	self.r870.damage_far = 1500
 	self.r870.rays = 5
 	self.r870.CLIP_AMMO_MAX = 6
 	self.r870.NR_CLIPS_MAX = math.round(total_damage_primary / 6.5 / self.r870.CLIP_AMMO_MAX)
@@ -1089,11 +1093,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.r870.animations = {}
 	self.r870.animations.equip_id = "equip_r870_shotgun"
 	self.r870.animations.recoil_steelsight = true
+	self.r870.statistics = true
 	self.r870.stats = {
-		damage = 24,
-		spread = 7,
+		damage = 23,
+		spread = 8,
 		recoil = 3,
-		spread_moving = 7,
+		spread_moving = 6,
 		zoom = 3,
 		concealment = 21,
 		suppression = 7,
@@ -1131,7 +1136,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.glock_18c.AMMO_MAX = self.glock_18c.CLIP_AMMO_MAX * self.glock_18c.NR_CLIPS_MAX
 	self.glock_18c.AMMO_PICKUP = self:_pickup_chance(self.glock_18c.AMMO_MAX, 1)
 	self.glock_18c.auto = {}
-	self.glock_18c.auto.fire_rate = 0.055
+	self.glock_18c.auto.fire_rate = 0.06
 	self.glock_18c.spread = {}
 	self.glock_18c.spread.standing = self.new_m4.spread.standing * 0.75
 	self.glock_18c.spread.crouching = self.new_m4.spread.standing * 0.75
@@ -1173,11 +1178,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.glock_18c.challenges.group = "handgun"
 	self.glock_18c.challenges.weapon = "glock"
 	self.glock_18c.transition_duration = 0
+	self.glock_18c.statistics = true
 	self.glock_18c.stats = {
-		damage = 5,
-		spread = 3,
+		damage = 8,
+		spread = 5,
 		recoil = 6,
-		spread_moving = 7,
+		spread_moving = 9,
 		zoom = 1,
 		concealment = 30,
 		suppression = 7,
@@ -1214,7 +1220,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.amcar.AMMO_MAX = self.amcar.CLIP_AMMO_MAX * self.amcar.NR_CLIPS_MAX
 	self.amcar.AMMO_PICKUP = self:_pickup_chance(self.amcar.AMMO_MAX, 2)
 	self.amcar.auto = {}
-	self.amcar.auto.fire_rate = 0.11
+	self.amcar.auto.fire_rate = 0.12
 	self.amcar.spread = {}
 	self.amcar.spread.standing = self.new_m4.spread.standing
 	self.amcar.spread.crouching = self.new_m4.spread.standing
@@ -1251,11 +1257,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.amcar.animations.reload_not_empty = "reload_not_empty"
 	self.amcar.animations.equip_id = "equip_m4"
 	self.amcar.animations.recoil_steelsight = false
+	self.amcar.statistics = true
 	self.amcar.stats = {
 		damage = 7,
-		spread = 5,
+		spread = 6,
 		recoil = 8,
-		spread_moving = 7,
+		spread_moving = 6,
 		zoom = 3,
 		concealment = 24,
 		suppression = 7,
@@ -1292,7 +1299,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.m16.AMMO_MAX = self.m16.CLIP_AMMO_MAX * self.m16.NR_CLIPS_MAX
 	self.m16.AMMO_PICKUP = self:_pickup_chance(self.m16.AMMO_MAX, 2)
 	self.m16.auto = {}
-	self.m16.auto.fire_rate = 0.1
+	self.m16.auto.fire_rate = 0.11
 	self.m16.spread = {}
 	self.m16.spread.standing = self.new_m4.spread.standing
 	self.m16.spread.crouching = self.new_m4.spread.standing
@@ -1329,11 +1336,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.m16.animations.reload_not_empty = "reload_not_empty"
 	self.m16.animations.equip_id = "equip_m4"
 	self.m16.animations.recoil_steelsight = false
+	self.m16.statistics = true
 	self.m16.stats = {
-		damage = 13,
-		spread = 6,
-		recoil = 8,
-		spread_moving = 7,
+		damage = 14,
+		spread = 7,
+		recoil = 11,
+		spread_moving = 6,
 		zoom = 4,
 		concealment = 21,
 		suppression = 7,
@@ -1352,7 +1360,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.olympic.sounds.enter_steelsight = "primary_steel_sight_enter"
 	self.olympic.sounds.leave_steelsight = "primary_steel_sight_exit"
 	self.olympic.timers = {}
-	self.olympic.timers.reload_not_empty = 2.4
+	self.olympic.timers.reload_not_empty = 2.535
 	self.olympic.timers.reload_empty = 3.49
 	self.olympic.timers.unequip = 0.6
 	self.olympic.timers.equip = 0.5
@@ -1370,7 +1378,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.olympic.AMMO_MAX = self.olympic.CLIP_AMMO_MAX * self.olympic.NR_CLIPS_MAX
 	self.olympic.AMMO_PICKUP = self:_pickup_chance(self.olympic.AMMO_MAX, 1)
 	self.olympic.auto = {}
-	self.olympic.auto.fire_rate = 0.12
+	self.olympic.auto.fire_rate = 0.0925
 	self.olympic.spread = {}
 	self.olympic.spread.standing = self.new_m4.spread.standing * 0.8
 	self.olympic.spread.crouching = self.new_m4.spread.standing * 0.8
@@ -1407,11 +1415,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.olympic.animations.reload_not_empty = "reload_not_empty"
 	self.olympic.animations.equip_id = "equip_mp5"
 	self.olympic.animations.recoil_steelsight = false
+	self.olympic.statistics = true
 	self.olympic.stats = {
-		damage = 7,
-		spread = 4,
-		recoil = 5,
-		spread_moving = 7,
+		damage = 8,
+		spread = 8,
+		recoil = 10,
+		spread_moving = 8,
 		zoom = 3,
 		concealment = 27,
 		suppression = 7,
@@ -1447,7 +1456,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.ak74.AMMO_MAX = self.ak74.CLIP_AMMO_MAX * self.ak74.NR_CLIPS_MAX
 	self.ak74.AMMO_PICKUP = self:_pickup_chance(self.ak74.AMMO_MAX, 2)
 	self.ak74.auto = {}
-	self.ak74.auto.fire_rate = 0.14
+	self.ak74.auto.fire_rate = 0.125
 	self.ak74.spread = {}
 	self.ak74.spread.standing = self.new_m4.spread.standing
 	self.ak74.spread.crouching = self.new_m4.spread.standing
@@ -1485,11 +1494,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.ak74.challenges = {}
 	self.ak74.challenges.group = "rifle"
 	self.ak74.challenges.weapon = "ak47"
+	self.ak74.statistics = true
 	self.ak74.stats = {
-		damage = 11,
+		damage = 12,
 		spread = 6,
-		recoil = 9,
-		spread_moving = 7,
+		recoil = 6,
+		spread_moving = 6,
 		zoom = 3,
 		concealment = 18,
 		suppression = 7,
@@ -1525,7 +1535,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.akm.AMMO_MAX = self.akm.CLIP_AMMO_MAX * self.akm.NR_CLIPS_MAX
 	self.akm.AMMO_PICKUP = self:_pickup_chance(self.akm.AMMO_MAX, 2)
 	self.akm.auto = {}
-	self.akm.auto.fire_rate = 0.16
+	self.akm.auto.fire_rate = 0.14
 	self.akm.spread = {}
 	self.akm.spread.standing = self.new_m4.spread.standing
 	self.akm.spread.crouching = self.new_m4.spread.standing
@@ -1560,16 +1570,17 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.akm.animations = {}
 	self.akm.animations.equip_id = "equip_ak47"
 	self.akm.animations.recoil_steelsight = false
+	self.akm.statistics = true
 	self.akm.challenges = {}
 	self.akm.challenges.group = "rifle"
 	self.akm.challenges.weapon = "ak47"
 	self.akm.stats = {
-		damage = 17,
-		spread = 5,
-		recoil = 7,
-		spread_moving = 7,
+		damage = 16,
+		spread = 6,
+		recoil = 5,
+		spread_moving = 6,
 		zoom = 3,
-		concealment = 18,
+		concealment = 12,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -1603,7 +1614,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.akmsu.AMMO_MAX = self.akmsu.CLIP_AMMO_MAX * self.akmsu.NR_CLIPS_MAX
 	self.akmsu.AMMO_PICKUP = self:_pickup_chance(self.akmsu.AMMO_MAX, 1)
 	self.akmsu.auto = {}
-	self.akmsu.auto.fire_rate = 0.12
+	self.akmsu.auto.fire_rate = 0.11
 	self.akmsu.spread = {}
 	self.akmsu.spread.standing = self.new_m4.spread.standing
 	self.akmsu.spread.crouching = self.new_m4.spread.standing
@@ -1638,14 +1649,15 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.akmsu.animations = {}
 	self.akmsu.animations.equip_id = "equip_ak47"
 	self.akmsu.animations.recoil_steelsight = false
+	self.akmsu.statistics = true
 	self.akmsu.challenges = {}
 	self.akmsu.challenges.group = "rifle"
 	self.akmsu.challenges.weapon = "ak47"
 	self.akmsu.stats = {
-		damage = 12,
-		spread = 3,
-		recoil = 4,
-		spread_moving = 7,
+		damage = 11,
+		spread = 7,
+		recoil = 6,
+		spread_moving = 9,
 		zoom = 3,
 		concealment = 24,
 		suppression = 7,
@@ -1677,16 +1689,16 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.saiga.use_data = {}
 	self.saiga.use_data.selection_index = 2
 	self.saiga.use_data.align_place = "right_hand"
-	self.saiga.DAMAGE = 4.5
+	self.saiga.DAMAGE = 6
 	self.saiga.damage_near = 50
 	self.saiga.damage_far = 2000
-	self.saiga.rays = 4
+	self.saiga.rays = 5
 	self.saiga.CLIP_AMMO_MAX = 7
 	self.saiga.NR_CLIPS_MAX = math.round(total_damage_primary / 4.5 / self.saiga.CLIP_AMMO_MAX)
 	self.saiga.AMMO_MAX = self.saiga.CLIP_AMMO_MAX * self.saiga.NR_CLIPS_MAX
 	self.saiga.AMMO_PICKUP = self:_pickup_chance(self.saiga.AMMO_MAX, 2)
 	self.saiga.auto = {}
-	self.saiga.auto.fire_rate = 0.225
+	self.saiga.auto.fire_rate = 0.18
 	self.saiga.spread = {}
 	self.saiga.spread.standing = self.r870.spread.standing
 	self.saiga.spread.crouching = self.r870.spread.crouching
@@ -1721,13 +1733,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.saiga.animations = {}
 	self.saiga.animations.equip_id = "equip_r870_shotgun"
 	self.saiga.animations.recoil_steelsight = true
+	self.saiga.statistics = true
 	self.saiga.stats = {
-		damage = 19,
-		spread = 5,
-		recoil = 5,
+		damage = 18,
+		spread = 6,
+		recoil = 9,
 		spread_moving = 7,
 		zoom = 3,
-		concealment = 18,
+		concealment = 15,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -1799,13 +1812,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.ak5.animations.reload = "reload"
 	self.ak5.animations.equip_id = "equip_m4"
 	self.ak5.animations.recoil_steelsight = false
+	self.ak5.statistics = true
 	self.ak5.stats = {
 		damage = 9,
-		spread = 5,
-		recoil = 11,
-		spread_moving = 7,
+		spread = 9,
+		recoil = 13,
+		spread_moving = 6,
 		zoom = 3,
-		concealment = 21,
+		concealment = 18,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -1840,7 +1854,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.aug.AMMO_MAX = self.aug.CLIP_AMMO_MAX * self.aug.NR_CLIPS_MAX
 	self.aug.AMMO_PICKUP = self:_pickup_chance(self.aug.AMMO_MAX, 2)
 	self.aug.auto = {}
-	self.aug.auto.fire_rate = 0.12
+	self.aug.auto.fire_rate = 0.125
 	self.aug.spread = {}
 	self.aug.spread.standing = self.new_m4.spread.standing * 2.5
 	self.aug.spread.crouching = self.new_m4.spread.standing * 2.5
@@ -1874,13 +1888,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.aug.animations = {}
 	self.aug.animations.equip_id = "equip_mp5_rifle"
 	self.aug.animations.recoil_steelsight = false
+	self.aug.statistics = true
 	self.aug.stats = {
-		damage = 10,
+		damage = 12,
 		spread = 8,
-		recoil = 6,
-		spread_moving = 7,
+		recoil = 5,
+		spread_moving = 6,
 		zoom = 3,
-		concealment = 24,
+		concealment = 21,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -1915,7 +1930,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.g36.AMMO_MAX = self.g36.CLIP_AMMO_MAX * self.g36.NR_CLIPS_MAX
 	self.g36.AMMO_PICKUP = self:_pickup_chance(self.g36.AMMO_MAX, 2)
 	self.g36.auto = {}
-	self.g36.auto.fire_rate = 0.115
+	self.g36.auto.fire_rate = 0.1175
 	self.g36.spread = {}
 	self.g36.spread.standing = self.new_m4.spread.standing * 0.8
 	self.g36.spread.crouching = self.new_m4.spread.standing * 0.8
@@ -1949,10 +1964,11 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.g36.animations = {}
 	self.g36.animations.equip_id = "equip_m4"
 	self.g36.animations.recoil_steelsight = false
+	self.g36.statistics = true
 	self.g36.stats = {
-		damage = 8,
-		spread = 6,
-		recoil = 11,
+		damage = 11,
+		spread = 7,
+		recoil = 8,
 		spread_moving = 7,
 		zoom = 3,
 		concealment = 21,
@@ -1990,7 +2006,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.p90.AMMO_MAX = self.p90.CLIP_AMMO_MAX * self.p90.NR_CLIPS_MAX
 	self.p90.AMMO_PICKUP = self:_pickup_chance(self.p90.AMMO_MAX, 1)
 	self.p90.auto = {}
-	self.p90.auto.fire_rate = 0.09
+	self.p90.auto.fire_rate = 0.095
 	self.p90.spread = {}
 	self.p90.spread.standing = self.new_m4.spread.standing * 1.35
 	self.p90.spread.crouching = self.new_m4.spread.standing * 1.35
@@ -2024,13 +2040,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.p90.animations = {}
 	self.p90.animations.equip_id = "equip_mac11_rifle"
 	self.p90.animations.recoil_steelsight = false
+	self.p90.statistics = true
 	self.p90.stats = {
-		damage = 6,
-		spread = 6,
-		recoil = 6,
-		spread_moving = 7,
+		damage = 9,
+		spread = 8,
+		recoil = 10,
+		spread_moving = 8,
 		zoom = 3,
-		concealment = 24,
+		concealment = 27,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -2098,13 +2115,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_m14.animations.fire = "recoil"
 	self.new_m14.animations.equip_id = "equip_m14_rifle"
 	self.new_m14.animations.recoil_steelsight = true
+	self.new_m14.statistics = true
 	self.new_m14.stats = {
-		damage = 27,
-		spread = 8,
+		damage = 26,
+		spread = 9,
 		recoil = 2,
-		spread_moving = 7,
+		spread_moving = 5,
 		zoom = 3,
-		concealment = 18,
+		concealment = 9,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -2121,8 +2139,8 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.deagle.single = {}
 	self.deagle.single.fire_rate = 0.15
 	self.deagle.timers = {}
-	self.deagle.timers.reload_not_empty = 1.47
-	self.deagle.timers.reload_empty = 2.12
+	self.deagle.timers.reload_not_empty = 1.85
+	self.deagle.timers.reload_empty = 2.75
 	self.deagle.timers.unequip = 0.6
 	self.deagle.timers.equip = 0.6
 	self.deagle.name_id = "bm_w_deagle"
@@ -2172,11 +2190,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.deagle.animations = {}
 	self.deagle.animations.equip_id = "equip_glock"
 	self.deagle.animations.recoil_steelsight = true
+	self.deagle.statistics = true
 	self.deagle.stats = {
-		damage = 19,
-		spread = 4,
-		recoil = 2,
-		spread_moving = 7,
+		damage = 18,
+		spread = 6,
+		recoil = 4,
+		spread_moving = 6,
 		zoom = 3,
 		concealment = 27,
 		suppression = 7,
@@ -2214,7 +2233,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_mp5.AMMO_MAX = self.new_mp5.CLIP_AMMO_MAX * self.new_mp5.NR_CLIPS_MAX
 	self.new_mp5.AMMO_PICKUP = self:_pickup_chance(self.new_mp5.AMMO_MAX, 1)
 	self.new_mp5.auto = {}
-	self.new_mp5.auto.fire_rate = 0.13
+	self.new_mp5.auto.fire_rate = 0.1075
 	self.new_mp5.spread = {}
 	self.new_mp5.spread.standing = self.new_m4.spread.standing
 	self.new_mp5.spread.crouching = self.new_m4.spread.standing
@@ -2249,11 +2268,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_mp5.animations = {}
 	self.new_mp5.animations.equip_id = "equip_mp5_rifle"
 	self.new_mp5.animations.recoil_steelsight = false
+	self.new_mp5.statistics = true
 	self.new_mp5.stats = {
-		damage = 5,
-		spread = 6,
-		recoil = 9,
-		spread_moving = 7,
+		damage = 8,
+		spread = 7,
+		recoil = 11,
+		spread_moving = 8,
 		zoom = 3,
 		concealment = 24,
 		suppression = 7,
@@ -2326,11 +2346,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.colt_1911.animations.reload_not_empty = "reload_not_empty"
 	self.colt_1911.animations.equip_id = "equip_glock"
 	self.colt_1911.animations.recoil_steelsight = true
+	self.colt_1911.statistics = true
 	self.colt_1911.stats = {
-		damage = 11,
-		spread = 4,
-		recoil = 2,
-		spread_moving = 7,
+		damage = 10,
+		spread = 7,
+		recoil = 5,
+		spread_moving = 5,
 		zoom = 3,
 		concealment = 30,
 		suppression = 7,
@@ -2403,11 +2424,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.mac10.animations = {}
 	self.mac10.animations.equip_id = "equip_mac11_rifle"
 	self.mac10.animations.recoil_steelsight = false
+	self.mac10.statistics = true
 	self.mac10.stats = {
 		damage = 10,
-		spread = 2,
-		recoil = 4,
-		spread_moving = 7,
+		spread = 3,
+		recoil = 5,
+		spread_moving = 8,
 		zoom = 3,
 		concealment = 27,
 		suppression = 7,
@@ -2438,7 +2460,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.serbu.use_data.align_place = "right_hand"
 	self.serbu.DAMAGE = 6
 	self.serbu.damage_near = 100
-	self.serbu.damage_far = 3000
+	self.serbu.damage_far = 1000
 	self.serbu.rays = 6
 	self.serbu.CLIP_AMMO_MAX = 6
 	self.serbu.NR_CLIPS_MAX = math.round(total_damage_secondary / 5.5 / self.serbu.CLIP_AMMO_MAX)
@@ -2480,11 +2502,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.serbu.animations = {}
 	self.serbu.animations.equip_id = "equip_r870_shotgun"
 	self.serbu.animations.recoil_steelsight = true
+	self.serbu.statistics = true
 	self.serbu.stats = {
-		damage = 22,
+		damage = 24,
 		spread = 5,
-		recoil = 5,
-		spread_moving = 7,
+		recoil = 3,
+		spread_moving = 6,
 		zoom = 3,
 		concealment = 24,
 		suppression = 7,
@@ -2522,7 +2545,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.huntsman.use_data.align_place = "right_hand"
 	self.huntsman.DAMAGE = 6
 	self.huntsman.damage_near = 1000
-	self.huntsman.damage_far = 3000
+	self.huntsman.damage_far = 2000
 	self.huntsman.rays = 6
 	self.huntsman.CLIP_AMMO_MAX = 2
 	self.huntsman.NR_CLIPS_MAX = math.round(total_damage_primary / 12 / self.huntsman.CLIP_AMMO_MAX)
@@ -2573,13 +2596,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.huntsman.animations.reload_not_empty = "reload"
 	self.huntsman.animations.equip_id = "equip_huntsman"
 	self.huntsman.animations.recoil_steelsight = true
+	self.huntsman.statistics = true
 	self.huntsman.stats = {
-		damage = 35,
-		spread = 8,
-		recoil = 6,
-		spread_moving = 7,
+		damage = 30,
+		spread = 7,
+		recoil = 2,
+		spread_moving = 6,
 		zoom = 3,
-		concealment = 21,
+		concealment = 6,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -2649,11 +2673,12 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.b92fs.animations = {}
 	self.b92fs.animations.equip_id = "equip_glock"
 	self.b92fs.animations.recoil_steelsight = true
+	self.b92fs.statistics = true
 	self.b92fs.stats = {
-		damage = 5,
-		spread = 5,
-		recoil = 6,
-		spread_moving = 7,
+		damage = 6,
+		spread = 8,
+		recoil = 10,
+		spread_moving = 5,
 		zoom = 3,
 		concealment = 30,
 		suppression = 7,
@@ -2729,13 +2754,14 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.new_raging_bull.animations = {}
 	self.new_raging_bull.animations.equip_id = "equip_raging_bull"
 	self.new_raging_bull.animations.recoil_steelsight = true
+	self.new_raging_bull.statistics = true
 	self.new_raging_bull.stats = {
-		damage = 23,
-		spread = 5,
-		recoil = 3,
-		spread_moving = 7,
+		damage = 22,
+		spread = 7,
+		recoil = 2,
+		spread_moving = 5,
 		zoom = 3,
-		concealment = 27,
+		concealment = 24,
 		suppression = 7,
 		extra_ammo = 6,
 		value = 1
@@ -2770,7 +2796,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.saw.use_data = {}
 	self.saw.use_data.selection_index = 2
 	self.saw.DAMAGE = 0.05
-	self.saw.CLIP_AMMO_MAX = 100
+	self.saw.CLIP_AMMO_MAX = 150
 	self.saw.NR_CLIPS_MAX = 2
 	self.saw.AMMO_MAX = self.saw.CLIP_AMMO_MAX * self.saw.NR_CLIPS_MAX
 	self.saw.AMMO_PICKUP = {0, 0}
@@ -2825,6 +2851,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 	self.saw.animations = {}
 	self.saw.animations.equip_id = "equip_saw"
 	self.saw.animations.recoil_steelsight = false
+	self.saw.statistics = true
 	self.saw.stats = {
 		suppression = 9,
 		zoom = 1,
@@ -2832,7 +2859,7 @@ function WeaponTweakData:_init_new_weapons(autohit_rifle_default, autohit_pistol
 		recoil = 7,
 		spread_moving = 7,
 		damage = 10,
-		concealment = 18,
+		concealment = 6,
 		value = 1,
 		extra_ammo = 6
 	}

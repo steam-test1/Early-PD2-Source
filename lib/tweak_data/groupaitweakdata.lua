@@ -18,7 +18,7 @@ function GroupAITweakData:_init_chatter_data()
 		queue = "g90"
 	}
 	self.enemy_chatter.retreat = {
-		radius = 700,
+		radius = 900,
 		max_nr = 2,
 		duration = {2, 4},
 		interval = {0.75, 1.5},
@@ -74,7 +74,7 @@ function GroupAITweakData:_init_chatter_data()
 		queue = "d02"
 	}
 	self.enemy_chatter.incomming_tank = {
-		radius = 1000,
+		radius = 1500,
 		max_nr = 1,
 		duration = {60, 60},
 		interval = {0.5, 1},
@@ -82,7 +82,7 @@ function GroupAITweakData:_init_chatter_data()
 		queue = "bdz"
 	}
 	self.enemy_chatter.incomming_spooc = {
-		radius = 1000,
+		radius = 1200,
 		max_nr = 1,
 		duration = {60, 60},
 		interval = {0.5, 1},
@@ -90,7 +90,7 @@ function GroupAITweakData:_init_chatter_data()
 		queue = "clk"
 	}
 	self.enemy_chatter.incomming_shield = {
-		radius = 1000,
+		radius = 1500,
 		max_nr = 1,
 		duration = {60, 60},
 		interval = {0.5, 1},
@@ -98,7 +98,7 @@ function GroupAITweakData:_init_chatter_data()
 		queue = "shd"
 	}
 	self.enemy_chatter.incomming_taser = {
-		radius = 1000,
+		radius = 1500,
 		max_nr = 1,
 		duration = {60, 60},
 		interval = {0.5, 1},
@@ -390,26 +390,29 @@ function GroupAITweakData:_init_enemy_spawn_groups()
 		"charge",
 		"provide_coverfire",
 		"provide_support",
-		"ranged_fire"
+		"ranged_fire",
+		"deathguard"
 	}
 	local tactics_CS_swat_shotgun = {
-		"smoke_grenade",
-		"charge",
-		"provide_coverfire",
-		"provide_support"
-	}
-	local tactics_CS_swat_heavy = {
 		"smoke_grenade",
 		"charge",
 		"provide_coverfire",
 		"provide_support",
 		"shield_cover"
 	}
+	local tactics_CS_swat_heavy = {
+		"smoke_grenade",
+		"charge",
+		"flash_grenade",
+		"provide_coverfire",
+		"provide_support"
+	}
 	local tactics_CS_shield = {
 		"charge",
 		"provide_coverfire",
 		"provide_support",
-		"shield"
+		"shield",
+		"deathguard"
 	}
 	local tactics_CS_swat_rifle_flank = {
 		"flank",
@@ -462,30 +465,35 @@ function GroupAITweakData:_init_enemy_spawn_groups()
 	}
 	local tactics_FBI_swat_rifle = {
 		"smoke_grenade",
-		"charge",
+		"flash_grenade",
 		"provide_coverfire",
+		"charge",
 		"provide_support",
 		"ranged_fire"
 	}
 	local tactics_FBI_swat_shotgun = {
 		"smoke_grenade",
+		"flash_grenade",
 		"charge",
 		"provide_coverfire",
 		"provide_support"
 	}
 	local tactics_FBI_heavy = {
 		"smoke_grenade",
+		"flash_grenade",
 		"charge",
 		"provide_coverfire",
 		"provide_support",
-		"shield_cover"
+		"shield_cover",
+		"deathguard"
 	}
 	local tactics_FBI_shield = {
 		"smoke_grenade",
 		"charge",
 		"provide_coverfire",
 		"provide_support",
-		"shield"
+		"shield",
+		"deathguard"
 	}
 	local tactics_FBI_swat_rifle_flank = {
 		"flank",
@@ -531,7 +539,9 @@ function GroupAITweakData:_init_enemy_spawn_groups()
 	local tactics_FBI_tank = {
 		"charge",
 		"provide_coverfire",
-		"provide_support"
+		"provide_support",
+		"deathguard",
+		"shield"
 	}
 	self.enemy_spawn_groups.CS_defend_a = {
 		amount = {3, 4},
@@ -603,14 +613,14 @@ function GroupAITweakData:_init_enemy_spawn_groups()
 			},
 			{
 				unit = "CS_swat_R870",
-				freq = 0.4,
+				freq = 0.5,
 				amount_max = 2,
 				tactics = tactics_CS_swat_shotgun,
 				rank = 1
 			},
 			{
 				unit = "CS_swat_MP5",
-				freq = 0.2,
+				freq = 0.33,
 				tactics = tactics_CS_swat_rifle_flank,
 				rank = 3
 			}
@@ -661,12 +671,12 @@ function GroupAITweakData:_init_enemy_spawn_groups()
 		}
 	}
 	self.enemy_spawn_groups.CS_tazers = {
-		amount = {2, 2},
+		amount = {1, 2},
 		spawn = {
 			{
 				unit = "CS_tazer",
 				freq = 1,
-				amount_min = 2,
+				amount_min = 1,
 				amount_max = 2,
 				tactics = tactics_CS_tazer,
 				rank = 1
@@ -841,7 +851,7 @@ function GroupAITweakData:_init_enemy_spawn_groups()
 		}
 	}
 	self.enemy_spawn_groups.FBI_tanks = {
-		amount = {1, 2},
+		amount = {1, 1},
 		spawn = {
 			{
 				unit = "FBI_tank",
@@ -900,7 +910,7 @@ function GroupAITweakData:_init_task_data()
 		self.besiege.assault.force = {
 			0,
 			4,
-			6
+			7
 		}
 		self.besiege.assault.force_pool = {
 			0,
@@ -1048,12 +1058,12 @@ function GroupAITweakData:_set_hard()
 		CS_tazers = {
 			0,
 			0.01,
-			0.2
+			0.25
 		},
 		CS_tanks = {
 			0,
-			0.01,
-			0.1
+			0.02,
+			0.2
 		}
 	}
 	self.besiege.reenforce.interval = {
@@ -1107,8 +1117,8 @@ function GroupAITweakData:_set_hard()
 		},
 		CS_tazers = {
 			0,
-			0,
-			0.2
+			0.1,
+			0.15
 		},
 		FBI_stealth_b = {
 			0,
@@ -1137,29 +1147,29 @@ function GroupAITweakData:_set_overkill()
 	print("-------------\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//-------------")
 	self.besiege.assault.groups = {
 		FBI_swats = {
-			0,
+			0.1,
 			1,
 			0.25
 		},
 		FBI_heavys = {
-			0,
-			0.2,
-			1
+			0.05,
+			0.4,
+			0.5
 		},
 		FBI_shields = {
-			0,
+			0.1,
 			0.2,
 			1
 		},
 		FBI_tanks = {
-			0,
-			0.01,
-			0.05
+			0.05,
+			0.15,
+			0.2
 		},
 		CS_tazers = {
-			0,
-			0.1,
-			0.2
+			0.05,
+			0.15,
+			0.25
 		}
 	}
 	self.besiege.reenforce.interval = {
@@ -1213,7 +1223,7 @@ function GroupAITweakData:_set_overkill()
 	self.besiege.recon.groups = {
 		FBI_stealth_a = {
 			1,
-			1,
+			0.5,
 			0
 		},
 		FBI_stealth_b = {
@@ -1223,8 +1233,8 @@ function GroupAITweakData:_set_overkill()
 		}
 	}
 	self.besiege.assault.force_balance_mul = {
+		1.6,
 		1.8,
-		1.9,
 		2,
 		2.1
 	}
@@ -1243,29 +1253,29 @@ function GroupAITweakData:_set_overkill_145()
 	print("-------------//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\-------------")
 	self.besiege.assault.groups = {
 		FBI_swats = {
-			0,
+			0.2,
 			1,
 			0
 		},
 		FBI_heavys = {
-			0,
+			0.1,
 			1,
 			1
 		},
 		FBI_shields = {
-			0,
+			0.1,
+			0.5,
+			0.75
+		},
+		FBI_tanks = {
+			0.2,
 			0.5,
 			1
 		},
-		FBI_tanks = {
-			0,
-			0.1,
-			0.1
-		},
 		CS_tazers = {
-			0,
 			0.1,
-			0.2
+			0.35,
+			0.6
 		}
 	}
 	self.besiege.reenforce.interval = {
@@ -1314,20 +1324,20 @@ function GroupAITweakData:_set_overkill_145()
 	self.besiege.recon.groups = {
 		FBI_stealth_a = {
 			1,
-			0.5,
+			1,
 			0
 		},
 		FBI_stealth_b = {
-			0,
+			0.25,
 			1,
 			1
 		}
 	}
 	self.besiege.assault.force_balance_mul = {
-		1.8,
+		1.7,
 		1.9,
-		2,
-		2.1
+		2.1,
+		2.3
 	}
 	self.besiege.assault.force_pool_balance_mul = {
 		2,

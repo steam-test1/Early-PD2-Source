@@ -28,7 +28,8 @@ function AiGlobalEventUnitElement:init(unit)
 		"civilian_alarm",
 		"cop_alarm",
 		"gangster_alarm",
-		"motion_sensor"
+		"motion_sensor",
+		"glass_alarm"
 	}
 	self._hed.blame = "none"
 	table.insert(self._save_values, "wave_mode")
