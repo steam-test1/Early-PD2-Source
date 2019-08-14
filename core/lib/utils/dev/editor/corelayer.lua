@@ -305,6 +305,9 @@ function Layer:build_units(params)
 	local unit_events = params.unit_events or {}
 	local notebook_sizer = EWS:BoxSizer("VERTICAL")
 	self._notebook = EWS:Notebook(self._ews_panel, "", "NB_TOP,NB_MULTILINE")
+	if params and params.units_notebook_min_size then
+		self._notebook:set_min_size(params.units_notebook_min_size)
+	end
 	notebook_sizer:add(self._notebook, 1, 0, "EXPAND")
 	for c, names in pairs(self._category_map) do
 		local panel = EWS:Panel(self._notebook, "", "TAB_TRAVERSAL")
@@ -1105,6 +1108,10 @@ function Layer:clone_edited_values(unit, source)
 		unit:editable_gui():set_text(source:editable_gui():text())
 		unit:editable_gui():set_font_size(source:editable_gui():font_size())
 		unit:editable_gui():set_font_color(source:editable_gui():font_color())
+	end
+	if unit:ladder() then
+		unit:ladder():set_width(source:ladder():width())
+		unit:ladder():set_height(source:ladder():height())
 	end
 end
 function Layer:_continent_locked(unit)

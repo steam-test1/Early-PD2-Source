@@ -212,6 +212,7 @@ function ElementSpecialObjective:get_objective(instigator)
 	local is_AI_SO = self._is_AI_SO or string.begins(self._values.so_action, "AI")
 	local pose, stance, attitude, path_style, pos, rot, interrupt_dis, interrupt_health, haste, trigger_on, interaction_voice = self:_get_misc_SO_params()
 	local objective = {
+		element = self,
 		type = false,
 		pos = pos,
 		rot = rot,
@@ -389,6 +390,9 @@ function ElementSpecialObjective:nav_link_delay()
 end
 function ElementSpecialObjective:nav_link()
 	return self._nav_link
+end
+function ElementSpecialObjective:id()
+	return self._id
 end
 function ElementSpecialObjective:_is_nav_link()
 	return not self._values.is_navigation_link and self._values.navigation_link and self._values.navigation_link ~= -1

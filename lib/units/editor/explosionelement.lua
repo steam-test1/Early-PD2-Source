@@ -9,7 +9,7 @@ function ExplosionUnitElement:init(unit)
 	table.insert(self._save_values, "explosion_effect")
 end
 function ExplosionUnitElement:update_selected(...)
-	ExplosionUnitElement.super.update_selected(self)
+	ExplosionUnitElement.super.update_selected(self, ...)
 end
 function ExplosionUnitElement:select_explosion_effect_btn()
 	local dialog = SelectNameModal:new("Select effect", self:_effect_options())

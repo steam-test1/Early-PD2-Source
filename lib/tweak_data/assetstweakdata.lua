@@ -3,6 +3,7 @@ function AssetsTweakData:init(tweak_data)
 	self:_init_empty_asset(tweak_data)
 	self:_init_assets(tweak_data)
 	self:_init_risk_assets(tweak_data)
+	self:_init_safehouse_assets(tweak_data)
 end
 function AssetsTweakData:_init_empty_asset(tweak_data)
 	self.none = {}
@@ -18,6 +19,14 @@ function AssetsTweakData:_init_empty_asset(tweak_data)
 	self.none.money_lock = nil
 	self.none.upgrade_lock = nil
 	self.none.achievment_lock = nil
+	self.none.dlc_lock = nil
+	self.none.server_lock = nil
+	self.none.set_saved_job_value = nil
+	self.none.set_job_value = nil
+	self.none.award_achievement = nil
+	self.none.progress_stat = nil
+end
+function AssetsTweakData:_init_safehouse_assets(tweak_data)
 end
 function AssetsTweakData:_init_risk_assets(tweak_data)
 	self.risk_pd = {}
@@ -70,6 +79,45 @@ function AssetsTweakData:_init_assets(tweak_data)
 		category = "player",
 		upgrade = "additional_assets"
 	}
+	self.grenade_crate = {}
+	self.grenade_crate.name_id = "menu_asset_grenade_crate"
+	self.grenade_crate.texture = "guis/dlcs/gage_pack/textures/pd2/mission_briefing/assets/grenade_crate"
+	self.grenade_crate.stages = {
+		"watchdogs_1",
+		"watchdogs_2",
+		"welcome_to_the_jungle_1",
+		"welcome_to_the_jungle_2",
+		"alex_1",
+		"firestarter_1",
+		"firestarter_2",
+		"firestarter_3",
+		"branchbank",
+		"arm_for",
+		"roberts"
+	}
+	self.grenade_crate.visible_if_locked = true
+	self.grenade_crate.unlock_desc_id = "menu_asset_grenade_crate_desc"
+	self.grenade_crate.no_mystery = true
+	self.grenade_crate.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 1)
+	self.grenade_crate.dlc_lock = "gage_pack"
+	self.grenade_crate.server_lock = true
+	self.grenade_crate.progress_stat = "gage_10_stats"
+	self.ammo_bag = {}
+	self.ammo_bag.name_id = "menu_asset_ammo"
+	self.ammo_bag.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
+	self.ammo_bag.stages = {"roberts"}
+	self.ammo_bag.visible_if_locked = true
+	self.ammo_bag.unlock_desc_id = "menu_asset_ammo_desc"
+	self.ammo_bag.no_mystery = true
+	self.ammo_bag.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
+	self.health_bag = {}
+	self.health_bag.name_id = "menu_asset_health"
+	self.health_bag.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
+	self.health_bag.stages = {"roberts"}
+	self.health_bag.visible_if_locked = true
+	self.health_bag.unlock_desc_id = "menu_asset_health_desc"
+	self.health_bag.no_mystery = true
+	self.health_bag.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.ukrainian_job_tiara = {}
 	self.ukrainian_job_tiara.name_id = "menu_asset_test_jewelry_store_tiara"
 	self.ukrainian_job_tiara.texture = "guis/textures/pd2/mission_briefing/assets/ukranian_job/asset01"
@@ -664,6 +712,88 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.four_stores_overview.stages = {
 		"four_stores"
 	}
+	self.arm_for_info = {}
+	self.arm_for_info.name_id = "menu_asset_arm_info"
+	self.arm_for_info.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/train_01"
+	self.arm_for_info.stages = {"arm_for"}
+	self.arm_for_lance = {}
+	self.arm_for_lance.name_id = "menu_asset_arm_for_lance"
+	self.arm_for_lance.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/train_03"
+	self.arm_for_lance.stages = {"arm_for"}
+	self.arm_for_lance.visible_if_locked = true
+	self.arm_for_lance.unlock_desc_id = "menu_asset_arm_for_lance_desc"
+	self.arm_for_lance.no_mystery = true
+	self.arm_for_lance.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
+	self.arm_for_ammo = {}
+	self.arm_for_ammo.name_id = "menu_asset_ammo"
+	self.arm_for_ammo.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset01"
+	self.arm_for_ammo.stages = {
+		"arm_for",
+		"arm_cro",
+		"arm_und",
+		"arm_par",
+		"arm_fac",
+		"arm_hcm"
+	}
+	self.arm_for_ammo.visible_if_locked = true
+	self.arm_for_ammo.unlock_desc_id = "menu_asset_ammo_desc"
+	self.arm_for_ammo.no_mystery = true
+	self.arm_for_ammo.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 2)
+	self.arm_for_health = {}
+	self.arm_for_health.name_id = "menu_asset_health"
+	self.arm_for_health.texture = "guis/textures/pd2/mission_briefing/assets/watch_dogs/day1/asset02"
+	self.arm_for_health.stages = {
+		"arm_for",
+		"arm_cro",
+		"arm_und",
+		"arm_par",
+		"arm_fac",
+		"arm_hcm"
+	}
+	self.arm_for_health.visible_if_locked = true
+	self.arm_for_health.unlock_desc_id = "menu_asset_health_desc"
+	self.arm_for_health.no_mystery = true
+	self.arm_for_health.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
+	self.arm_cro_info = {}
+	self.arm_cro_info.name_id = "menu_asset_arm_location"
+	self.arm_cro_info.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/arm/crossroads"
+	self.arm_cro_info.stages = {"arm_cro"}
+	self.arm_fac_info = {}
+	self.arm_fac_info.name_id = "menu_asset_arm_location"
+	self.arm_fac_info.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/arm/harbor"
+	self.arm_fac_info.stages = {"arm_fac"}
+	self.arm_par_info = {}
+	self.arm_par_info.name_id = "menu_asset_arm_location"
+	self.arm_par_info.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/arm/park"
+	self.arm_par_info.stages = {"arm_par"}
+	self.arm_hcm_info = {}
+	self.arm_hcm_info.name_id = "menu_asset_arm_location"
+	self.arm_hcm_info.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/arm/downtown"
+	self.arm_hcm_info.stages = {"arm_hcm"}
+	self.arm_und_info = {}
+	self.arm_und_info.name_id = "menu_asset_arm_location"
+	self.arm_und_info.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/arm/underpass"
+	self.arm_und_info.stages = {"arm_und"}
+	self.roberts_pilot = {}
+	self.roberts_pilot.name_id = "menu_asset_roberts_pilot"
+	self.roberts_pilot.texture = "guis/textures/pd2/mission_briefing/assets/roberts/asset_pilot_amateur"
+	self.roberts_pilot.stages = {"roberts"}
+	self.roberts_pilot.visible_if_locked = true
+	self.roberts_pilot.unlock_desc_id = "menu_asset_roberts_pilot_desc"
+	self.roberts_pilot.no_mystery = true
+	self.roberts_pilot.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_medium", 10)
+	self.roberts_plan_a = {}
+	self.roberts_plan_a.name_id = "menu_asset_roberts_plan_a"
+	self.roberts_plan_a.texture = "guis/textures/pd2/mission_briefing/assets/roberts/asset_plan_a"
+	self.roberts_plan_a.stages = {"roberts"}
+	self.roberts_plan_a.visible_if_locked = true
+	self.roberts_plan_a.no_mystery = true
+	self.roberts_plan_b = {}
+	self.roberts_plan_b.name_id = "menu_asset_roberts_plan_b"
+	self.roberts_plan_b.texture = "guis/textures/pd2/mission_briefing/assets/roberts/asset_plan_b"
+	self.roberts_plan_b.stages = {"roberts"}
+	self.roberts_plan_b.visible_if_locked = true
+	self.roberts_plan_b.no_mystery = true
 end
 function AssetsTweakData:_init_debug_assets(tweak_data)
 	self.debug_1 = {}

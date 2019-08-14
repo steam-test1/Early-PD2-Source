@@ -92,7 +92,7 @@ local action_variants = {
 	}
 }
 local security_variant = action_variants.security
-action_variants.patrol = security_variant
+action_variants.gensec = security_variant
 action_variants.cop = security_variant
 action_variants.fbi = security_variant
 action_variants.swat = security_variant
@@ -104,7 +104,8 @@ action_variants.sniper = security_variant
 action_variants.gangster = security_variant
 action_variants.dealer = security_variant
 action_variants.biker_escape = security_variant
-action_variants.shield = security_variant
+action_variants.shield = clone(security_variant)
+action_variants.shield.hurt = ShieldActionHurt
 action_variants.murky = security_variant
 action_variants.tank = clone(security_variant)
 action_variants.tank.walk = TankCopActionWalk
@@ -210,10 +211,12 @@ function CopMovement:post_init()
 	end
 	self._unit:kill_mover()
 	self._unit:set_driving("script")
+	self._unit:unit_data().has_alarm_pager = self._tweak_data.has_alarm_pager
 	self._unit:character_damage():add_listener("movement", {
 		"bleedout",
 		"light_hurt",
 		"heavy_hurt",
+		"expl_hurt",
 		"hurt",
 		"hurt_sick",
 		"shield_knock",
@@ -585,21 +588,21 @@ function CopMovement:set_attention(attention)
 		end
 	end
 end
-function CopMovement:set_stance(new_stance_name)
+function CopMovement:set_stance(new_stance_name, instant)
 	for i_stance, stance_name in ipairs(CopMovement._stance.names) do
 		if stance_name == new_stance_name then
-			self:set_stance_by_code(i_stance)
+			self:set_stance_by_code(i_stance, instant)
 		else
 		end
 	end
 end
-function CopMovement:set_stance_by_code(new_stance_code)
+function CopMovement:set_stance_by_code(new_stance_code, instant)
 	if self._stance.code ~= new_stance_code then
 		self._ext_network:send("set_stance", new_stance_code)
-		self:_change_stance(new_stance_code)
+		self:_change_stance(new_stance_code, instant)
 	end
 end
-function CopMovement:_change_stance(stance_code)
+function CopMovement:_change_stance(stance_code, instant)
 	if self._tweak_data.allowed_stances then
 		if stance_code == 1 and not self._tweak_data.allowed_stances.ntl then
 			return
@@ -610,69 +613,84 @@ function CopMovement:_change_stance(stance_code)
 		end
 	end
 	local stance = self._stance
-	local end_values = {}
-	if stance_code == 4 then
-		if stance.transition then
-			end_values = stance.transition.end_values
+	if instant then
+		if stance.transition or stance.code ~= stance_code then
+			stance.transition = nil
+			stance.code = stance_code
+			stance.name = CopMovement._stance.names[stance_code]
+			for i = 1, 3 do
+				stance.values[i] = 0
+			end
+			stance.values[stance_code] = 1
+			for i, v in ipairs(stance.values) do
+				self._machine:set_global(CopMovement._stance.names[i], v)
+			end
+		end
+	else
+		local end_values = {}
+		if stance_code == 4 then
+			if stance.transition then
+				end_values = stance.transition.end_values
+			else
+				for i, value in ipairs(stance.values) do
+					end_values[i] = value
+				end
+			end
+		elseif stance.transition then
+			end_values = {
+				0,
+				0,
+				0,
+				stance.transition.end_values[4]
+			}
 		else
-			for i, value in ipairs(stance.values) do
-				end_values[i] = value
+			end_values = {
+				0,
+				0,
+				0,
+				stance.values[4]
+			}
+		end
+		end_values[stance_code] = 1
+		if stance_code ~= 4 then
+			stance.code = stance_code
+			stance.name = CopMovement._stance.names[stance_code]
+		end
+		local delay
+		local vis_state = self._ext_base:lod_stage()
+		if vis_state then
+			delay = CopMovement._stance.blend[stance_code]
+			if vis_state > 2 then
+				delay = delay * 0.5
 			end
-		end
-	elseif stance.transition then
-		end_values = {
-			0,
-			0,
-			0,
-			stance.transition.end_values[4]
-		}
-	else
-		end_values = {
-			0,
-			0,
-			0,
-			stance.values[4]
-		}
-	end
-	end_values[stance_code] = 1
-	if stance_code ~= 4 then
-		stance.code = stance_code
-		stance.name = CopMovement._stance.names[stance_code]
-	end
-	local delay
-	local vis_state = self._ext_base:lod_stage()
-	if vis_state then
-		delay = CopMovement._stance.blend[stance_code]
-		if vis_state > 2 then
-			delay = delay * 0.5
-		end
-	else
-		stance.transition = nil
-		if stance_code ~= 1 then
-			self:_chk_play_equip_weapon()
-		end
-		local names = CopMovement._stance.names
-		for i, v in ipairs(end_values) do
-			if v ~= stance.values[i] then
-				stance.values[i] = v
-				self._machine:set_global(names[i], v)
+		else
+			stance.transition = nil
+			if stance_code ~= 1 then
+				self:_chk_play_equip_weapon()
 			end
+			local names = CopMovement._stance.names
+			for i, v in ipairs(end_values) do
+				if v ~= stance.values[i] then
+					stance.values[i] = v
+					self._machine:set_global(names[i], v)
+				end
+			end
+			return
 		end
-		return
+		local start_values = {}
+		for _, value in ipairs(stance.values) do
+			table.insert(start_values, value)
+		end
+		local t = TimerManager:game():time()
+		local transition = {
+			end_values = end_values,
+			start_values = start_values,
+			duration = delay,
+			start_t = t,
+			next_upd_t = t + 0.07
+		}
+		stance.transition = transition
 	end
-	local start_values = {}
-	for _, value in ipairs(stance.values) do
-		table.insert(start_values, value)
-	end
-	local t = TimerManager:game():time()
-	local transition = {
-		end_values = end_values,
-		start_values = start_values,
-		duration = delay,
-		start_t = t,
-		next_upd_t = t + 0.07
-	}
-	stance.transition = transition
 	if stance_code ~= 1 then
 		self:_chk_play_equip_weapon()
 	end
@@ -693,7 +711,7 @@ function CopMovement:stance_code()
 	return self._stance.code
 end
 function CopMovement:_chk_play_equip_weapon()
-	if self._stance.values[1] == 1 and not self._ext_anim.equip and not self._tweak_data.no_equip_anim then
+	if self._stance.values[1] == 1 and not self._ext_anim.equip and not self._tweak_data.no_equip_anim and not self:chk_action_forbidden("action") then
 		local redir_res = self:play_redirect("equip")
 		if redir_res then
 			local weapon_unit = self._ext_inventory:equipped_unit()
@@ -883,7 +901,7 @@ function CopMovement:on_suppressed(state)
 		self._machine:set_global("sup", end_value)
 	end
 	self._action_common_data.is_suppressed = state or nil
-	if Network:is_server() and state and self._tweak_data.allow_crouch and not self._tweak_data.no_stand and not self:chk_action_forbidden("walk") then
+	if Network:is_server() and state and (not self._tweak_data.allowed_poses or self._tweak_data.allowed_poses.crouch) and (not self._tweak_data.allowed_poses or self._tweak_data.allowed_poses.stand) and not self:chk_action_forbidden("walk") then
 		if self._ext_anim.idle and (not self._active_actions[2] or self._active_actions[2]:type() == "idle") then
 			local action_desc = {
 				type = "act",
@@ -892,7 +910,7 @@ function CopMovement:on_suppressed(state)
 				blocks = {walk = -1}
 			}
 			self:action_request(action_desc)
-		elseif not self._ext_anim.crouch and self._tweak_data.crouch_move and self._tweak_data.allow_crouch then
+		elseif not self._ext_anim.crouch and self._tweak_data.crouch_move and (not self._tweak_data.allowed_poses or self._tweak_data.allowed_poses.crouch) then
 			local action_desc = {type = "crouch", body_part = 4}
 			self:action_request(action_desc)
 		end
@@ -951,7 +969,7 @@ function CopMovement:damage_clbk(my_unit, damage_info)
 		block_type = hurt_type
 	end
 	local client_interrupt
-	if Network:is_client() and (hurt_type == "light_hurt" or hurt_type == "hurt" and damage_info.variant ~= "tase" or hurt_type == "heavy_hurt" or hurt_type == "shield_knock" or hurt_type == "counter_tased" or hurt_type == "death" or hurt_type == "hurt_sick") then
+	if Network:is_client() and (hurt_type == "light_hurt" or hurt_type == "hurt" and damage_info.variant ~= "tase" or hurt_type == "heavy_hurt" or hurt_type == "expl_hurt" or hurt_type == "shield_knock" or hurt_type == "counter_tased" or hurt_type == "death" or hurt_type == "hurt_sick") then
 		client_interrupt = true
 	end
 	local tweak = self._tweak_data
@@ -1080,7 +1098,7 @@ function CopMovement:anim_clbk_police_called(unit)
 	end
 end
 function CopMovement:anim_clbk_stance(unit, stance_name, instant)
-	self:set_stance(stance_name)
+	self:set_stance(stance_name, instant)
 end
 function CopMovement:spawn_wanted_items()
 	if self._wanted_items then
@@ -1334,7 +1352,7 @@ function CopMovement:_chk_start_queued_action()
 			self._need_upd = true
 			break
 		else
-			if action_desc.type == "walk" or action_desc.type == "spooc" then
+			if action_desc.type == "spooc" then
 				action_desc.nav_path[action_desc.path_index or 1] = mvector3.copy(self._m_pos)
 			end
 			table.remove(queued_actions, 1)
@@ -1421,9 +1439,6 @@ end
 function CopMovement:sync_action_walk_stop(pos)
 	local walk_action, is_queued = self:_get_latest_walk_action()
 	if is_queued then
-		if not walk_action.nav_path[#walk_action.nav_path].x then
-			walk_action.nav_path[#walk_action.nav_path] = self._actions.walk._nav_point_pos(walk_action.nav_path[#walk_action.nav_path])
-		end
 		table.insert(walk_action.nav_path, pos)
 		walk_action.persistent = nil
 	elseif walk_action then
@@ -1432,20 +1447,21 @@ function CopMovement:sync_action_walk_stop(pos)
 		debug_pause("[CopMovement:sync_action_walk_stop] no walk action!!!", self._unit, pos)
 	end
 end
-function CopMovement:_get_latest_spooc_action()
+function CopMovement:_get_latest_spooc_action(action_id)
 	if self._queued_actions then
 		for i = #self._queued_actions, 1, -1 do
-			if self._queued_actions[i].type == "spooc" and not self._queued_actions[i].stop_pos then
+			local action = self._queued_actions[i]
+			if action.type == "spooc" and action_id == action.action_id then
 				return self._queued_actions[i], true
 			end
 		end
 	end
-	if self._active_actions[1] and self._active_actions[1]:type() == "spooc" then
+	if self._active_actions[1] and self._active_actions[1]:type() == "spooc" and action_id == self._active_actions[1]:action_id() then
 		return self._active_actions[1]
 	end
 end
-function CopMovement:sync_action_spooc_nav_point(pos)
-	local spooc_action, is_queued = self:_get_latest_spooc_action()
+function CopMovement:sync_action_spooc_nav_point(pos, action_id)
+	local spooc_action, is_queued = self:_get_latest_spooc_action(action_id)
 	if is_queued then
 		if not spooc_action.stop_pos or spooc_action.nr_expected_nav_points then
 			table.insert(spooc_action.nav_path, pos)
@@ -1462,8 +1478,8 @@ function CopMovement:sync_action_spooc_nav_point(pos)
 		spooc_action:sync_append_nav_point(pos)
 	end
 end
-function CopMovement:sync_action_spooc_stop(pos, nav_index)
-	local spooc_action, is_queued = self:_get_latest_spooc_action()
+function CopMovement:sync_action_spooc_stop(pos, nav_index, action_id)
+	local spooc_action, is_queued = self:_get_latest_spooc_action(action_id)
 	if is_queued then
 		if spooc_action.host_stop_pos_inserted then
 			nav_index = nav_index + spooc_action.host_stop_pos_inserted
@@ -1480,11 +1496,19 @@ function CopMovement:sync_action_spooc_stop(pos, nav_index)
 			spooc_action.path_index = math.max(1, math.min(spooc_action.path_index, #nav_path - 1))
 		end
 	elseif spooc_action then
-		spooc_action:sync_stop(pos, nav_index)
+		if Network:is_server() then
+			self:action_request({
+				type = "idle",
+				body_part = 1,
+				sync = true
+			})
+		else
+			spooc_action:sync_stop(pos, nav_index)
+		end
 	end
 end
-function CopMovement:sync_action_spooc_strike(pos)
-	local spooc_action, is_queued = self:_get_latest_spooc_action()
+function CopMovement:sync_action_spooc_strike(pos, action_id)
+	local spooc_action, is_queued = self:_get_latest_spooc_action(action_id)
 	if is_queued then
 		if spooc_action.stop_pos and not spooc_action.nr_expected_nav_points then
 			return
@@ -1528,6 +1552,7 @@ function CopMovement:sync_action_act_start(index, blocks_hurt, start_rot, start_
 		action_data.blocks.light_hurt = -1
 		action_data.blocks.hurt = -1
 		action_data.blocks.heavy_hurt = -1
+		action_data.blocks.expl_hurt = -1
 	end
 	self:action_request(action_data)
 end

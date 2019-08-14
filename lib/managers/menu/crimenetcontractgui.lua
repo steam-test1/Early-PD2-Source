@@ -12,10 +12,11 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	self._node = node
 	local job_data = self._node:parameters().menu_component_data
 	self._customizable = job_data.customize_contract or false
+	local is_win_32 = SystemInfo:platform() == Idstring("WIN32")
 	local width = 900
 	local height = 580
-	if SystemInfo:platform() ~= Idstring("WIN32") then
-		width = 800
+	if not is_win_32 then
+		width = 850
 		height = 500
 	end
 	local blur = self._fullscreen_panel:bitmap({
@@ -93,7 +94,8 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 	})
 	job_data.job_id = job_data.job_id or "ukrainian_job"
 	local narrative = tweak_data.narrative.jobs[job_data.job_id]
-	local text_w = width - 389
+	local w = is_win_32 and 389 or 356
+	local text_w = width - w
 	local font_size = tweak_data.menu.pd2_small_font_size
 	local font = tweak_data.menu.pd2_small_font
 	local risk_color = tweak_data.screen_colors.risk
@@ -494,6 +496,11 @@ function CrimeNetContractGui:init(ws, fullscreen_ws, node)
 		if self._briefing_len_panel then
 			self._briefing_len_panel:hide()
 		end
+		if not is_win_32 then
+			contact_panel:hide()
+			contact_text:set_top(contact_panel:top())
+			contact_text:set_text("")
+		end
 		local premium_text = self._contract_panel:text({
 			name = "premium_text",
 			text = "  ",
@@ -793,22 +800,22 @@ function CrimeNetContractGui:update(t, dt)
 	end
 end
 function CrimeNetContractGui:mouse_moved(o, x, y)
-	if alive(self._briefing_len_panel) then
+	if alive(self._briefing_len_panel) and self._briefing_len_panel:visible() then
 		if self._briefing_len_panel:child("button_text"):inside(x, y) then
 			if not self._button_highlight then
 				self._button_highlight = true
 				self._briefing_len_panel:child("button_text"):set_color(tweak_data.screen_colors.button_stage_2)
 			end
-			return true, "arrow"
+			return true, "link"
 		elseif self._button_highlight then
 			self._briefing_len_panel:child("button_text"):set_color(tweak_data.screen_colors.button_stage_3)
 			self._button_highlight = false
 		end
 	end
 	if x > self._contract_panel:left() + 270 and y > self._contract_panel:bottom() - 140 and x < self._contract_panel:right() and y < self._contract_panel:bottom() then
-		return false, "arrow"
+		return false
 	end
-	return false, "hand"
+	return false, "arrow"
 end
 function CrimeNetContractGui:mouse_pressed(o, button, x, y)
 	if alive(self._briefing_len_panel) and self._step > 2 and self._briefing_len_panel:child("button_text"):inside(x, y) then

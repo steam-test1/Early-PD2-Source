@@ -36,6 +36,8 @@ function CarryTweakData:init(tweak_data)
 	self.types.coke_light.jump_modifier = self.types.light.jump_modifier
 	self.types.coke_light.can_run = self.types.light.can_run
 	self.types.coke_light.throw_distance_multiplier = self.types.light.throw_distance_multiplier
+	self.types.explosives = deep_clone(self.types.medium)
+	self.types.explosives.can_explode = true
 	self.small_loot = {}
 	self.small_loot.money_bundle = tweak_data:get_value("money_manager", "small_loot", "money_bundle")
 	self.small_loot.diamondheist_vault_bust = tweak_data:get_value("money_manager", "small_loot", "diamondheist_vault_bust")
@@ -89,6 +91,12 @@ function CarryTweakData:init(tweak_data)
 	self.lance_bag.visual_object = "g_toolsbag"
 	self.lance_bag.unit = "units/payday2/pickups/gen_pku_toolbag/gen_pku_toolbag"
 	self.lance_bag.AI_carry = {SO_category = "enemies"}
+	self.cage_bag = {}
+	self.cage_bag.type = "medium"
+	self.cage_bag.name_id = "hud_carry_cage_bag"
+	self.cage_bag.skip_exit_secure = true
+	self.cage_bag.visual_object = "g_cagebag"
+	self.cage_bag.unit = "units/payday2/pickups/gen_pku_cage_bag/gen_pku_cage_bag"
 	self.weapon = {}
 	self.weapon.type = "heavy"
 	self.weapon.name_id = "hud_carry_weapon"
@@ -97,6 +105,13 @@ function CarryTweakData:init(tweak_data)
 	self.weapons.type = "heavy"
 	self.weapons.bag_value = "weapons"
 	self.weapons.name_id = "hud_carry_weapons"
+	self.grenades = {}
+	self.grenades.type = "explosives"
+	self.grenades.name_id = "hud_carry_grenades"
+	self.grenades.bag_value = "weapons"
+	self.grenades.visual_object = "g_explosives_bag"
+	self.grenades.unit = "units/pd2_dlc1/pickups/gen_pku_explosivesbag/gen_pku_explosivesbag"
+	self.grenades.AI_carry = {SO_category = "enemies"}
 	self.person = {}
 	self.person.type = "being"
 	self.person.name_id = "hud_carry_person"
@@ -175,6 +190,18 @@ function CarryTweakData:init(tweak_data)
 	self.engine_12.name_id = "hud_carry_engine_12"
 	self.engine_12.skip_exit_secure = true
 	self.engine_12.AI_carry = {SO_category = "enemies"}
+	self.turret = {}
+	self.turret.type = "heavy"
+	self.turret.name_id = "hud_carry_turret"
+	self.turret.bag_value = "turret"
+	self.turret.AI_carry = {SO_category = "enemies"}
+	self.ammo = {}
+	self.ammo.type = "explosives"
+	self.ammo.name_id = "hud_carry_ammo"
+	self.ammo.bag_value = "shells"
+	self.ammo.visual_object = "g_explosives_bag"
+	self.ammo.unit = "units/pd2_dlc1/pickups/gen_pku_explosivesbag/gen_pku_explosivesbag"
+	self.ammo.AI_carry = {SO_category = "enemies"}
 end
 function CarryTweakData:get_carry_ids()
 	local t = {}

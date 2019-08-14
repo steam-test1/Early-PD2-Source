@@ -108,6 +108,7 @@ function GroupAIStateBesiege:_upd_police_activity()
 	self._police_upd_task_queued = false
 	if self._ai_enabled then
 		self:_upd_SO()
+		self:_upd_grp_SO()
 		if self._enemy_weapons_hot then
 			self:_claculate_drama_value()
 			self:_upd_regroup_task()
@@ -456,7 +457,7 @@ function GroupAIStateBesiege:_upd_assault_task()
 		end
 		if used_event or next(self._spawning_groups) then
 		else
-			local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(primary_target_area, nr_wanted, tweak_data.group_ai.besiege.assault.groups, nil, nil, nil)
+			local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(primary_target_area, tweak_data.group_ai.besiege.assault.groups, nil, nil, nil)
 			if spawn_group then
 				local grp_objective = {
 					type = "assault_area",
@@ -469,7 +470,7 @@ function GroupAIStateBesiege:_upd_assault_task()
 					},
 					attitude = "avoid",
 					pose = "crouch",
-					stance = "cbt"
+					stance = "hos"
 				}
 				self:_spawn_in_group(spawn_group, spawn_group_type, grp_objective, task_data)
 			end
@@ -480,7 +481,7 @@ function GroupAIStateBesiege:_upd_assault_task()
 			task_data.use_smoke = true
 		end
 		if self._smoke_grenade_queued and task_data.use_smoke and not self:is_smoke_grenade_active() then
-			self:_detonate_smoke_grenade(self._smoke_grenade_queued[1], self._smoke_grenade_queued[1], self._smoke_grenade_queued[2], self._smoke_grenade_queued[4])
+			self:detonate_smoke_grenade(self._smoke_grenade_queued[1], self._smoke_grenade_queued[1], self._smoke_grenade_queued[2], self._smoke_grenade_queued[4])
 			if self._smoke_grenade_queued[3] then
 				self._smoke_grenade_ignore_control = true
 			end
@@ -654,14 +655,14 @@ function GroupAIStateBesiege:_upd_recon_tasks()
 		if next(self._spawning_groups) then
 			used_group = true
 		else
-			local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(task_data.target_area, nr_wanted, tweak_data.group_ai.besiege.recon.groups, nil, nil, callback(self, self, "_verify_anticipation_spawn_point"))
+			local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(task_data.target_area, tweak_data.group_ai.besiege.recon.groups, nil, nil, callback(self, self, "_verify_anticipation_spawn_point"))
 			if spawn_group then
 				local grp_objective = {
 					type = "recon_area",
 					area = spawn_group.area,
 					target_area = task_data.target_area,
 					attitude = "avoid",
-					stance = "cbt",
+					stance = "hos",
 					scan = true
 				}
 				self:_spawn_in_group(spawn_group, spawn_group_type, grp_objective)
@@ -730,7 +731,7 @@ function GroupAIStateBesiege:_find_spawn_points_near_area(target_area, nr_wanted
 	until #to_search_areas == 0
 	return #s_points > 0 and s_points
 end
-function GroupAIStateBesiege:_find_spawn_group_near_area(target_area, nr_wanted, allowed_groups, target_pos, max_dis, verify_clbk)
+function GroupAIStateBesiege:_find_spawn_group_near_area(target_area, allowed_groups, target_pos, max_dis, verify_clbk)
 	local all_areas = self._area_data
 	local mvec3_dis = mvector3.distance_sq
 	max_dis = max_dis and max_dis * max_dis
@@ -779,16 +780,20 @@ function GroupAIStateBesiege:_find_spawn_group_near_area(target_area, nr_wanted,
 		local my_spawn_group = valid_spawn_groups[i]
 		local my_group_types = my_spawn_group.mission_element:spawn_groups()
 		for _, group_type in ipairs(my_group_types) do
-			local cat_weights = allowed_groups[group_type]
-			if cat_weights then
-				local cat_weight = self:_get_difficulty_dependent_value(cat_weights)
-				local mod_weight = my_wgt * cat_weight
-				table.insert(candidate_groups, {
-					group = my_spawn_group,
-					group_type = group_type,
-					wght = mod_weight
-				})
-				total_weight = total_weight + mod_weight
+			if tweak_data.group_ai.enemy_spawn_groups[group_type] then
+				local cat_weights = allowed_groups[group_type]
+				if cat_weights then
+					local cat_weight = self:_get_difficulty_dependent_value(cat_weights)
+					local mod_weight = my_wgt * cat_weight
+					table.insert(candidate_groups, {
+						group = my_spawn_group,
+						group_type = group_type,
+						wght = mod_weight
+					})
+					total_weight = total_weight + mod_weight
+				end
+			else
+				debug_pause("[GroupAIStateBesiege:_find_spawn_group_near_area] inexistent spawn_group:", group_type, ". element id:", my_spawn_group.mission_element._id)
 			end
 		end
 	end
@@ -856,12 +861,30 @@ function GroupAIStateBesiege:_spawn_in_group(spawn_group, spawn_group_type, grp_
 	end
 	local valid_unit_types = {}
 	self._extract_group_desc_structure(spawn_group_desc.spawn, valid_unit_types)
+	local function _get_special_unit_type_count(special_type)
+		if not self._special_units[special_type] then
+			return 0
+		end
+		return table.size(self._special_units[special_type])
+	end
+	local unit_categories = tweak_data.group_ai.unit_categories
 	local total_wgt = 0
-	for i, spawn_entry in ipairs(valid_unit_types) do
-		total_wgt = total_wgt + spawn_entry.freq
+	local i = 1
+	while i <= #valid_unit_types do
+		local spawn_entry = valid_unit_types[i]
+		local cat_data = unit_categories[spawn_entry.unit]
+		if cat_data.special_type and cat_data.max_amount then
+			if _get_special_unit_type_count(cat_data.special_type) + (spawn_entry.amount_min or 0) > cat_data.max_amount then
+				spawn_group.delay_t = self._t + 10
+				return
+			end
+		else
+			total_wgt = total_wgt + spawn_entry.freq
+			i = i + 1
+		end
 	end
 	local spawn_task = {
-		objective = self._create_objective_from_group_objective(grp_objective),
+		objective = not grp_objective.element and self._create_objective_from_group_objective(grp_objective),
 		units_remaining = {},
 		spawn_group = spawn_group,
 		spawn_group_type = spawn_group_type,
@@ -908,7 +931,13 @@ function GroupAIStateBesiege:_spawn_in_group(spawn_group, spawn_group_type, grp_
 				rand_i = rand_i + 1
 			end
 		end
-		_add_unit_type_to_spawn_task(rand_i, rand_entry)
+		local cat_data = unit_categories[rand_entry.unit]
+		if cat_data.special_type and cat_data.max_amount and _get_special_unit_type_count(cat_data.special_type) >= cat_data.max_amount then
+			table.remove(valid_unit_types, rand_i)
+			total_wgt = total_wgt - rand_entry.freq
+		else
+			_add_unit_type_to_spawn_task(rand_i, rand_entry)
+		end
 	end
 	local group_desc = {type = spawn_group_type, size = 0}
 	for u_name, spawn_info in pairs(spawn_task.units_remaining) do
@@ -918,6 +947,7 @@ function GroupAIStateBesiege:_spawn_in_group(spawn_group, spawn_group_type, grp_
 	group.objective = grp_objective
 	group.objective.moving_out = true
 	spawn_task.group = group
+	return group
 end
 function GroupAIStateBesiege:_upd_group_spawning()
 	local spawn_task = self._spawning_groups[1]
@@ -943,13 +973,20 @@ function GroupAIStateBesiege:_upd_group_spawning()
 				if self._t > sp_data.delay_t then
 					produce_data.name = category.units[math.random(#category.units)]
 					local spawned_unit = sp_data.mission_element:produce(produce_data)
-					sp_data.delay_t = self._t + sp_data.interval
-					if sp_data.amount then
-						sp_data.amount = sp_data.amount - 1
-					end
 					local u_key = spawned_unit:key()
+					local objective
+					if spawn_task.objective then
+						objective = self.clone_objective(spawn_task.objective)
+					else
+						objective = spawn_task.group.objective.element:get_random_SO(spawned_unit)
+						if not objective then
+							spawned_unit:set_slot(0)
+							return true
+						end
+						objective.grp_objective = spawn_task.group.objective
+					end
 					local u_data = self._police[u_key]
-					self:set_enemy_assigned(spawn_task.objective.area, u_key)
+					self:set_enemy_assigned(objective.area, u_key)
 					if spawn_entry.tactics then
 						u_data.tactics = spawn_entry.tactics
 						u_data.tactics_map = {}
@@ -960,8 +997,10 @@ function GroupAIStateBesiege:_upd_group_spawning()
 					spawned_unit:brain():set_spawn_entry(spawn_entry, u_data.tactics_map)
 					u_data.rank = spawn_entry.rank
 					self:_add_group_member(spawn_task.group, u_key)
-					local objective = self.clone_objective(spawn_task.objective)
 					if spawned_unit:brain():is_available_for_assignment(objective) then
+						if objective.element then
+							objective.element:clbk_objective_administered(spawned_unit)
+						end
 						spawned_unit:brain():set_objective(objective)
 					else
 						spawned_unit:brain():set_followup_objective(objective)
@@ -969,6 +1008,10 @@ function GroupAIStateBesiege:_upd_group_spawning()
 					nr_units_spawned = nr_units_spawned + 1
 					if spawn_task.ai_task then
 						spawn_task.ai_task.force_spawned = spawn_task.ai_task.force_spawned + 1
+					end
+					sp_data.delay_t = self._t + sp_data.interval
+					if sp_data.amount then
+						sp_data.amount = sp_data.amount - 1
 					end
 					return true
 				end
@@ -981,7 +1024,7 @@ function GroupAIStateBesiege:_upd_group_spawning()
 	end
 	for u_type_name, spawn_info in pairs(spawn_task.units_remaining) do
 		if not group_ai_tweak.unit_categories[u_type_name].access.acrobatic then
-			while 0 < spawn_info.amount do
+			for i = spawn_info.amount, 1, -1 do
 				local success = _try_spawn_unit(u_type_name, spawn_info.spawn_entry)
 				if success then
 					spawn_info.amount = spawn_info.amount - 1
@@ -992,7 +1035,7 @@ function GroupAIStateBesiege:_upd_group_spawning()
 		end
 	end
 	for u_type_name, spawn_info in pairs(spawn_task.units_remaining) do
-		while 0 < spawn_info.amount do
+		for i = spawn_info.amount, 1, -1 do
 			local success = _try_spawn_unit(u_type_name, spawn_info.spawn_entry)
 			if success then
 				spawn_info.amount = spawn_info.amount - 1
@@ -1045,14 +1088,15 @@ function GroupAIStateBesiege:_upd_reenforce_tasks()
 					if next(self._spawning_groups) then
 						spawning_groups = true
 					else
-						local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(task_data.target_area, undershot, tweak_data.group_ai.besiege.reenforce.groups, nil, nil, nil)
+						local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(task_data.target_area, tweak_data.group_ai.besiege.reenforce.groups, nil, nil, nil)
 						if spawn_group then
 							local grp_objective = {
 								type = "reenforce_area",
 								area = spawn_group.area,
 								target_area = task_data.target_area,
 								attitude = "avoid",
-								stance = "cbt",
+								stance = "hos",
+								pose = "stand",
 								scan = true
 							}
 							self:_spawn_in_group(spawn_group, spawn_group_type, grp_objective)
@@ -2006,7 +2050,7 @@ function GroupAIStateBesiege:_set_recon_objective_to_group(group)
 				type = "recon_area",
 				area = current_objective.target_area,
 				attitude = "avoid",
-				stance = "cbt",
+				stance = "hos",
 				pose = "crouch",
 				scan = true
 			}
@@ -2040,10 +2084,13 @@ function GroupAIStateBesiege:_upd_groups()
 		for u_key, u_data in pairs(group.units) do
 			local brain = u_data.unit:brain()
 			local current_objective = brain:objective()
-			if (not current_objective or current_objective.is_default or current_objective.grp_objective and current_objective.grp_objective ~= group.objective) and (not group.objective.follow_unit or alive(group.objective.follow_unit)) then
-				local objective = self._create_objective_from_group_objective(group.objective)
-				if brain:is_available_for_assignment(objective) then
-					self:set_enemy_assigned(group.objective.area, u_key)
+			if (not current_objective or current_objective.is_default or current_objective.grp_objective and current_objective.grp_objective ~= group.objective and not current_objective.grp_objective.no_retry) and (not group.objective.follow_unit or alive(group.objective.follow_unit)) then
+				local objective = self._create_objective_from_group_objective(group.objective, u_data.unit)
+				if objective and brain:is_available_for_assignment(objective) then
+					self:set_enemy_assigned(objective.area or group.objective.area, u_key)
+					if objective.element then
+						objective.element:clbk_objective_administered(u_data.unit)
+					end
 					u_data.unit:brain():set_objective(objective)
 				end
 			end
@@ -2172,7 +2219,7 @@ function GroupAIStateBesiege:_set_assault_objective_to_group(group, phase)
 			},
 			attitude = "engage",
 			pose = "stand",
-			stance = "cbt",
+			stance = "hos",
 			open_fire = true
 		}
 		self:_set_objective_to_enemy_group(group, grp_objective)
@@ -2248,7 +2295,7 @@ function GroupAIStateBesiege:_set_assault_objective_to_group(group, phase)
 				area = target_area,
 				coarse_path = coarse_path,
 				pose = push and "crouch" or "stand",
-				stance = push and "cbt" or "hos",
+				stance = "hos",
 				attitude = push and "engage" or "avoid",
 				moving_in = push and true or nil,
 				open_fire = push or nil,
@@ -2301,7 +2348,7 @@ function GroupAIStateBesiege:_set_assault_objective_to_group(group, phase)
 				},
 				attitude = "avoid",
 				pose = "crouch",
-				stance = "cbt"
+				stance = "hos"
 			}
 			group.is_chasing = nil
 			self:_set_objective_to_enemy_group(group, new_grp_objective)
@@ -2309,11 +2356,18 @@ function GroupAIStateBesiege:_set_assault_objective_to_group(group, phase)
 		end
 	end
 end
-function GroupAIStateBesiege._create_objective_from_group_objective(grp_objective)
+function GroupAIStateBesiege._create_objective_from_group_objective(grp_objective, receiving_unit)
 	local objective = {grp_objective = grp_objective}
-	if grp_objective.type == "defend_area" or grp_objective.type == "recon_area" or grp_objective.type == "reenforce_area" or grp_objective.type == "retire" then
+	if grp_objective.element then
+		objective = grp_objective.element:get_random_SO(receiving_unit)
+		if not objective then
+			return
+		end
+		objective.grp_objective = grp_objective
+		return
+	elseif grp_objective.type == "defend_area" or grp_objective.type == "recon_area" or grp_objective.type == "reenforce_area" or grp_objective.type == "retire" then
 		objective.type = "defend_area"
-		objective.stance = "cbt"
+		objective.stance = "hos"
 		objective.pose = "crouch"
 		objective.scan = true
 		objective.interrupt_dis = 200
@@ -2326,7 +2380,7 @@ function GroupAIStateBesiege._create_objective_from_group_objective(grp_objectiv
 			objective.follow_unit = grp_objective.follow_unit
 			objective.distance = grp_objective.distance
 		end
-		objective.stance = "cbt"
+		objective.stance = "hos"
 		objective.pose = "stand"
 		objective.scan = true
 		objective.interrupt_dis = 200
@@ -2447,7 +2501,7 @@ function GroupAIStateBesiege:_chk_group_use_smoke_grenade(group, task_data, deto
 					end
 				end
 				if detonate_pos and shooter_u_data then
-					self:_detonate_smoke_grenade(detonate_pos, shooter_pos, duration, false)
+					self:detonate_smoke_grenade(detonate_pos, shooter_pos, duration, false)
 					task_data.use_smoke_timer = self._t + math.lerp(10, 40, math.rand(0, 1) ^ 0.5)
 					task_data.use_smoke = false
 					if shooter_u_data.char_tweak.chatter.smoke and not shooter_u_data.unit:sound():speaking(self._t) then
@@ -2483,7 +2537,7 @@ function GroupAIStateBesiege:_chk_group_use_flash_grenade(group, task_data, deto
 					end
 				end
 				if detonate_pos and shooter_u_data then
-					self:_detonate_smoke_grenade(detonate_pos, shooter_pos, duration, true)
+					self:detonate_smoke_grenade(detonate_pos, shooter_pos, duration, true)
 					task_data.use_smoke_timer = self._t + math.lerp(10, 40, math.random() ^ 0.5)
 					task_data.use_smoke = false
 					if shooter_u_data.char_tweak.chatter.flash_grenade and not shooter_u_data.unit:sound():speaking(self._t) then
@@ -2495,7 +2549,7 @@ function GroupAIStateBesiege:_chk_group_use_flash_grenade(group, task_data, deto
 		end
 	end
 end
-function GroupAIStateBesiege:_detonate_smoke_grenade(detonate_pos, shooter_pos, duration, flashbang)
+function GroupAIStateBesiege:detonate_smoke_grenade(detonate_pos, shooter_pos, duration, flashbang)
 	managers.network:session():send_to_peers("sync_smoke_grenade", detonate_pos, shooter_pos, duration, flashbang and true or false)
 	self:sync_smoke_grenade(detonate_pos, shooter_pos, duration, flashbang)
 end
@@ -2516,7 +2570,7 @@ function GroupAIStateBesiege:_assign_assault_groups_to_retire()
 				type = "recon_area",
 				area = regroup_area,
 				attitude = "avoid",
-				stance = "cbt",
+				stance = "hos",
 				pose = "crouch"
 			}
 			self:_set_objective_to_enemy_group(group, grp_objective)
@@ -2531,7 +2585,7 @@ function GroupAIStateBesiege:_assign_recon_groups_to_retire()
 				type = "assault_area",
 				area = group.objective.area,
 				attitude = "avoid",
-				stance = "cbt",
+				stance = "hos",
 				pose = "crouch"
 			}
 			self:_set_objective_to_enemy_group(group, grp_objective)
@@ -2637,7 +2691,7 @@ function GroupAIStateBesiege:_set_reenforce_objective_to_group(group)
 				type = "reenforce_area",
 				area = current_objective.target_area,
 				attitude = "engage",
-				stance = "cbt",
+				stance = "hos",
 				pose = "crouch",
 				scan = true
 			}

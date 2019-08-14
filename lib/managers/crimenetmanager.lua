@@ -29,7 +29,11 @@ end
 function CrimeNetManager:_get_jobs_by_jc()
 	local t = {}
 	for _, job_id in ipairs(tweak_data.narrative:get_jobs_index()) do
-		if managers.job:check_ok_with_cooldown(job_id) and not tweak_data.narrative.jobs[job_id].wrapped_to_job then
+		local is_cooldown_ok = managers.job:check_ok_with_cooldown(job_id)
+		local is_not_wrapped = not tweak_data.narrative.jobs[job_id].wrapped_to_job
+		local is_not_dlc_or_got = not tweak_data.narrative.jobs[job_id].dlc or managers.dlc:has_dlc(tweak_data.narrative.jobs[job_id].dlc)
+		local pass_all_tests = is_cooldown_ok and is_not_wrapped and is_not_dlc_or_got
+		if pass_all_tests then
 			local job_data = tweak_data.narrative.jobs[job_id]
 			for i = job_data.professional and 1 or 0, 3 do
 				t[job_data.jc + i * 10] = t[job_data.jc + i * 10] or {}
@@ -90,7 +94,8 @@ function CrimeNetManager:_setup()
 				else
 					job_data = table.remove(jobs_by_jc[jcs[i]], math.random(#jobs_by_jc[jcs[i]]))
 				end
-				job_data.chance = chance
+				local chance_multiplier = tweak_data.narrative.jobs[job_data.job_id] and tweak_data.narrative.jobs[job_data.job_id].spawn_chance_multiplier or 1
+				job_data.chance = chance * chance_multiplier
 				table.insert(self._presets, job_data)
 				j = j + 1
 				break
@@ -173,6 +178,9 @@ function CrimeNetManager:start(skip_servers)
 	if #self._active_jobs == 0 then
 		self._next_job_timer = 1
 	end
+end
+function CrimeNetManager:no_servers()
+	return self._skip_servers
 end
 function CrimeNetManager:stop()
 	self._active = false
@@ -517,7 +525,6 @@ function CrimeNetManager:load(data)
 end
 CrimeNetGui = CrimeNetGui or class()
 function CrimeNetGui:init(ws, fullscreeen_ws, node)
-	managers.menu_component:test_camera_shutter_tech()
 	self._tweak_data = tweak_data.gui.crime_net
 	self._crimenet_enabled = true
 	managers.menu_component:post_event("crime_net_startup")
@@ -584,7 +591,7 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 		h = 2,
 		x = 0,
 		y = 0,
-		layer = 2,
+		layer = 1,
 		color = tweak_data.screen_colors.crimenet_lines,
 		blend_mode = "add"
 	})
@@ -593,7 +600,7 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 		h = 2,
 		x = 0,
 		y = 0,
-		layer = 2,
+		layer = 1,
 		color = tweak_data.screen_colors.crimenet_lines,
 		blend_mode = "add"
 	}):set_bottom(self._panel:h())
@@ -602,7 +609,7 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 		h = self._panel:h(),
 		x = 0,
 		y = 0,
-		layer = 2,
+		layer = 1,
 		color = tweak_data.screen_colors.crimenet_lines,
 		blend_mode = "add"
 	}):set_right(self._panel:w())
@@ -611,7 +618,7 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 		h = self._panel:h(),
 		x = 0,
 		y = 0,
-		layer = 2,
+		layer = 1,
 		color = tweak_data.screen_colors.crimenet_lines,
 		blend_mode = "add"
 	})
@@ -796,6 +803,12 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 		})
 		mw = math.max(mw, self:make_fine_text(friends_text))
 		self:make_color_text(friends_text, tweak_data.screen_colors.friend_color)
+		if managers.crimenet:no_servers() then
+			join_icon:hide()
+			join_text:hide()
+			friends_text:hide()
+			friends_text:set_bottom(host_text:bottom())
+		end
 		local pc_icon = legend_panel:bitmap({
 			texture = "guis/textures/pd2/crimenet_legend_payclass",
 			x = 10,
@@ -850,6 +863,11 @@ function CrimeNetGui:init(ws, fullscreeen_ws, node)
 			blend_mode = "add"
 		})
 		mw = math.max(mw, self:make_fine_text(kick_text))
+		if managers.crimenet:no_servers() then
+			kick_icon:hide()
+			kick_text:hide()
+			kick_text:set_bottom(pro_text:bottom())
+		end
 		legend_panel:set_size(host_text:left() + mw + 10, kick_text:bottom() + 10)
 		legend_panel:rect({
 			color = Color.black,
@@ -2352,7 +2370,7 @@ function CrimeNetGui:update_job_gui(job, inside)
 end
 function CrimeNetGui:mouse_moved(o, x, y)
 	if not self._crimenet_enabled then
-		return
+		return false
 	end
 	if managers.menu:is_pc_controller() then
 		if self._panel:child("back_button"):inside(x, y) then
@@ -2361,7 +2379,7 @@ function CrimeNetGui:mouse_moved(o, x, y)
 				self._panel:child("back_button"):set_color(tweak_data.screen_colors.button_stage_2)
 				managers.menu_component:post_event("highlight")
 			end
-			return false, "arrow"
+			return true, "link"
 		elseif self._back_highlighted then
 			self._back_highlighted = false
 			self._panel:child("back_button"):set_color(tweak_data.screen_colors.button_stage_3)
@@ -2372,7 +2390,7 @@ function CrimeNetGui:mouse_moved(o, x, y)
 				self._panel:child("legends_button"):set_color(tweak_data.screen_colors.button_stage_2)
 				managers.menu_component:post_event("highlight")
 			end
-			return false, "arrow"
+			return true, "link"
 		elseif self._legend_highlighted then
 			self._legend_highlighted = false
 			self._panel:child("legends_button"):set_color(tweak_data.screen_colors.button_stage_3)
@@ -2384,7 +2402,7 @@ function CrimeNetGui:mouse_moved(o, x, y)
 					self._panel:child("filter_button"):set_color(tweak_data.screen_colors.button_stage_2)
 					managers.menu_component:post_event("highlight")
 				end
-				return false, "arrow"
+				return true, "link"
 			elseif self._filter_highlighted then
 				self._filter_highlighted = false
 				self._panel:child("filter_button"):set_color(tweak_data.screen_colors.button_stage_3)
@@ -2467,10 +2485,10 @@ function CrimeNetGui:mouse_moved(o, x, y)
 		end
 	end
 	if inside_any_job then
-		return false, "arrow"
+		return true, "link"
 	end
 	if self._panel:inside(x, y) then
-		return false, "hand"
+		return true, "hand"
 	end
 end
 function CrimeNetGui:ps3_invites_callback()

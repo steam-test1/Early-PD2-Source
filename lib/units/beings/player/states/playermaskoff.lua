@@ -87,9 +87,45 @@ function PlayerMaskOff:_get_walk_headbob()
 	return 0.0125
 end
 function PlayerMaskOff:_check_action_interact(t, input)
-	if input.btn_interact_press then
-		managers.hint:show_hint("mask_off_block_interact")
+	if input.btn_interact_press and (not self._intimidate_t or t - self._intimidate_t > tweak_data.player.movement_state.interaction_delay) then
+		self._intimidate_t = t
+		if not self:mark_units("f11", t, true) then
+			managers.hint:show_hint("mask_off_block_interact")
+		end
 	end
+end
+function PlayerMaskOff:mark_units(line, t, no_gesture, skip_alert)
+	local mark_sec_camera = managers.player:has_category_upgrade("player", "sec_camera_highlight_mask_off")
+	local mark_special_enemies = managers.player:has_category_upgrade("player", "special_enemy_highlight_mask_off")
+	local voice_type, plural, prime_target = self:_get_unit_intimidation_action(mark_special_enemies, false, false, false, false)
+	local interact_type, sound_name
+	if voice_type == "mark_cop" or voice_type == "mark_cop_quiet" then
+		interact_type = "cmd_point"
+		if voice_type == "mark_cop_quiet" then
+			sound_name = tweak_data.character[prime_target.unit:base()._tweak_table].silent_priority_shout .. "x_any"
+		else
+			sound_name = tweak_data.character[prime_target.unit:base()._tweak_table].priority_shout .. "x_any"
+		end
+		if managers.player:has_category_upgrade("player", "special_enemy_highlight") then
+			local marked_extra_damage = managers.player:has_category_upgrade("player", "marked_enemy_extra_damage") or false
+			local time_multiplier = managers.player:upgrade_value("player", "mark_enemy_time_multiplier", 1)
+			prime_target.unit:contour():add("mark_enemy", marked_extra_damage, time_multiplier)
+			managers.network:session():send_to_peers_synched("mark_enemy", prime_target.unit, marked_extra_damage, time_multiplier)
+		end
+	elseif voice_type == "mark_camera" and mark_sec_camera then
+		sound_name = "quiet"
+		interact_type = "cmd_point"
+		prime_target.unit:contour():add("mark_unit")
+		managers.network:session():send_to_peers_synched("mark_contour_unit", prime_target.unit)
+	end
+	if interact_type then
+		if not no_gesture then
+		else
+		end
+		self:_do_action_intimidate(t, interact_type or nil, sound_name, skip_alert)
+		return true
+	end
+	return false
 end
 function PlayerMaskOff:_check_action_jump(t, input)
 	if input.btn_duck_press then

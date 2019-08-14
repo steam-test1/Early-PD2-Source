@@ -6,6 +6,7 @@ PlayerBase.PLAYER_DOWNED_HUD = Idstring("guis/player_downed_hud")
 PlayerBase.PLAYER_CUSTODY_HUD = Idstring("guis/spectator_mode")
 PlayerBase.PLAYER_INFO_HUD_PD2 = Idstring("guis/player_info_hud_pd2")
 PlayerBase.PLAYER_INFO_HUD_FULLSCREEN_PD2 = Idstring("guis/player_info_hud_fullscreen_pd2")
+PlayerBase.USE_GRENADES = true
 function PlayerBase:init(unit)
 	UnitBase.init(self, unit, false)
 	self._unit = unit
@@ -38,7 +39,7 @@ function PlayerBase:_setup_suspicion_and_detection_data()
 	self._suspicion_settings.multipliers = {}
 	self._suspicion_settings.init_buildup_mul = self._suspicion_settings.buildup_mul
 	self._suspicion_settings.init_range_mul = self._suspicion_settings.range_mul
-	self._suspicion_settings.hud_offset = managers.blackmarket:get_suspicion_offset_of_peer(Global.local_member:peer(), 0.75)
+	self._suspicion_settings.hud_offset = managers.blackmarket:get_suspicion_offset_of_peer(Global.local_member:peer(), tweak_data.player.SUSPICION_OFFSET_LERP or 0.75)
 	self._detection_settings = {}
 	self._detection_settings.multipliers = {}
 	self._detection_settings.init_delay_mul = 1
@@ -174,6 +175,14 @@ function PlayerBase:_chk_set_unit_upgrades()
 		end
 		if managers.player:has_category_upgrade("player", "ene_hostage_lim_1") then
 			managers.network:session():send_to_host("sync_upgrade", "player", "ene_hostage_lim_1", 1)
+		end
+		if managers.player:has_category_upgrade("sentry_gun", "armor_piercing_chance") then
+			local level = managers.player:upgrade_level("sentry_gun", "armor_piercing_chance")
+			managers.network:session():send_to_host("sync_upgrade", "sentry_gun", "armor_piercing_chance", level)
+		end
+		if managers.player:has_category_upgrade("sentry_gun", "armor_piercing_chance_2") then
+			local level = managers.player:upgrade_level("sentry_gun", "armor_piercing_chance_2")
+			managers.network:session():send_to_host("sync_upgrade", "sentry_gun", "armor_piercing_chance_2", level)
 		end
 	end
 end

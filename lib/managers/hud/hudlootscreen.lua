@@ -81,9 +81,17 @@ function HUDLootScreen:init(hud, workspace, saved_lootdrop, saved_selected, save
 	local panel = self._peers_panel:child("peer" .. tostring(local_peer_id))
 	local peer_info_panel = panel:child("peer_info")
 	local peer_name = peer_info_panel:child("peer_name")
-	peer_name:set_text(tostring(managers.network.account:username() or managers.blackmarket:get_preferred_character_real_name()) .. " (" .. managers.experience:current_level() .. ")")
+	local experience = (managers.experience:current_rank() > 0 and managers.experience:rank_string(managers.experience:current_rank()) .. "-" or "") .. managers.experience:current_level()
+	peer_name:set_text(tostring(managers.network.account:username() or managers.blackmarket:get_preferred_character_real_name()) .. " (" .. experience .. ")")
 	self:make_fine_text(peer_name)
 	peer_name:set_right(peer_info_panel:w())
+	if managers.experience:current_rank() > 0 then
+		peer_info_panel:child("peer_infamy"):set_visible(true)
+		peer_info_panel:child("peer_infamy"):set_right(peer_name:x())
+		peer_info_panel:child("peer_infamy"):set_top(peer_name:y())
+	else
+		peer_info_panel:child("peer_infamy"):set_visible(false)
+	end
 	panel:set_alpha(1)
 	peer_info_panel:show()
 	panel:child("card_info"):hide()
@@ -111,7 +119,12 @@ function HUDLootScreen:create_peer(peers_panel, peer_id)
 		w = peers_panel:w(),
 		h = 110
 	})
-	local peer_info_panel = panel:panel({name = "peer_info", w = 255})
+	local peer_info_panel = panel:panel({
+		name = "peer_info",
+		w = 255,
+		h = panel:h() + 20,
+		y = -10
+	})
 	local peer_name = peer_info_panel:text({
 		name = "peer_name",
 		font = medium_font,
@@ -121,6 +134,15 @@ function HUDLootScreen:create_peer(peers_panel, peer_id)
 		w = 1,
 		color = color,
 		blend_mode = "add"
+	})
+	local infamy_icon = tweak_data.hud_icons:get_icon_data("infamy_icon")
+	local peer_infamy = peer_info_panel:bitmap({
+		name = "peer_infamy",
+		w = 16,
+		h = 32,
+		texture = infamy_icon,
+		visible = false,
+		color = color
 	})
 	self:make_fine_text(peer_name)
 	peer_name:set_right(peer_info_panel:w())
@@ -437,7 +459,8 @@ function HUDLootScreen:feed_lootdrop(lootdrop_data)
 	else
 		local peer_name_string = tostring(managers.network.account:username() or managers.blackmarket:get_preferred_character_real_name()) or peer and peer:name() or ""
 	end
-	local player_level = is_local_peer and managers.experience:current_level() or peer and peer:level() or 0
+	local player_level = is_local_peer and managers.experience:current_level() or peer and peer:level()
+	local player_rank = is_local_peer and managers.experience:current_rank() or peer and peer:rank() or 0
 	local global_value = lootdrop_data[2]
 	local item_category = lootdrop_data[3]
 	local item_id = lootdrop_data[4]
@@ -451,12 +474,23 @@ function HUDLootScreen:feed_lootdrop(lootdrop_data)
 	local peer_info_panel = panel:child("peer_info")
 	local peer_name = peer_info_panel:child("peer_name")
 	local max_quality = peer_info_panel:child("max_quality")
-	peer_name:set_text(peer_name_string .. " (" .. player_level .. ")")
+	if player_level then
+		local experience = (player_rank > 0 and managers.experience:rank_string(player_rank) .. "-" or "") .. player_level
+		peer_name:set_text(peer_name_string .. " (" .. experience .. ")")
+		peer_info_panel:child("peer_infamy"):set_visible(player_rank > 0)
+	else
+		peer_name:set_text(peer_name_string)
+		peer_info_panel:child("peer_infamy"):set_visible(false)
+	end
 	max_quality:set_text(managers.localization:to_upper_text("menu_l_max_quality", {quality = max_pc}))
 	self:make_fine_text(peer_name)
 	self:make_fine_text(max_quality)
 	peer_name:set_right(peer_info_panel:w())
 	max_quality:set_right(peer_info_panel:w())
+	if player_level then
+		peer_info_panel:child("peer_infamy"):set_right(peer_name:x())
+		peer_info_panel:child("peer_infamy"):set_top(peer_name:y())
+	end
 	peer_info_panel:show()
 	panel:child("card_info"):show()
 	for i = 1, 3 do

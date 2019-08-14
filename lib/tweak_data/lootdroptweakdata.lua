@@ -22,12 +22,12 @@ function LootDropTweakData:init(tweak_data)
 	self.PC_CHANCE[2] = 0.7
 	self.PC_CHANCE[3] = 0.7
 	self.PC_CHANCE[4] = 0.7
-	self.PC_CHANCE[5] = 0.7
-	self.PC_CHANCE[6] = 0.68
-	self.PC_CHANCE[7] = 0.66
-	self.PC_CHANCE[8] = 0.64
-	self.PC_CHANCE[9] = 0.62
-	self.PC_CHANCE[10] = 0.6
+	self.PC_CHANCE[5] = 0.9
+	self.PC_CHANCE[6] = 0.91
+	self.PC_CHANCE[7] = 0.92
+	self.PC_CHANCE[8] = 0.93
+	self.PC_CHANCE[9] = 0.94
+	self.PC_CHANCE[10] = 0.95
 	self.STARS = {}
 	self.STARS[1] = {
 		pcs = {10, 10}
@@ -80,7 +80,7 @@ function LootDropTweakData:init(tweak_data)
 		colors = {6, 11},
 		textures = {7, 12},
 		materials = {7, 12},
-		masks = {25, 30},
+		masks = {10, 15},
 		xp = {8, 0}
 	}
 	for i = min, max, 10 do
@@ -123,6 +123,16 @@ function LootDropTweakData:init(tweak_data)
 		end
 		return 1
 	end
+	self.global_value_category = {}
+	self.global_value_category.dlc = {}
+	self.global_value_category.dlc.name_id = "bm_menu_dlc"
+	self.global_value_category.dlc.sort_number = 10
+	self.global_value_category.global_event = {}
+	self.global_value_category.global_event.name_id = "bm_menu_global_event"
+	self.global_value_category.global_event.sort_number = 20
+	self.global_value_category.infamous = {}
+	self.global_value_category.infamous.name_id = "bm_global_value_infamous"
+	self.global_value_category.infamous.sort_number = 30
 	self.global_values = {}
 	self.global_values.normal = {}
 	self.global_values.normal.name_id = "bm_global_value_normal"
@@ -135,6 +145,7 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.normal.drops = true
 	self.global_values.normal.track = false
 	self.global_values.normal.sort_number = 0
+	self.global_values.normal.category = nil
 	self.global_values.superior = {}
 	self.global_values.superior.name_id = "bm_global_value_superior"
 	self.global_values.superior.desc_id = "menu_l_global_value_superior"
@@ -145,7 +156,8 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.superior.durability_multiplier = 1.5
 	self.global_values.superior.drops = false
 	self.global_values.superior.track = false
-	self.global_values.superior.sort_number = 100
+	self.global_values.superior.sort_number = 25
+	self.global_values.superior.category = nil
 	self.global_values.exceptional = {}
 	self.global_values.exceptional.name_id = "bm_global_value_exceptional"
 	self.global_values.exceptional.desc_id = "menu_l_global_value_exceptional"
@@ -156,7 +168,8 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.exceptional.durability_multiplier = 2.25
 	self.global_values.exceptional.drops = false
 	self.global_values.exceptional.track = false
-	self.global_values.exceptional.sort_number = 200
+	self.global_values.exceptional.sort_number = 26
+	self.global_values.exceptional.category = nil
 	self.global_values.infamous = {}
 	self.global_values.infamous.name_id = "bm_global_value_infamous"
 	self.global_values.infamous.desc_id = "menu_l_global_value_infamous"
@@ -167,7 +180,21 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.infamous.durability_multiplier = 3
 	self.global_values.infamous.drops = true
 	self.global_values.infamous.track = false
-	self.global_values.infamous.sort_number = 300
+	self.global_values.infamous.sort_number = 30
+	self.global_values.infamous.category = "infamous"
+	self.global_values.infamy = {}
+	self.global_values.infamy.name_id = "bm_global_value_infamous"
+	self.global_values.infamy.desc_id = "menu_l_global_value_infamous"
+	self.global_values.infamy.color = Color(1, 0.1, 1)
+	self.global_values.infamy.dlc = false
+	self.global_values.infamy.chance = 0.05
+	self.global_values.infamy.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "infamous")
+	self.global_values.infamy.durability_multiplier = 3
+	self.global_values.infamy.drops = false
+	self.global_values.infamy.track = false
+	self.global_values.infamy.sort_number = 35
+	self.global_values.infamy.hide_unavailable = true
+	self.global_values.infamy.category = "infamous"
 	self.global_values.preorder = {}
 	self.global_values.preorder.name_id = "bm_global_value_preorder"
 	self.global_values.preorder.desc_id = "menu_l_global_value_preorder"
@@ -178,8 +205,9 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.preorder.durability_multiplier = 1
 	self.global_values.preorder.drops = false
 	self.global_values.preorder.track = true
-	self.global_values.preorder.sort_number = -5
+	self.global_values.preorder.sort_number = -10
 	self.global_values.preorder.hide_unavailable = true
+	self.global_values.preorder.category = "dlc"
 	self.global_values.pd2_clan = {}
 	self.global_values.pd2_clan.name_id = "bm_global_value_pd2_clan"
 	self.global_values.pd2_clan.desc_id = "menu_l_global_value_pd2_clan"
@@ -191,18 +219,9 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.pd2_clan.durability_multiplier = 1
 	self.global_values.pd2_clan.drops = true
 	self.global_values.pd2_clan.track = true
-	self.global_values.pd2_clan.sort_number = 0
-	self.global_values.overkill = {}
-	self.global_values.overkill.name_id = "bm_global_value_overkill"
-	self.global_values.overkill.desc_id = "menu_l_global_value_overkill"
-	self.global_values.overkill.color = Color(1, 0, 0)
-	self.global_values.overkill.dlc = true
-	self.global_values.overkill.chance = 1
-	self.global_values.overkill.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "overkill")
-	self.global_values.overkill.durability_multiplier = 1
-	self.global_values.overkill.drops = false
-	self.global_values.overkill.track = true
-	self.global_values.overkill.sort_number = 0
+	self.global_values.pd2_clan.sort_number = -100
+	self.global_values.pd2_clan.unique_lock_icon = "guis/textures/pd2/lock_community"
+	self.global_values.pd2_clan.category = "pd2_clan"
 	self.global_values.halloween = {}
 	self.global_values.halloween.name_id = "bm_global_value_halloween"
 	self.global_values.halloween.desc_id = "menu_l_global_value_halloween"
@@ -212,14 +231,110 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.halloween.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "halloween")
 	self.global_values.halloween.durability_multiplier = 1
 	self.global_values.halloween.drops = true
-	self.global_values.halloween.track = false
-	self.global_values.halloween.sort_number = 200
+	self.global_values.halloween.track = true
+	self.global_values.halloween.sort_number = 50
+	self.global_values.halloween.hide_unavailable = true
+	self.global_values.halloween.category = "global_event"
+	self.global_values.xmas = {}
+	self.global_values.xmas.name_id = "bm_global_value_xmas"
+	self.global_values.xmas.desc_id = "menu_l_global_value_xmas"
+	self.global_values.xmas.color = Color(255, 247, 86, 105) / 255
+	self.global_values.xmas.dlc = false
+	self.global_values.xmas.chance = 1
+	self.global_values.xmas.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "xmas")
+	self.global_values.xmas.durability_multiplier = 1
+	self.global_values.xmas.drops = true
+	self.global_values.xmas.track = true
+	self.global_values.xmas.sort_number = 60
+	self.global_values.xmas.hide_unavailable = true
+	self.global_values.xmas.category = "global_event"
+	self.global_values.xmas_soundtrack = {}
+	self.global_values.xmas_soundtrack.name_id = "bm_global_value_xmas_soundtrack"
+	self.global_values.xmas_soundtrack.desc_id = "menu_l_global_value_xmas_soundtrack"
+	self.global_values.xmas_soundtrack.unlock_id = "bm_global_value_xmas_soundtrack_unlock"
+	self.global_values.xmas_soundtrack.color = Color(255, 247, 86, 105) / 255
+	self.global_values.xmas_soundtrack.dlc = true
+	self.global_values.xmas_soundtrack.chance = 1
+	self.global_values.xmas_soundtrack.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "xmas_soundtrack")
+	self.global_values.xmas_soundtrack.durability_multiplier = 1
+	self.global_values.xmas_soundtrack.drops = true
+	self.global_values.xmas_soundtrack.track = true
+	self.global_values.xmas_soundtrack.sort_number = 60
+	self.global_values.xmas_soundtrack.hide_unavailable = false
+	self.global_values.xmas_soundtrack.category = "dlc"
+	self.global_values.armored_transport = {}
+	self.global_values.armored_transport.name_id = "bm_global_value_armored_transport"
+	self.global_values.armored_transport.desc_id = "menu_l_global_value_armored_transport"
+	self.global_values.armored_transport.unlock_id = "bm_global_value_armored_transport_unlock"
+	self.global_values.armored_transport.color = Color(255, 255, 212, 0) / 255
+	self.global_values.armored_transport.dlc = true
+	self.global_values.armored_transport.chance = 1
+	self.global_values.armored_transport.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "armored_transport")
+	self.global_values.armored_transport.durability_multiplier = 1
+	self.global_values.armored_transport.drops = true
+	self.global_values.armored_transport.track = true
+	self.global_values.armored_transport.sort_number = 70
+	self.global_values.armored_transport.category = "dlc"
+	self.global_values.gage_pack = {}
+	self.global_values.gage_pack.name_id = "bm_global_value_gage_pack"
+	self.global_values.gage_pack.desc_id = "menu_l_global_value_gage_pack"
+	self.global_values.gage_pack.unlock_id = "bm_global_value_gage_pack_unlock"
+	self.global_values.gage_pack.color = Color(255, 255, 212, 0) / 255
+	self.global_values.gage_pack.dlc = true
+	self.global_values.gage_pack.chance = 1
+	self.global_values.gage_pack.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "gage_pack")
+	self.global_values.gage_pack.durability_multiplier = 1
+	self.global_values.gage_pack.drops = true
+	self.global_values.gage_pack.track = true
+	self.global_values.gage_pack.sort_number = 80
+	self.global_values.gage_pack.category = "dlc"
+	self.global_values.gage_pack_lmg = {}
+	self.global_values.gage_pack_lmg.name_id = "bm_global_value_gage_pack"
+	self.global_values.gage_pack_lmg.desc_id = "menu_l_global_value_gage_pack"
+	self.global_values.gage_pack_lmg.unlock_id = "bm_global_value_gage_pack_lmg_unlock"
+	self.global_values.gage_pack_lmg.color = Color(255, 255, 212, 0) / 255
+	self.global_values.gage_pack_lmg.dlc = true
+	self.global_values.gage_pack_lmg.chance = 1
+	self.global_values.gage_pack_lmg.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "gage_pack_lmg")
+	self.global_values.gage_pack_lmg.durability_multiplier = 1
+	self.global_values.gage_pack_lmg.drops = true
+	self.global_values.gage_pack_lmg.track = true
+	self.global_values.gage_pack_lmg.sort_number = 81
+	self.global_values.gage_pack_lmg.category = "dlc"
+	self.global_values.legendary = {}
+	self.global_values.legendary.name_id = "bm_global_value_legendary"
+	self.global_values.legendary.desc_id = "menu_l_global_value_legendary"
+	self.global_values.legendary.color = Color(255, 0, 255, 212) / 255
+	self.global_values.legendary.dlc = false
+	self.global_values.legendary.chance = 1
+	self.global_values.legendary.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "legendary")
+	self.global_values.legendary.durability_multiplier = 1
+	self.global_values.legendary.drops = false
+	self.global_values.legendary.track = false
+	self.global_values.legendary.sort_number = 50
+	self.global_values.legendary.category = nil
+	self.global_values.sweettooth = {}
+	self.global_values.sweettooth.name_id = "bm_global_value_sweettooth"
+	self.global_values.sweettooth.desc_id = "menu_l_global_value_sweettooth"
+	self.global_values.sweettooth.unlock_id = "bm_global_value_sweettooth_unlock"
+	self.global_values.sweettooth.color = Color(255, 59, 174, 254) / 255
+	self.global_values.sweettooth.dlc = true
+	self.global_values.sweettooth.chance = 1
+	self.global_values.sweettooth.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "sweettooth")
+	self.global_values.sweettooth.durability_multiplier = 1
+	self.global_values.sweettooth.drops = true
+	self.global_values.sweettooth.track = true
+	self.global_values.sweettooth.sort_number = 200
+	self.global_values.sweettooth.category = nil
 	self.global_value_list_index = {
 		"normal",
 		"infamous",
 		"pre_order",
 		"pd2_clan",
-		"halloween"
+		"halloween",
+		"xmas",
+		"armored_transport",
+		"gage_pack"
 	}
 	self.global_value_list_map = {}
 	for i, d in ipairs(self.global_value_list_index) do

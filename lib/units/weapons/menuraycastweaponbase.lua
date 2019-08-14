@@ -194,6 +194,8 @@ function NewRaycastWeaponBase:toggle_gadget()
 		gadget.unit:base():set_state(self._gadget_on)
 	end
 end
+function NewRaycastWeaponBase:toggle_firemode()
+end
 function NewRaycastWeaponBase:check_stats()
 	local base_stats = self:weapon_tweak_data().stats
 	if not base_stats then

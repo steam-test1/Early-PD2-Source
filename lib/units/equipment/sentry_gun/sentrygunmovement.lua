@@ -242,6 +242,10 @@ function SentryGunMovement:switch_off()
 	self._switched_off = true
 	self._switch_off_rot = Rotation(self._m_rot:x(), -35)
 end
+function SentryGunMovement:switch_on()
+	self._switched_off = false
+	self:set_active(true)
+end
 function SentryGunMovement:save(save_data)
 	local my_save_data = {}
 	if self._attention then

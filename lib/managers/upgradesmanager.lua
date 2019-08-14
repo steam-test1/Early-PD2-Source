@@ -124,6 +124,23 @@ function UpgradesManager:aquire_default(id)
 	local upgrade = tweak_data.upgrades.definitions[id]
 	self:_aquire_upgrade(upgrade, id)
 end
+function UpgradesManager:enable_weapon(id)
+	if not tweak_data.upgrades.definitions[id] then
+		Application:error("Tried to aquire an upgrade that doesn't exist: " .. (id or "nil") .. "")
+		return
+	end
+	if self._global.aquired[id] then
+		Application:error("Tried to aquire an upgrade that has allready been aquired: " .. id .. "")
+		return
+	end
+	local upgrade = tweak_data.upgrades.definitions[id]
+	if upgrade.dlc and (tweak_data.dlc[upgrade.dlc] and tweak_data.dlc[upgrade.dlc].free or not managers.dlc:has_dlc(upgrade.dlc)) then
+		Application:error("Tried to aquire an upgrade locked to a dlc you do not have: " .. id .. " DLC: ", upgrade.dlc)
+		return
+	end
+	self._global.aquired[id] = true
+	managers.player:aquire_weapon(upgrade, id)
+end
 function UpgradesManager:aquire(id, loading)
 	if not tweak_data.upgrades.definitions[id] then
 		Application:error("Tried to aquire an upgrade that doesn't exist: " .. (id or "nil") .. "")
@@ -133,9 +150,13 @@ function UpgradesManager:aquire(id, loading)
 		Application:error("Tried to aquire an upgrade that has allready been aquired: " .. id .. "")
 		return
 	end
+	local upgrade = tweak_data.upgrades.definitions[id]
+	if upgrade.dlc and (tweak_data.dlc[upgrade.dlc] and tweak_data.dlc[upgrade.dlc].free or not managers.dlc:has_dlc(upgrade.dlc)) then
+		Application:error("Tried to aquire an upgrade locked to a dlc you do not have: " .. id .. " DLC: ", upgrade.dlc)
+		return
+	end
 	local level = managers.experience:current_level() + 1
 	self._global.aquired[id] = true
-	local upgrade = tweak_data.upgrades.definitions[id]
 	self:_aquire_upgrade(upgrade, id, loading)
 	self:setup_current_weapon()
 end
@@ -271,14 +292,15 @@ function UpgradesManager:get_value(upgrade_id)
 		local weapon_id = upgrade.weapon_id
 		local is_default_weapon = table.contains(default_weapons, weapon_id) and true or false
 		local weapon_level = 0
+		local new_weapon_id = tweak_data.weapon[weapon_id].parent_weapon_id or weapon_id
 		for level, data in pairs(tweak_data.upgrades.level_tree) do
 			local upgrades = data.upgrades
-			if upgrades and table.contains(upgrades, weapon_id) then
+			if upgrades and table.contains(upgrades, new_weapon_id) then
 				weapon_level = level
 			else
 			end
 		end
-		return is_default_weapon, weapon_level
+		return is_default_weapon, weapon_level, weapon_id ~= new_weapon_id
 	end
 	print("no value for", upgrade_id, upgrade.category)
 end

@@ -1,4 +1,7 @@
 TripMineBase = TripMineBase or class(UnitBase)
+TripMineBase.EVENT_IDS = {}
+TripMineBase.EVENT_IDS.sensor_beep = 1
+TripMineBase.EVENT_IDS.explosion_beep = 2
 function TripMineBase.spawn(pos, rot, sensor_upgrade)
 	local unit = World:spawn_unit(Idstring("units/payday2/equipment/gen_equipment_tripmine/gen_equipment_tripmine"), pos, rot)
 	managers.network:session():send_to_peers_synched("sync_trip_mine_setup", unit, sensor_upgrade)
@@ -181,7 +184,7 @@ function TripMineBase:_sensor(t)
 			self._sensor_units_detected[ray.unit:key()] = true
 			self:_emit_sensor_sound_and_effect()
 			if managers.network:session() then
-				managers.network:session():send_to_peers_synched("sync_trip_mine_beep_sensor", self._unit)
+				managers.network:session():send_to_peers_synched("sync_unit_event_id_8", self._unit, "base", TripMineBase.EVENT_IDS.sensor_beep)
 			end
 			self._sensor_last_unit_time = t + 5
 		end
@@ -217,7 +220,7 @@ function TripMineBase:_check()
 		self._explode_ray = ray
 		self._unit:sound_source():post_event("trip_mine_beep_explode")
 		if managers.network:session() then
-			managers.network:session():send_to_peers_synched("sync_trip_mine_beep_explode", self._unit)
+			managers.network:session():send_to_peers_synched("sync_unit_event_id_8", self._unit, "base", TripMineBase.EVENT_IDS.explosion_beep)
 		end
 	end
 end
@@ -278,13 +281,16 @@ function TripMineBase:_explode(col_ray)
 			mvector3.direction(dir, self._ray_from_pos, dir)
 			if apply_dmg then
 				local normal = dir
-				hit_body:extension().damage:damage_explosion(player, normal, hit_body:position(), dir, damage)
-				hit_body:extension().damage:damage_damage(player, normal, hit_body:position(), dir, damage)
+				local prop_damage = math.min(damage, 200)
+				local network_damage = math.ceil(prop_damage * 163.84)
+				prop_damage = network_damage / 163.84
+				hit_body:extension().damage:damage_explosion(player, normal, hit_body:position(), dir, prop_damage)
+				hit_body:extension().damage:damage_damage(player, normal, hit_body:position(), dir, prop_damage)
 				if hit_body:unit():id() ~= -1 then
 					if player then
-						managers.network:session():send_to_peers_synched("sync_body_damage_explosion", hit_body, player, normal, hit_body:position(), dir, damage)
+						managers.network:session():send_to_peers_synched("sync_body_damage_explosion", hit_body, player, normal, hit_body:position(), dir, math.min(32768, network_damage))
 					else
-						managers.network:session():send_to_peers_synched("sync_body_damage_explosion_no_attacker", hit_body, normal, hit_body:position(), dir, damage)
+						managers.network:session():send_to_peers_synched("sync_body_damage_explosion_no_attacker", hit_body, normal, hit_body:position(), dir, math.min(32768, network_damage))
 					end
 				end
 			end
@@ -357,12 +363,19 @@ function TripMineBase:_play_sound_and_effects()
 	local sound_source = SoundDevice:create_source("TripMineBase")
 	sound_source:set_position(self._unit:position())
 	sound_source:post_event("trip_mine_explode")
-	managers.enemy:add_delayed_clbk("TrMiexpl", callback(TripMineBase, TripMineBase, "_dispose_of_sound", {sound_source = sound_source}), TimerManager:game():time() + 2)
+	managers.enemy:add_delayed_clbk("TrMiexpl", callback(TripMineBase, TripMineBase, "_dispose_of_sound", {sound_source = sound_source}), TimerManager:game():time() + 4)
 end
 function TripMineBase:_emit_sensor_sound_and_effect()
 	self._unit:sound_source():post_event("trip_mine_sensor_alarm")
 end
 function TripMineBase._dispose_of_sound(...)
+end
+function TripMineBase:sync_net_event(event_id)
+	if event_id == TripMineBase.EVENT_IDS.sensor_beep then
+		self:sync_trip_mine_beep_sensor()
+	elseif event_id == TripMineBase.EVENT_IDS.explosion_beep then
+		self:sync_trip_mine_beep_explode()
+	end
 end
 function TripMineBase:_give_explosion_damage(col_ray, unit, damage)
 	local action_data = {}

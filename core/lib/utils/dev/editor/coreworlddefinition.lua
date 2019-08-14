@@ -661,6 +661,7 @@ function WorldDefinition:assign_unit_data(unit, data)
 	self:_setup_disable_on_ai_graph(unit, data)
 	self:_add_to_portal(unit, data)
 	self:_setup_projection_light(unit, data)
+	self:_setup_ladder(unit, data)
 	self:_project_assign_unit_data(unit, data)
 end
 function WorldDefinition:_setup_unit_id(unit, data)
@@ -735,6 +736,17 @@ function WorldDefinition:_setup_editable_gui(unit, data)
 	if not Application:editor() then
 		unit:editable_gui():lock_gui()
 	end
+end
+function WorldDefinition:_setup_ladder(unit, data)
+	if not data.ladder then
+		return
+	end
+	if not unit:ladder() then
+		Application:error("Unit has ladder data saved but no ladder extension. No ladder data will be loaded.")
+		return
+	end
+	unit:ladder():set_width(data.ladder.width)
+	unit:ladder():set_height(data.ladder.height)
 end
 function WorldDefinition:external_set_only_visible_in_editor(unit)
 	self:_set_only_visible_in_editor(unit, nil)

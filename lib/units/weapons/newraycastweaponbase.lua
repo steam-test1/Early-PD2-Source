@@ -89,10 +89,13 @@ end
 function NewRaycastWeaponBase:got_silencer()
 	return self._silencer
 end
+local ids_single = Idstring("single")
+local ids_auto = Idstring("auto")
 function NewRaycastWeaponBase:_update_stats_values()
 	self:_check_sound_switch()
 	self._silencer = managers.weapon_factory:has_perk("silencer", self._factory_id, self._blueprint)
-	self._fire_mode = managers.weapon_factory:has_perk("fire_mode_auto", self._factory_id, self._blueprint) and "auto" or managers.weapon_factory:has_perk("fire_mode_single", self._factory_id, self._blueprint) and "single" or tweak_data.weapon[self._name_id].FIRE_MODE or "single"
+	self._locked_fire_mode = (not managers.weapon_factory:has_perk("fire_mode_auto", self._factory_id, self._blueprint) or not ids_auto) and managers.weapon_factory:has_perk("fire_mode_single", self._factory_id, self._blueprint) and ids_single
+	self._fire_mode = self._locked_fire_mode or Idstring(self:weapon_tweak_data().FIRE_MODE or "single")
 	if self._silencer then
 		self._muzzle_effect = Idstring(self:weapon_tweak_data().muzzleflash_silenced or "effects/payday2/particles/weapons/9mm_auto_silence_fps")
 	else
@@ -153,6 +156,9 @@ end
 function NewRaycastWeaponBase:replenish()
 	local ammo_max_multiplier = managers.player:upgrade_value("player", "extra_ammo_multiplier", 1)
 	ammo_max_multiplier = ammo_max_multiplier * managers.player:upgrade_value(self:weapon_tweak_data().category, "extra_ammo_multiplier", 1)
+	if managers.player:has_category_upgrade("player", "add_armor_stat_skill_ammo_mul") then
+		ammo_max_multiplier = ammo_max_multiplier * managers.player:body_armor_value("skill_ammo_mul", nil, 1)
+	end
 	local ammo_max_per_clip = self:calculate_ammo_max_per_clip()
 	local ammo_max = math.round((tweak_data.weapon[self._name_id].AMMO_MAX + managers.player:upgrade_value(self._name_id, "clip_amount_increase") * ammo_max_per_clip) * ammo_max_multiplier)
 	self:set_ammo_max_per_clip(ammo_max_per_clip)
@@ -240,28 +246,73 @@ function NewRaycastWeaponBase:on_disabled(...)
 	self:gadget_off()
 	self:_set_parts_enabled(false)
 end
+function NewRaycastWeaponBase:fire_mode()
+	self._fire_mode = self._locked_fire_mode or self._fire_mode or Idstring(tweak_data.weapon[self._name_id].FIRE_MODE or "single")
+	return self._fire_mode == ids_single and "single" or "auto"
+end
+function RaycastWeaponBase:recoil_wait()
+	local tweak_is_auto = tweak_data.weapon[self._name_id].FIRE_MODE == "auto"
+	local weapon_is_auto = self:fire_mode() == "auto"
+	if not tweak_is_auto then
+		return nil
+	end
+	local multiplier = tweak_is_auto == weapon_is_auto and 1 or 2
+	return self:weapon_tweak_data().fire_mode_data.fire_rate * multiplier
+end
+function NewRaycastWeaponBase:can_toggle_firemode()
+	return tweak_data.weapon[self._name_id].CAN_TOGGLE_FIREMODE
+end
+function NewRaycastWeaponBase:toggle_firemode()
+	local can_toggle = not self._locked_fire_mode and self:can_toggle_firemode()
+	if can_toggle then
+		if self._fire_mode == ids_single then
+			self._fire_mode = ids_auto
+			self._sound_fire:post_event("wp_auto_switch_on")
+		else
+			self._fire_mode = ids_single
+			self._sound_fire:post_event("wp_auto_switch_off")
+		end
+		return true
+	end
+	return false
+end
 function NewRaycastWeaponBase:has_gadget()
-	return managers.weapon_factory:get_part_from_weapon_by_type("gadget", self._parts) and true or false
+	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
+	return #gadgets > 0 and true or false
 end
 function NewRaycastWeaponBase:gadget_on()
 	self._gadget_on = true
-	local gadget = managers.weapon_factory:get_part_from_weapon_by_type("gadget", self._parts)
-	if gadget then
-		gadget.unit:base():set_state(self._gadget_on, self._sound_fire)
+	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
+	if gadgets then
+		for _, gadget in ipairs(gadgets) do
+			gadget.unit:base():set_state(self._gadget_on, self._sound_fire)
+		end
 	end
 end
 function NewRaycastWeaponBase:gadget_off()
 	self._gadget_on = false
-	local gadget = managers.weapon_factory:get_part_from_weapon_by_type("gadget", self._parts)
-	if gadget then
-		gadget.unit:base():set_state(self._gadget_on, self._sound_fire)
+	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
+	if gadgets then
+		for _, gadget in ipairs(gadgets) do
+			gadget.unit:base():set_state(self._gadget_on, self._sound_fire)
+		end
 	end
 end
 function NewRaycastWeaponBase:toggle_gadget()
 	self._gadget_on = not self._gadget_on
-	local gadget = managers.weapon_factory:get_part_from_weapon_by_type("gadget", self._parts)
-	if gadget then
-		gadget.unit:base():set_state(self._gadget_on, self._sound_fire)
+	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
+	if gadgets then
+		for _, gadget in ipairs(gadgets) do
+			gadget.unit:base():set_state(self._gadget_on, self._sound_fire)
+		end
+	end
+end
+function NewRaycastWeaponBase:gadget_update()
+	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
+	if gadgets then
+		for _, gadget in ipairs(gadgets) do
+			gadget.unit:base():set_state(self._enabled and self._gadget_on, self._sound_fire)
+		end
 	end
 end
 function NewRaycastWeaponBase:check_stats()
@@ -300,17 +351,24 @@ function NewRaycastWeaponBase:_get_spread(user_unit)
 	local spread_multiplier = self:spread_multiplier(current_state)
 	return self._spread * spread_multiplier
 end
+function NewRaycastWeaponBase:fire_rate_multiplier()
+	local user_unit = self._setup and self._setup.user_unit
+	local current_state = alive(user_unit) and user_unit:movement() and user_unit:movement()._current_state
+	return managers.blackmarket:fire_rate_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer, nil, current_state, self._blueprint)
+end
 function NewRaycastWeaponBase:damage_multiplier()
-	return managers.blackmarket:damage_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer)
+	local user_unit = self._setup and self._setup.user_unit
+	local current_state = alive(user_unit) and user_unit:movement() and user_unit:movement()._current_state
+	return managers.blackmarket:damage_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer, nil, current_state, self._blueprint)
 end
 function NewRaycastWeaponBase:melee_damage_multiplier()
 	return managers.player:upgrade_value(self._name_id, "melee_multiplier", 1)
 end
 function NewRaycastWeaponBase:spread_multiplier(current_state)
-	return managers.blackmarket:accuracy_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer, current_state, self:fire_mode())
+	return managers.blackmarket:accuracy_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer, current_state, self:fire_mode(), self._blueprint)
 end
 function NewRaycastWeaponBase:recoil_multiplier()
-	return managers.blackmarket:recoil_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer)
+	return managers.blackmarket:recoil_multiplier(self._name_id, self:weapon_tweak_data().category, self._silencer, self._blueprint)
 end
 function NewRaycastWeaponBase:enter_steelsight_speed_multiplier()
 	local multiplier = 1
@@ -335,6 +393,12 @@ function NewRaycastWeaponBase:reload_speed_multiplier()
 	multiplier = multiplier + (1 - managers.player:upgrade_value(self:weapon_tweak_data().category, "reload_speed_multiplier", 1))
 	multiplier = multiplier + (1 - managers.player:upgrade_value("weapon", "passive_reload_speed_multiplier", 1))
 	multiplier = multiplier + (1 - managers.player:upgrade_value(self._name_id, "reload_speed_multiplier", 1))
+	if self._setup and alive(self._setup.user_unit) and self._setup.user_unit:movement() then
+		local morale_boost_bonus = self._setup.user_unit:movement():morale_boost()
+		if morale_boost_bonus then
+			multiplier = multiplier + (1 - morale_boost_bonus.reload_speed_bonus)
+		end
+	end
 	return self:_convert_add_to_mul(multiplier)
 end
 function NewRaycastWeaponBase:destroy(unit)

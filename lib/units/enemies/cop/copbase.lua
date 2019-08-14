@@ -110,16 +110,25 @@ do
 		"ene_swat_1",
 		"ene_swat_2",
 		"ene_swat_heavy_1",
-		"ene_tazer_1",
+		"ene_tazer_1"
+	}
+	local path_string = "units/payday2/characters/"
+	local character_path = ""
+	for _, character in ipairs(payday2_characters_map) do
+		character_path = path_string .. character .. "/" .. character
+		material_translation_map[tostring(Idstring(character_path):key())] = character_path .. "_contour"
+		material_translation_map[tostring(Idstring(character_path .. "_contour"):key())] = character_path
+	end
+	local pd2_dlc1_characters_map = {
 		"civ_male_firefighter_1",
 		"civ_male_paramedic_1",
 		"civ_male_paramedic_2",
 		"ene_security_gensec_1",
 		"ene_security_gensec_2"
 	}
-	local path_string = "units/payday2/characters/"
+	local path_string = "units/pd2_dlc1/characters/"
 	local character_path = ""
-	for _, character in ipairs(payday2_characters_map) do
+	for _, character in ipairs(pd2_dlc1_characters_map) do
 		character_path = path_string .. character .. "/" .. character
 		material_translation_map[tostring(Idstring(character_path):key())] = character_path .. "_contour"
 		material_translation_map[tostring(Idstring(character_path .. "_contour"):key())] = character_path
@@ -219,78 +228,22 @@ function CopBase:chk_freeze_anims()
 		self._ext_movement:on_anim_freeze(false)
 	end
 end
-function CopBase:anim_act_clbk(unit, anim_act, nav_link)
-	if nav_link then
+function CopBase:anim_act_clbk(unit, anim_act, send_to_action)
+	if send_to_action then
 		unit:movement():on_anim_act_clbk(anim_act)
 	elseif unit:unit_data().mission_element then
 		unit:unit_data().mission_element:event(anim_act, unit)
 	end
 end
 function CopBase:save(data)
-	if self._contour_state then
-		data.base_contour_on = true
-	elseif not self._is_in_original_material then
-		data.swap_material = true
-	end
 	if self._unit:interaction() and self._unit:interaction().tweak_data == "hostage_trade" then
 		data.is_hostage_trade = true
 	end
 end
 function CopBase:load(data)
-	if data.base_contour_on or data.swap_material then
-		self._contour_on_clbk_id = "clbk_set_contour_on" .. tostring(self._unit:key())
-		managers.enemy:add_delayed_clbk(self._contour_on_clbk_id, callback(self, self, "clbk_set_contour_on", data.swap_material), TimerManager:game():time() + 1)
-	end
 	if data.is_hostage_trade then
 		CopLogicTrade.hostage_trade(self._unit, true, false)
 	end
-end
-function CopBase:clbk_set_contour_on(swap_material_only)
-	if not self._contour_on_clbk_id or not alive(self._unit) then
-		return
-	end
-	self._contour_on_clbk_id = nil
-	self:set_contour(true, swap_material_only)
-end
-local ids_materials = Idstring("material")
-local ids_contour_color = Idstring("contour_color")
-local ids_contour_opacity = Idstring("contour_opacity")
-function CopBase:set_contour(state, swap_material_only)
-	if not alive(self._unit) then
-		return
-	end
-	if (self._contour_state or false) == (state or false) then
-		return
-	end
-	if Network:is_server() then
-		self._unit:network():send("set_contour", state)
-	end
-	if not self._unit:interaction() then
-		return
-	end
-	self:swap_material_config()
-	if swap_material_only then
-		return
-	end
-	local opacity
-	if state then
-		managers.occlusion:remove_occlusion(self._unit)
-		self._unit:interaction():set_tweak_data(self._unit:interaction().orig_tweak_data_contour or "intimidate_with_contour")
-		self._unit:base():set_allow_invisible(false)
-		self:set_visibility_state(1)
-		opacity = 1
-	else
-		managers.occlusion:add_occlusion(self._unit)
-		self._unit:interaction():set_tweak_data(self._unit:interaction().orig_tweak_data or "intimidate")
-		self._unit:base():set_allow_invisible(true)
-		opacity = 0
-	end
-	local materials = self._unit:get_objects_by_type(ids_materials)
-	for _, m in ipairs(materials) do
-		m:set_variable(ids_contour_color, tweak_data.contour.interactable.standard_color)
-		m:set_variable(ids_contour_opacity, opacity)
-	end
-	self._contour_state = state
 end
 function CopBase:swap_material_config()
 	local new_material = material_translation_map[tostring(self._unit:material_config():key())]
@@ -319,9 +272,6 @@ end
 function CopBase:pre_destroy(unit)
 	if unit:unit_data().secret_assignment_id and alive(unit) then
 		managers.secret_assignment:unregister_unit(unit)
-	end
-	if self._contour_on_clbk_id then
-		managers.enemy:remove_delayed_clbk(self._contour_on_clbk_id)
 	end
 	unit:brain():pre_destroy(unit)
 	self._ext_movement:pre_destroy()

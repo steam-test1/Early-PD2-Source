@@ -262,6 +262,9 @@ function FeedBackCameraShake:set_param(name, value)
 	if name == "multiplier" then
 		return
 	end
+	if name == "name" then
+		return
+	end
 	if name == "amplitude" then
 		value = value * self._multiplier
 	end
@@ -273,7 +276,7 @@ function FeedBackCameraShake:set_param(name, value)
 end
 function FeedBackCameraShake:play(extra_params)
 	local params = managers.feedback:get_effect_table(self._name)[self._type]
-	local name = params.name
+	local name = extra_params.name or params.name
 	self._multiplier = extra_params.multiplier or 1
 	if self._unit_camera then
 		self._id = self._unit_camera:play_shaker(name, params.amplitude or 1, params.frequency or 1, params.offset or 0)

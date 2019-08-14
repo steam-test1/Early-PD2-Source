@@ -155,8 +155,13 @@ function IngameAccessCamera:add_enemy_contour(unit)
 		return
 	end
 	self._enemy_contours[unit:key()] = Application:time() + 9
-	managers.game_play_central:add_enemy_contour(unit, false)
-	managers.network:session():send_to_peers_synched("mark_enemy", unit, false)
+	local marked_extra_damage = managers.player:has_category_upgrade("player", "marked_enemy_extra_damage") or false
+	local time_multiplier = managers.player:upgrade_value("player", "mark_enemy_time_multiplier", 1)
+	if not unit:contour() then
+		debug_pause_unit(unit, "[IngameAccessCamera:add_enemy_contour]: Unit doesn't have Contour Extension")
+	end
+	unit:contour():add("mark_enemy", marked_extra_damage, time_multiplier)
+	managers.network:session():send_to_peers_synched("mark_enemy", unit, marked_extra_damage, time_multiplier)
 end
 function IngameAccessCamera:update_player_stamina(t, dt)
 	local player = managers.player:player_unit()

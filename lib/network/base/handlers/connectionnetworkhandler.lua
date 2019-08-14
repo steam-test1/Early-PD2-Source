@@ -274,12 +274,13 @@ function ConnectionNetworkHandler:lobby_sync_update_difficulty(difficulty)
 		kit_menu.renderer:sync_update_difficulty(difficulty)
 	end
 end
-function ConnectionNetworkHandler:lobby_info(peer_id, level, character, mask_set, ass_progress, sha_progress, sup_progress, tech_progress, sender)
-	print("ConnectionNetworkHandler:lobby_info", peer_id, level)
+function ConnectionNetworkHandler:lobby_info(peer_id, level, rank, character, mask_set, ass_progress, sha_progress, sup_progress, tech_progress, sender)
+	print("ConnectionNetworkHandler:lobby_info", peer_id, level, rank)
 	local peer = self._verify_sender(sender)
 	print("  IS THIS AN OK PEER?", peer and peer:id())
 	if peer then
 		peer:set_level(level)
+		peer:set_rank(rank)
 		local progress = {
 			ass_progress,
 			sha_progress,
@@ -294,6 +295,7 @@ function ConnectionNetworkHandler:lobby_info(peer_id, level, character, mask_set
 				name = peer:name(),
 				peer_id = peer_id,
 				level = level,
+				rank = rank,
 				character = character,
 				progress = progress
 			})
@@ -304,6 +306,7 @@ function ConnectionNetworkHandler:lobby_info(peer_id, level, character, mask_set
 				name = peer:name(),
 				peer_id = peer_id,
 				level = level,
+				rank = rank,
 				character = character,
 				progress = progress
 			})
@@ -461,8 +464,9 @@ function ConnectionNetworkHandler:set_member_ready(ready, sender)
 		return
 	end
 	local peer_id = peer:id()
+	local ready_state = peer:waiting_for_player_ready()
 	peer:set_waiting_for_player_ready(ready)
-	managers.network:game():on_set_member_ready(peer_id, ready)
+	managers.network:game():on_set_member_ready(peer_id, ready, ready_state ~= ready)
 	if not Network:is_server() or game_state_machine:current_state().start_game_intro then
 	elseif ready then
 		managers.network:session():chk_spawn_member_unit(peer, peer_id)
@@ -483,19 +487,19 @@ function ConnectionNetworkHandler:sync_outfit(outfit_string, sender)
 	end
 	peer:set_outfit_string(outfit_string)
 	if managers.menu_scene then
-		managers.menu_scene:set_lobby_character_out_fit(peer:id(), outfit_string)
+		managers.menu_scene:set_lobby_character_out_fit(peer:id(), outfit_string, peer:rank())
 	end
 	local kit_menu = managers.menu:get_menu("kit_menu")
 	if kit_menu then
 		kit_menu.renderer:set_slot_outfit(peer:id(), peer:character(), outfit_string)
 	end
 end
-function ConnectionNetworkHandler:sync_profile(level, sender)
+function ConnectionNetworkHandler:sync_profile(level, rank, sender)
 	local peer = self._verify_sender(sender)
 	if not peer then
 		return
 	end
-	peer:set_profile(level)
+	peer:set_profile(level, rank)
 end
 function ConnectionNetworkHandler:steam_p2p_ping(sender)
 	print("[ConnectionNetworkHandler:steam_p2p_ping] from", sender:ip_at_index(0), sender:protocol_at_index(0))

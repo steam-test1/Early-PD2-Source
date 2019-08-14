@@ -98,6 +98,9 @@ function ContractBoxGui:create_contract_box()
 	if self._contract_text_header and alive(self._contract_text_header) then
 		self._panel:remove(self._contract_text_header)
 	end
+	if alive(self._panel:child("pro_text")) then
+		self._panel:remove(self._panel:child("pro_text"))
+	end
 	self._contract_panel = nil
 	self._contract_text_header = nil
 	local contact_data = managers.job:current_contact_data()
@@ -318,6 +321,19 @@ function ContractBoxGui:create_contract_box()
 		end
 		wfs:set_world_rightbottom(self._contract_panel:world_right() - 5, self._contract_panel:world_bottom())
 	end
+	if self._contract_text_header and managers.job:is_current_job_professional() then
+		local pro_text = self._panel:text({
+			name = "pro_text",
+			text = managers.localization:to_upper_text("cn_menu_pro_job"),
+			font_size = tweak_data.menu.pd2_medium_font_size,
+			font = tweak_data.menu.pd2_medium_font,
+			color = tweak_data.screen_colors.pro_color,
+			blend_mode = "add"
+		})
+		local x, y, w, h = pro_text:text_rect()
+		pro_text:set_size(w, h)
+		pro_text:set_position(self._contract_text_header:right() + 10, self._contract_text_header:y())
+	end
 	BoxGuiObject:new(self._contract_panel, {
 		sides = {
 			1,
@@ -346,7 +362,7 @@ function ContractBoxGui:update(t, dt)
 		self:update_character(i)
 	end
 end
-function ContractBoxGui:create_character_text(peer_id, x, y, text)
+function ContractBoxGui:create_character_text(peer_id, x, y, text, icon)
 	self._peers = self._peers or {}
 	local color_id = peer_id
 	local color = tweak_data.chat_colors[color_id]
@@ -380,6 +396,21 @@ function ContractBoxGui:create_character_text(peer_id, x, y, text)
 	})
 	self._peers_state[peer_id]:set_top(self._peers[peer_id]:bottom())
 	self._peers_state[peer_id]:set_center_x(self._peers[peer_id]:center_x())
+	if icon then
+		local texture = tweak_data.hud_icons:get_icon_data("infamy_icon")
+		self._peers_icon = self._peers_icon or {}
+		self._peers_icon[peer_id] = self._peers_icon[peer_id] or self._panel:bitmap({
+			w = 16,
+			h = 32,
+			texture = texture,
+			color = color
+		})
+		self._peers_icon[peer_id]:set_right(self._peers[peer_id]:x())
+		self._peers_icon[peer_id]:set_top(self._peers[peer_id]:y())
+	elseif self._peers_icon and self._peers_icon[peer_id] then
+		self._panel:remove(self._peers_icon[peer_id])
+		self._peers_icon[peer_id] = nil
+	end
 end
 function ContractBoxGui:update_character(peer_id)
 	if not peer_id or not managers.network:session() then
@@ -388,19 +419,24 @@ function ContractBoxGui:update_character(peer_id)
 	local x = 0
 	local y = 0
 	local text = ""
+	local player_rank = 0
 	local peer = managers.network:session():peer(peer_id)
 	if peer then
 		local local_peer = managers.network:session() and managers.network:session():local_peer()
 		local peer_pos = managers.menu_scene:character_screen_position(peer_id)
 		x = peer_pos.x
 		y = peer_pos.y
-		if peer ~= local_peer or not managers.experience:current_level() then
+		text = peer:name()
+		local player_level = peer == local_peer and managers.experience:current_level() or peer:level()
+		if player_level then
+			player_rank = peer == local_peer and managers.experience:current_rank() or peer:rank()
+			local experience = (player_rank > 0 and managers.experience:rank_string(player_rank) .. "-" or "") .. player_level
+			text = text .. " (" .. experience .. ")"
 		end
-		text = peer:name() .. " (" .. tostring((peer:level())) .. ")"
 	else
 		self:update_character_menu_state(peer_id, nil)
 	end
-	self:create_character_text(peer_id, x, y, text)
+	self:create_character_text(peer_id, x, y, text, player_rank > 0)
 end
 function ContractBoxGui:update_character_menu_state(peer_id, state)
 	if not self._peers_state then

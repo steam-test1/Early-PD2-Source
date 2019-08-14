@@ -13,9 +13,14 @@ GroupAIStateBase.BLAME_SYNC = {
 	"met_criminal",
 	"mot_criminal",
 	"gls_alarm",
+	"sys_blackmailer",
+	"sys_gensec",
+	"sys_police_alerted",
+	"sys_csgo_gunfire",
 	"civ_alarm",
 	"cop_alarm",
 	"gan_alarm",
+	"gan_crate_open",
 	"cam_criminal",
 	"cam_gunfire",
 	"cam_dead_body",
@@ -34,6 +39,7 @@ GroupAIStateBase.BLAME_SYNC = {
 	"cam_voting",
 	"cam_glass",
 	"cam_breaking_entering",
+	"cam_crate_open",
 	"cam_distress",
 	"civ_criminal",
 	"civ_gunfire",
@@ -52,6 +58,7 @@ GroupAIStateBase.BLAME_SYNC = {
 	"civ_voting",
 	"civ_glass",
 	"civ_breaking_entering",
+	"civ_crate_open",
 	"civ_distress",
 	"cop_criminal",
 	"cop_gunfire",
@@ -70,7 +77,13 @@ GroupAIStateBase.BLAME_SYNC = {
 	"cop_voting",
 	"cop_glass",
 	"cop_breaking_entering",
+	"cop_crate_open",
 	"cop_distress",
+	"sys_explosion",
+	"civ_explosion",
+	"cop_explosion",
+	"gan_explosion",
+	"cam_explosion",
 	"default"
 }
 GroupAIStateBase.EVENT_SYNC = {
@@ -538,6 +551,19 @@ end
 function GroupAIStateBase:hostage_count()
 	return self._hostage_headcount
 end
+function GroupAIStateBase:has_room_for_police_hostage()
+	local global_limit = 1
+	for u_key, u_data in pairs(self._player_criminals) do
+		local limit
+		if u_data.unit:base().is_local_player then
+			limit = managers.player:upgrade_value("player", "ene_hostage_lim_1", 1)
+		else
+			limit = u_data.unit:base():upgrade_value("player", "ene_hostage_lim_1")
+		end
+		global_limit = limit and math.max(global_limit, limit) or global_limit
+	end
+	return global_limit > self._police_hostage_headcount
+end
 GroupAIStateBase.PATH = "gamedata/comments"
 GroupAIStateBase.FILE_EXTENSION = "comment"
 GroupAIStateBase.FULL_PATH = GroupAIStateBase.PATH .. "." .. GroupAIStateBase.FILE_EXTENSION
@@ -834,6 +860,9 @@ function GroupAIStateBase:on_enemy_disengaging(unit, other_u_key)
 end
 function GroupAIStateBase:on_tase_start(cop_key, criminal_key)
 	self._criminals[criminal_key].being_tased = cop_key
+	if managers.player:player_unit() and alive(self._criminals[criminal_key].unit) and self._criminals[criminal_key].unit:key() == managers.player:player_unit():key() and managers.blackmarket:equipped_mask().mask_id == tweak_data.achievement.its_alive_its_alive.mask then
+		managers.achievment:award_progress(tweak_data.achievement.its_alive_its_alive.stat)
+	end
 end
 function GroupAIStateBase:on_tase_end(criminal_key)
 	local record = self._criminals[criminal_key]
@@ -913,6 +942,9 @@ function GroupAIStateBase:on_simulation_ended()
 	self._hostage_data = {}
 	self._spawn_events = {}
 	self._special_objectives = {}
+	self._recurring_grp_SO = nil
+	self._grp_SO = nil
+	self._grp_SO_task_queue = nil
 	self._occasional_events = {}
 	self._attention_objects = {
 		all = {}
@@ -1689,6 +1721,141 @@ function GroupAIStateBase:remove_special_objective(id)
 		return
 	end
 end
+function GroupAIStateBase:add_grp_SO(id, element)
+end
+function GroupAIStateBase:remove_grp_SO(id)
+	if self._grp_SO_task_queue then
+		table.insert(self._grp_SO_task_queue, {"rem", id})
+	elseif self._grp_SO then
+		self._grp_SO[id] = nil
+	end
+end
+function GroupAIStateBase:_upd_grp_SO()
+	if self._grp_SO then
+		self._grp_SO_task_queue = {}
+		for grp_so_id, element in pairs(self._grp_SO) do
+			self:_process_grp_SO(grp_so_id, element)
+		end
+		self._grp_SO = nil
+		local task_queue = self._grp_SO_task_queue
+		self._grp_SO_task_queue = nil
+		for _, task_info in ipairs(task_queue) do
+			if task_info[1] == "add" then
+				self:add_grp_SO(task_info[2], task_info[3])
+			else
+				self:remove_grp_SO(task_info[2])
+			end
+		end
+	end
+	if self._recurring_grp_SO and not next(self._spawning_groups) then
+		for recurring_id, data in pairs(self._recurring_grp_SO) do
+			if self:_process_recurring_grp_SO(recurring_id, data) then
+			else
+			end
+		end
+	end
+end
+function GroupAIStateBase:_process_grp_SO(grp_so_id, element)
+	local mode = element:value("mode")
+	if mode ~= "forced_spawn" then
+		self._recurring_grp_SO = self._recurring_grp_SO or {}
+		if not self._recurring_grp_SO[mode] then
+			self._recurring_grp_SO[mode] = {
+				elements = {},
+				delay_t = 0
+			}
+			self._recurring_grp_SO[mode].interval = tweak_data.group_ai.besiege.recurring_group_SO_intervals[mode]
+		end
+		table.insert(self._recurring_grp_SO[mode].elements, element)
+		return
+	end
+	local spawn_grp_type = element:get_SO_spawn_group_type()
+	local grp_objective = element:get_grp_objective()
+	local grp_desc = tweak_data.group_ai.enemy_spawn_groups[spawn_grp_type]
+	if not grp_desc then
+		debug_pause("[GroupAIStateBase:_process_grp_SO] Inexistent group type:", spawn_grp_type, "element_id:", grp_so_id)
+		return
+	end
+end
+function GroupAIStateBase:_process_recurring_grp_SO(recurring_id, data)
+	if self._t < data.delay_t then
+		return
+	end
+	if data.groups then
+		local junk_groups
+		for group_id, group in pairs(data.groups) do
+			if group.has_spawned then
+				local is_junk
+				if not self._groups[group_id] or self._groups[group_id] ~= group then
+					is_junk = true
+				end
+				if not is_junk then
+					is_junk = true
+					for u_key, unit_data in pairs(group.units) do
+						local objective = unit_data.unit:brain():objective()
+						if objective and objective.grp_objective == group.objective then
+							is_junk = nil
+						else
+						end
+					end
+					if is_junk then
+						if group.objective.fail_t then
+							if self._t - group.objective.fail_t < 30 then
+								is_junk = nil
+							end
+						else
+							group.objective.fail_t = self._t
+							is_junk = nil
+						end
+					end
+				end
+				if is_junk then
+					junk_groups = junk_groups or {}
+					table.insert(junk_groups, group_id)
+				end
+			end
+		end
+		if junk_groups then
+			for _, group_id in ipairs(junk_groups) do
+				local group = data.groups[group_id]
+				if next(group.units) then
+					self:_assign_group_to_retire(group)
+				end
+				data.groups[group_id] = nil
+			end
+			if not next(data.groups) then
+				data.groups = nil
+			end
+			data.delay_t = self._t + math.lerp(data.interval[1], data.interval[2], math.random())
+			return
+		end
+	end
+	local total_w = 0
+	for i, element in ipairs(data.elements) do
+		total_w = total_w + element:value("base_chance")
+	end
+	local rand_w = total_w * math.random()
+	local element
+	for i, test_element in ipairs(data.elements) do
+		rand_w = rand_w - test_element:value("base_chance")
+		if rand_w <= 0 then
+			element = test_element
+		else
+		end
+	end
+	local grp_objective = element:get_grp_objective()
+	local spawn_group, spawn_group_type = self:_find_spawn_group_near_area(grp_objective.area, tweak_data.group_ai.besiege.cloaker.groups, element:value("position"), nil, nil)
+	if not spawn_group then
+		return
+	end
+	local new_group = self:_spawn_in_group(spawn_group, spawn_group_type, grp_objective, nil)
+	if new_group then
+		data.groups = data.groups or {}
+		data.groups[new_group.id] = new_group
+	end
+	data.delay_t = self._t + 5
+	return new_group and true
+end
 function GroupAIStateBase:save(save_data)
 	local my_save_data = {}
 	save_data.group_ai = my_save_data
@@ -1830,7 +1997,7 @@ function GroupAIStateBase:spawn_one_teamAI(is_drop_in, char_name, spawn_on_unit)
 		local player_pos = player:position()
 		local tracker = player:movement():nav_tracker()
 		local spawn_pos, spawn_rot
-		if is_drop_in or spawn_on_unit then
+		if (is_drop_in or spawn_on_unit) and not self:whisper_mode() then
 			local spawn_fwd = player:movement():m_head_rot():y()
 			mvector3.set_z(spawn_fwd, 0)
 			mvector3.normalize(spawn_fwd)
@@ -2267,6 +2434,10 @@ function GroupAIStateBase:fleeing_civilians()
 end
 function GroupAIStateBase:all_hostages()
 	return self._hostage_keys
+end
+function GroupAIStateBase:is_a_hostage_within(mvec_pos, radius)
+	local units = World:find_units_quick("sphere", mvec_pos, radius, 22)
+	return units and #units > 0
 end
 function GroupAIStateBase:on_criminal_team_AI_enabled_state_changed()
 	if Network:is_client() then
@@ -3058,6 +3229,7 @@ function GroupAIStateBase.clone_objective(objective)
 	local followup_SO = objective.followup_SO
 	local grp_objective = objective.grp_objective
 	local followup_objective = objective.followup_objective
+	local element = objective.element
 	objective.complete_clbk = nil
 	objective.fail_clbk = nil
 	objective.action_start_clbk = nil
@@ -3066,6 +3238,7 @@ function GroupAIStateBase.clone_objective(objective)
 	objective.followup_SO = nil
 	objective.grp_objective = nil
 	objective.followup_objective = nil
+	objective.element = nil
 	local new_objective = deep_clone(objective)
 	objective.complete_clbk = cmpl_clbk
 	objective.fail_clbk = fail_clbk
@@ -3075,6 +3248,7 @@ function GroupAIStateBase.clone_objective(objective)
 	objective.followup_SO = followup_SO
 	objective.grp_objective = grp_objective
 	objective.followup_objective = followup_objective
+	objective.element = element
 	new_objective.complete_clbk = cmpl_clbk
 	new_objective.fail_clbk = fail_clbk
 	new_objective.action_start_clbk = act_start_clbk
@@ -3083,6 +3257,7 @@ function GroupAIStateBase.clone_objective(objective)
 	new_objective.followup_SO = followup_SO
 	new_objective.grp_objective = grp_objective
 	new_objective.followup_objective = followup_objective
+	new_objective.element = element
 	return new_objective
 end
 function GroupAIStateBase:convert_hostage_to_criminal(unit, peer_unit)
@@ -3123,7 +3298,10 @@ function GroupAIStateBase:convert_hostage_to_criminal(unit, peer_unit)
 	u_data.is_converted = true
 	unit:brain():convert_to_criminal(peer_unit)
 	unit:character_damage():add_listener("Converted" .. tostring(player_unit:key()), {"death"}, callback(self, self, "clbk_minion_dies", player_unit:key()))
-	managers.game_play_central:add_friendly_contour(unit)
+	if not unit:contour() then
+		debug_pause_unit(unit, "[GroupAIStateBase:convert_hostage_to_criminal]: Unit doesn't have Contour Extension")
+	end
+	unit:contour():add("friendly")
 	u_data.so_access = unit:brain():SO_access()
 	self._converted_police[u_key] = unit
 	minions[u_key] = unit
@@ -3371,7 +3549,11 @@ GroupAIStateBase.unique_triggers = {
 	gangster_alarm = "gan_alarm",
 	metal_detector = "met_criminal",
 	motion_sensor = "mot_criminal",
-	glass_alarm = "gls_alarm"
+	glass_alarm = "gls_alarm",
+	blackmailer = "sys_blackmailer",
+	gensec = "sys_gensec",
+	police_alerted = "sys_police_alerted",
+	csgo_gunfire = "sys_csgo_gunfire"
 }
 function GroupAIStateBase:fetch_highest_giveaway(...)
 	local giveaways = {
@@ -3398,6 +3580,9 @@ function GroupAIStateBase.analyse_giveaway(trigger_string, giveaway_unit, additi
 		return trigger_string
 	end
 	if not giveaway_unit or type(giveaway_unit) ~= "userdata" or not alive(giveaway_unit) then
+		if additional_info[1] == "explosion" then
+			return "sys_explosion"
+		end
 		return nil
 	end
 	if GroupAIStateBase.unique_triggers[trigger_string] then
@@ -3435,7 +3620,7 @@ function GroupAIStateBase.investigate_unit(giveaway_unit, additional_info)
 			investigate_coolness = true
 		elseif alert_type == "bullet" then
 			return "gunfire"
-		elseif alert_type == "aggression" then
+		elseif alert_type == "aggression" or alert_type == "explosion" then
 		end
 	end
 	if investigate_coolness then
@@ -3853,4 +4038,7 @@ function GroupAIStateBase:_upd_debug_draw_attentions()
 end
 function GroupAIStateBase:is_enemy_converted_to_criminal(unit)
 	return self._converted_police[unit:key()]
+end
+function GroupAIStateBase:get_amount_enemies_converted_to_criminals()
+	return self._converted_police and table.size(self._converted_police)
 end

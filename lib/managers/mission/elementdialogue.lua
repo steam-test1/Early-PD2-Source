@@ -11,11 +11,16 @@ function ElementDialogue:on_executed(instigator)
 		return
 	end
 	if self._values.dialogue ~= "none" then
+		local done_cbk = self._values.execute_on_executed_when_done and callback(self, self, "_done_callback", instigator) or nil
 		managers.dialog:queue_dialog(self._values.dialogue, {
-			case = managers.criminals:character_name_by_unit(instigator)
+			case = managers.criminals:character_name_by_unit(instigator),
+			done_cbk = done_cbk
 		})
 	elseif Application:editor() then
 		managers.editor:output_error("Cant start dialogue " .. self._values.dialogue .. " in element " .. self._editor_name .. ".")
 	end
-	ElementDialogue.super.on_executed(self, instigator)
+	ElementDialogue.super.on_executed(self, instigator, nil, self._values.execute_on_executed_when_done)
+end
+function ElementDialogue:_done_callback(instigator, reason)
+	ElementDialogue.super._trigger_execute_on_executed(self, instigator)
 end

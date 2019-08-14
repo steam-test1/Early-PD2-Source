@@ -36,7 +36,8 @@ function HUDPackageUnlockedItem:init(panel, row, params, hud_stage_end_screen)
 				local weapon_name = managers.weapon_factory:get_weapon_name_by_factory_id(upgrade_def.factory_id)
 				local weapon_class = managers.localization:text("menu_" .. tweak_data.weapon[upgrade_def.weapon_id].category)
 				local weapon_category = managers.localization:text("bm_menu_" .. (tweak_data.weapon[upgrade_def.weapon_id].use_data.selection_index == 2 and "primaries" or "secondaries"))
-				bitmap_texture = guis_catalog .. "textures/pd2/blackmarket/icons/weapons/" .. weapon_id
+				local texture_name = tweak_data.weapon[weapon_id].texture_name or tostring(weapon_id)
+				bitmap_texture = guis_catalog .. "textures/pd2/blackmarket/icons/weapons/" .. texture_name
 				text_string = managers.localization:text("menu_es_package_weapon", {
 					weapon = utf8.to_upper(weapon_name),
 					type = utf8.to_upper(weapon_class),
@@ -149,6 +150,73 @@ function HUDStageEndScreen:init(hud, workspace)
 		if contact_pattern then
 			self._backdrop:set_pattern(contact_pattern)
 		end
+	end
+	do
+		local padding_y = 0
+		self._paygrade_panel = self._background_layer_safe:panel({
+			h = 70,
+			w = 210,
+			y = padding_y
+		})
+		local pg_text = self._foreground_layer_safe:text({
+			name = "pg_text",
+			text = utf8.to_upper(managers.localization:text("cn_menu_contract_paygrade_header")) .. " ",
+			y = padding_y,
+			h = 32,
+			align = "right",
+			vertical = "center",
+			font_size = content_font_size,
+			font = content_font,
+			color = tweak_data.screen_colors.text
+		})
+		local _, _, w, h = pg_text:text_rect()
+		pg_text:set_size(w, h)
+		local job_stars = managers.job:has_active_job() and managers.job:current_job_stars() or 1
+		local job_and_difficulty_stars = managers.job:has_active_job() and managers.job:current_job_and_difficulty_stars() or 1
+		local difficulty_stars = job_and_difficulty_stars - job_stars
+		local filled_star_rect = {
+			0,
+			32,
+			32,
+			32
+		}
+		local empty_star_rect = {
+			32,
+			32,
+			32,
+			32
+		}
+		local num_stars = 0
+		local x = 0
+		local y = 4
+		local star_size = 18
+		local risk_color = tweak_data.screen_colors.risk
+		local level_data = {
+			texture = "guis/textures/pd2/mission_briefing/difficulty_icons",
+			texture_rect = filled_star_rect,
+			w = 16,
+			h = 16,
+			color = tweak_data.screen_colors.text,
+			alpha = 1
+		}
+		local risk_data = {
+			texture = "guis/textures/pd2/crimenet_skull",
+			w = 16,
+			h = 16,
+			color = risk_color,
+			alpha = 1
+		}
+		for i = 1, job_and_difficulty_stars do
+			local is_risk = i > job_stars
+			local star_data = is_risk and risk_data or level_data
+			local star = self._paygrade_panel:bitmap(star_data)
+			star:set_position(x, y)
+			x = x + star_size
+			num_stars = num_stars + 1
+		end
+		self._paygrade_panel:set_w(10 * star_size)
+		self._paygrade_panel:set_right(self._background_layer_safe:w())
+		pg_text:set_right(self._paygrade_panel:left())
 	end
 	self._stage_name = managers.job:current_level_id() and managers.localization:to_upper_text(tweak_data.levels[managers.job:current_level_id()].name_id) or ""
 	self._foreground_layer_safe:text({
@@ -1614,7 +1682,8 @@ function HUDStageEndScreen:animate_level_progress(o, data)
 						if bundle_folder then
 							guis_catalog = guis_catalog .. "dlcs/" .. tostring(bundle_folder) .. "/"
 						end
-						self._package_picture:set_image(guis_catalog .. "textures/pd2/blackmarket/icons/weapons/" .. weapon_id)
+						local texture_name = tweak_data.weapon[weapon_id].texture_name or tostring(weapon_id)
+						self._package_picture:set_image(guis_catalog .. "textures/pd2/blackmarket/icons/weapons/" .. texture_name)
 					else
 						self._package_picture:set_image("guis/textures/pd2/endscreen/test_icon_package")
 					end

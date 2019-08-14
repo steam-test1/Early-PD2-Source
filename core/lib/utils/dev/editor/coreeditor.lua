@@ -26,6 +26,7 @@ require("core/lib/utils/dev/editor/ews_classes/EditTriggable")
 require("core/lib/utils/dev/editor/ews_classes/EditSettings")
 require("core/lib/utils/dev/editor/ews_classes/EditVariation")
 require("core/lib/utils/dev/editor/ews_classes/EditEditableGui")
+require("core/lib/utils/dev/editor/ews_classes/EditLadder")
 require("core/lib/utils/dev/editor/ews_classes/Continents")
 require("core/lib/utils/dev/editor/ews_classes/UnhideByName")
 require("core/lib/utils/dev/editor/ews_classes/CreateWorldSettingFile")
@@ -56,6 +57,8 @@ require("core/lib/units/editor/mission/CoreRandom")
 require("core/lib/units/editor/mission/CoreGlobalEventTriggerUnitElement")
 require("core/lib/units/editor/mission/CoreTimer")
 require("core/lib/units/editor/mission/CoreLogicLink")
+require("core/lib/units/editor/mission/CoreShape")
+require("core/lib/units/editor/mission/CorePointOrientation")
 require("core/lib/units/editor/CoreDebug")
 CoreEditor = CoreEditor or class()
 require("core/lib/utils/dev/editor/CoreEditorMenubar")
@@ -329,6 +332,7 @@ function CoreEditor:_init_edit_unit_dialog()
 	EditUnitVariation:new(self)
 	EditUnitEditableGui:new(self)
 	EditUnitSettings:new(self)
+	EditLadder:new(self)
 end
 function CoreEditor:_populate_replace_unit_categories_from_layer_types()
 	for layer_name, types in pairs(CoreEditorUtils.get_layer_types()) do
@@ -1368,6 +1372,10 @@ function CoreEditor:reload_units(unit_names, small_compile)
 			if sequence_file then
 				table.insert(files, sequence_file:s() .. ".sequence_manager")
 			end
+			local material_config_file = PackageManager:unit_data(unit_name):material_config()
+			if material_config_file then
+				table.insert(files, material_config_file:s() .. ".material_config")
+			end
 			table.insert(files, managers.database:entry_relative_path(unit_name:s() .. ".unit"))
 			table.insert(files, managers.database:entry_relative_path(unit_name:s() .. ".object"))
 			table.insert(files, managers.database:entry_relative_path(unit_name:s() .. ".model"))
@@ -1723,6 +1731,11 @@ end
 function CoreEditor:set_value_info_visibility(vis)
 	self._gui:child("value"):set_visible(vis)
 end
+function CoreEditor:_help_draw_all_units(t, dt)
+	for _, unit in ipairs(Ladder.ladders) do
+		unit:ladder():debug_draw()
+	end
+end
 function CoreEditor:draw_occluders(t, dt)
 	local brush = Draw:brush()
 	local cam_pos = self._vp:camera():position()
@@ -1834,6 +1847,7 @@ function CoreEditor:update(time, rel_time)
 			self._resizing_appwin = false
 			self:resize_appwin_done()
 		end
+		self:_help_draw_all_units(time, rel_time)
 		if self._draw_occluders then
 			self:draw_occluders(time, rel_time)
 		end
@@ -2311,6 +2325,7 @@ function CoreEditor:do_save(path, dir, save_continents)
 	self:_save_cover_ai_data(dir)
 	self:_save_packages(dir)
 	self:_save_unit_stats(dir)
+	self:_save_bundle_info_files(dir)
 	self:_recompile(dir)
 	self:output("Saved to " .. path)
 	cat_debug("editor", "Saved to ", path)
@@ -2627,6 +2642,14 @@ function CoreEditor:_save_unit_stats(dir)
 	unit_stats:puts("")
 	unit_stats:puts("Total," .. total.amount .. "," .. total.geometry_memory)
 	SystemFS:close(unit_stats)
+end
+function CoreEditor:_save_bundle_info_files(dir)
+	local file = SystemFS:open(dir .. "\\cube_lights.bundle_info", "w")
+	local path = managers.database:entry_relative_path(dir .. "\\cube_lights")
+	file:puts("<bundle_info>")
+	file:puts("\t<include folder=\"" .. path .. "\"/>")
+	file:puts("</bundle_info>")
+	SystemFS:close(file)
 end
 function CoreEditor:get_unit_stats()
 	local units = World:find_units_quick("all")

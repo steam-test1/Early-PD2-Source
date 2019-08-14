@@ -299,7 +299,7 @@ function CivilianLogicFlee.on_alert(data, alert_data)
 			managers.groupai:state():propagate_alert(alert)
 		end
 		return
-	elseif alert_data[1] ~= "bullet" and alert_data[1] ~= "aggression" then
+	elseif alert_data[1] ~= "bullet" and alert_data[1] ~= "aggression" and alert_data[1] ~= "explosion" then
 		return
 	elseif anim_data.react or anim_data.drop then
 		local action_data = {
@@ -571,18 +571,6 @@ function CivilianLogicFlee.register_rescue_SO(ignore_this, data)
 	end
 	local my_tracker = data.unit:movement():nav_tracker()
 	local objective_pos = my_tracker:field_position()
-	local followup_objective = {
-		type = "act",
-		stance = "hos",
-		scan = true,
-		action = {
-			type = "act",
-			variant = "idle",
-			body_part = 1,
-			blocks = {action = -1, walk = -1}
-		},
-		action_duration = tweak_data.interaction.free.timer
-	}
 	local side = data.unit:movement():m_rot():x()
 	mvector3.multiply(side, 65)
 	local test_pos = mvector3.copy(objective_pos)
@@ -628,8 +616,7 @@ function CivilianLogicFlee.register_rescue_SO(ignore_this, data)
 			body_part = 1,
 			blocks = {action = -1, walk = -1}
 		},
-		action_duration = tweak_data.interaction.free.timer,
-		followup_objective = followup_objective
+		action_duration = tweak_data.interaction.free.timer
 	}
 	local receiver_areas = managers.groupai:state():get_areas_from_nav_seg_id(objective.nav_seg)
 	local so_descriptor = {

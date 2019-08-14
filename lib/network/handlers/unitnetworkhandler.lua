@@ -115,7 +115,7 @@ function UnitNetworkHandler:action_walk_nav_link(unit, pos, yaw, anim_index, fro
 	local rot = Rotation(360 * yaw / 255, 0, 0)
 	unit:movement():sync_action_walk_nav_link(pos, rot, anim_index, from_idle)
 end
-function UnitNetworkHandler:action_spooc_start(unit)
+function UnitNetworkHandler:action_spooc_start(unit, target_u_pos, flying_strike, action_id)
 	if not self._verify_character(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return
 	end
@@ -126,7 +126,10 @@ function UnitNetworkHandler:action_spooc_start(unit)
 		nav_path = {
 			unit:position()
 		},
+		target_u_pos = target_u_pos,
 		path_index = 1,
+		flying_strike = flying_strike,
+		action_id = action_id,
 		blocks = {
 			walk = -1,
 			turn = -1,
@@ -134,25 +137,31 @@ function UnitNetworkHandler:action_spooc_start(unit)
 			idle = -1
 		}
 	}
+	if flying_strike then
+		action_desc.blocks.light_hurt = -1
+		action_desc.blocks.hurt = -1
+		action_desc.blocks.heavy_hurt = -1
+		action_desc.blocks.expl_hurt = -1
+	end
 	unit:movement():action_request(action_desc)
 end
-function UnitNetworkHandler:action_spooc_stop(unit, pos, nav_index)
-	if not self._verify_character(unit) then
-		return
-	end
-	unit:movement():sync_action_spooc_stop(pos, nav_index)
-end
-function UnitNetworkHandler:action_spooc_nav_point(unit, pos, sender)
+function UnitNetworkHandler:action_spooc_stop(unit, pos, nav_index, action_id, sender)
 	if not self._verify_character_and_sender(unit, sender) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return
 	end
-	unit:movement():sync_action_spooc_nav_point(pos)
+	unit:movement():sync_action_spooc_stop(pos, nav_index, action_id)
 end
-function UnitNetworkHandler:action_spooc_strike(unit, pos, sender)
+function UnitNetworkHandler:action_spooc_nav_point(unit, pos, action_id, sender)
 	if not self._verify_character_and_sender(unit, sender) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return
 	end
-	unit:movement():sync_action_spooc_strike(pos)
+	unit:movement():sync_action_spooc_nav_point(pos, action_id)
+end
+function UnitNetworkHandler:action_spooc_strike(unit, pos, action_id, sender)
+	if not self._verify_character_and_sender(unit, sender) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
+		return
+	end
+	unit:movement():sync_action_spooc_strike(pos, action_id)
 end
 function UnitNetworkHandler:friendly_fire_hit(subject_unit)
 	if not self._verify_character(subject_unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
@@ -169,14 +178,14 @@ function UnitNetworkHandler:damage_bullet(subject_unit, attacker_unit, damage, i
 	end
 	subject_unit:character_damage():sync_damage_bullet(attacker_unit, damage, i_body, height_offset, death)
 end
-function UnitNetworkHandler:damage_explosion(subject_unit, attacker_unit, damage, i_attack_variant, death, sender)
+function UnitNetworkHandler:damage_explosion(subject_unit, attacker_unit, damage, i_attack_variant, death, direction, sender)
 	if not self._verify_character_and_sender(subject_unit, sender) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return
 	end
 	if not alive(attacker_unit) or attacker_unit:key() == subject_unit:key() then
 		attacker_unit = nil
 	end
-	subject_unit:character_damage():sync_damage_explosion(attacker_unit, damage, i_attack_variant, death)
+	subject_unit:character_damage():sync_damage_explosion(attacker_unit, damage, i_attack_variant, death, direction)
 end
 function UnitNetworkHandler:damage_melee(subject_unit, attacker_unit, damage, damage_effect, i_body, height_offset, variant, death, sender)
 	if not self._verify_character_and_sender(subject_unit, sender) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
@@ -250,23 +259,23 @@ function UnitNetworkHandler:reload_weapon(unit, sender)
 	end
 	unit:movement():sync_reload_weapon()
 end
-function UnitNetworkHandler:run_mission_element(id, unit)
+function UnitNetworkHandler:run_mission_element(id, unit, orientation_element_index)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		if self._verify_gamestate(self._gamestate_filter.any_end_game) then
-			managers.mission:client_run_mission_element_end_screen(id, unit)
+			managers.mission:client_run_mission_element_end_screen(id, unit, orientation_element_index)
 		end
 		return
 	end
-	managers.mission:client_run_mission_element(id, unit)
+	managers.mission:client_run_mission_element(id, unit, orientation_element_index)
 end
-function UnitNetworkHandler:run_mission_element_no_instigator(id)
+function UnitNetworkHandler:run_mission_element_no_instigator(id, orientation_element_index)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		if self._verify_gamestate(self._gamestate_filter.any_end_game) then
-			managers.mission:client_run_mission_element_end_screen(id)
+			managers.mission:client_run_mission_element_end_screen(id, nil, orientation_element_index)
 		end
 		return
 	end
-	managers.mission:client_run_mission_element(id)
+	managers.mission:client_run_mission_element(id, nil, orientation_element_index)
 end
 function UnitNetworkHandler:to_server_mission_element_trigger(id, unit)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
@@ -274,17 +283,11 @@ function UnitNetworkHandler:to_server_mission_element_trigger(id, unit)
 	end
 	managers.mission:server_run_mission_element_trigger(id, unit)
 end
-function UnitNetworkHandler:to_server_enter_area(id, unit)
+function UnitNetworkHandler:to_server_area_event(event_id, id, unit)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return
 	end
-	managers.mission:server_enter_area(id, unit)
-end
-function UnitNetworkHandler:to_server_exit_area(id, unit)
-	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
-		return
-	end
-	managers.mission:server_exit_area(id, unit)
+	managers.mission:to_server_area_event(event_id, id, unit)
 end
 function UnitNetworkHandler:to_server_access_camera_trigger(id, trigger, instigator)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
@@ -357,8 +360,8 @@ function UnitNetworkHandler:sync_body_damage_explosion(body, attacker, normal, p
 		print("[UnitNetworkHandler:sync_body_damage_explosion] body has no damage damage_explosion function", body:name(), body:unit():name())
 		return
 	end
-	body:extension().damage:damage_explosion(attacker, normal, position, direction, damage)
-	body:extension().damage:damage_damage(attacker, normal, position, direction, damage)
+	body:extension().damage:damage_explosion(attacker, normal, position, direction, damage / 163.84)
+	body:extension().damage:damage_damage(attacker, normal, position, direction, damage / 163.84)
 end
 function UnitNetworkHandler:sync_body_damage_explosion_no_attacker(body, normal, position, direction, damage)
 	self:sync_body_damage_explosion(body, nil, normal, position, direction, damage)
@@ -560,7 +563,6 @@ function UnitNetworkHandler:long_dis_interaction(target_unit, amount, aggressor_
 	local aggressor_is_criminal = aggressor_unit:in_slot(managers.slot:get_mask("criminals")) or aggressor_unit:in_slot(managers.slot:get_mask("harmless_criminals"))
 	if target_is_criminal then
 		if aggressor_is_criminal then
-			managers.game_play_central:flash_contour(aggressor_unit)
 			if target_unit:brain() then
 				target_unit:movement():set_cool(false)
 				target_unit:brain():on_long_dis_interacted(amount, aggressor_unit)
@@ -864,18 +866,6 @@ function UnitNetworkHandler:sync_trip_mine_set_armed(unit, bool, length, sender)
 	end
 	unit:base():sync_trip_mine_set_armed(bool, length)
 end
-function UnitNetworkHandler:sync_trip_mine_beep_explode(unit, sender)
-	if not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
-		return
-	end
-	unit:base():sync_trip_mine_beep_explode()
-end
-function UnitNetworkHandler:sync_trip_mine_beep_sensor(unit, sender)
-	if not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
-		return
-	end
-	unit:base():sync_trip_mine_beep_sensor()
-end
 function UnitNetworkHandler:request_place_ecm_jammer(pos, normal, battery_life_upgrade_lvl, rpc)
 	local peer = self._verify_sender(rpc)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not peer then
@@ -935,7 +925,7 @@ function UnitNetworkHandler:element_explode_on_client(position, normal, damage, 
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
 		return
 	end
-	GrenadeBase._client_damage_and_push(position, normal, nil, damage, range, curve_pow)
+	managers.explosion:client_damage_and_push(position, normal, nil, damage, range, curve_pow)
 end
 function UnitNetworkHandler:place_sentry_gun(pos, rot, ammo_multiplier, armor_multiplier, damage_multiplier, equipment_selection_index, user_unit, rpc)
 	local peer = self._verify_sender(rpc)
@@ -996,6 +986,12 @@ function UnitNetworkHandler:sync_ammo_bag_ammo_taken(unit, amount, sender)
 		return
 	end
 	unit:base():sync_ammo_taken(amount)
+end
+function UnitNetworkHandler:sync_grenade_crate_grenade_taken(unit, amount, sender)
+	if not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
+		return
+	end
+	unit:base():sync_grenade_taken(amount)
 end
 function UnitNetworkHandler:place_deployable_bag(class_name, pos, rot, upgrade_lvl, rpc)
 	local peer = self._verify_sender(rpc)
@@ -1281,11 +1277,11 @@ function UnitNetworkHandler:sync_cable_ties(peer_id, amount, sender)
 	end
 	managers.player:set_synced_cable_ties(peer_id, amount)
 end
-function UnitNetworkHandler:sync_perk_equipment(peer_id, perk, sender)
+function UnitNetworkHandler:sync_grenades(peer_id, grenade, amount, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
 		return
 	end
-	managers.player:set_synced_perk(peer_id, perk)
+	managers.player:set_synced_grenades(peer_id, grenade, amount)
 end
 function UnitNetworkHandler:sync_ammo_amount(peer_id, selection_index, max_clip, current_clip, current_left, max, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
@@ -1317,11 +1313,19 @@ function UnitNetworkHandler:sync_carry_data(unit, carry_id, carry_value, dye_ini
 	end
 	managers.player:sync_carry_data(unit, carry_id, carry_value, dye_initiated, has_dye_pack, dye_value_multiplier, position, dir, throw_distance_multiplier_upgrade_level)
 end
-function UnitNetworkHandler:sync_bag_dye_pack_exploded(unit, sender)
+function UnitNetworkHandler:server_throw_grenade(grenade_type, position, dir, sender)
+	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
+		return
+	end
+	local peer = self._verify_sender(sender)
+	local peer_id = peer:id()
+	GrenadeBase.server_throw_grenade(grenade_type, position, dir, peer_id)
+end
+function UnitNetworkHandler:sync_throw_grenade(unit, dir, grenade_type, sender)
 	if not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
 		return
 	end
-	unit:carry_data():sync_dye_exploded()
+	unit:base():sync_throw_grenade(dir, grenade_type)
 end
 function UnitNetworkHandler:server_secure_loot(carry_id, carry_value, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
@@ -1342,16 +1346,18 @@ function UnitNetworkHandler:sync_small_loot_taken(unit, multiplier_level, sender
 	unit:base():taken(multiplier_level)
 end
 function UnitNetworkHandler:server_unlock_asset(asset_id, sender)
-	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
+	local peer = self._verify_sender(sender)
+	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not peer then
 		return
 	end
-	managers.assets:server_unlock_asset(asset_id)
+	managers.assets:server_unlock_asset(asset_id, peer)
 end
-function UnitNetworkHandler:sync_unlock_asset(asset_id, sender)
+function UnitNetworkHandler:sync_unlock_asset(asset_id, unlocker_peer_id, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
 		return
 	end
-	managers.assets:sync_unlock_asset(asset_id)
+	local peer = managers.network:session():peer(unlocker_peer_id)
+	managers.assets:sync_unlock_asset(asset_id, peer)
 end
 function UnitNetworkHandler:sync_heist_time(time, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
@@ -1481,7 +1487,13 @@ function UnitNetworkHandler:set_contour(unit, state)
 	if not alive(unit) then
 		return
 	end
-	unit:base():set_contour(state)
+	if unit:contour() then
+		if state then
+			unit:contour():add("highlight")
+		else
+			unit:contour():remove("highlight")
+		end
+	end
 end
 function UnitNetworkHandler:mark_contour_unit(unit, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
@@ -1490,13 +1502,13 @@ function UnitNetworkHandler:mark_contour_unit(unit, sender)
 	if not alive(unit) then
 		return
 	end
-	managers.game_play_central:add_marked_contour_unit(unit)
+	unit:contour():add("mark_unit")
 end
-function UnitNetworkHandler:mark_enemy(unit, marking_strength, sender)
+function UnitNetworkHandler:mark_enemy(unit, marking_strength, time_multiplier, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_character_and_sender(unit, sender) then
 		return
 	end
-	managers.game_play_central:add_enemy_contour(unit, marking_strength)
+	unit:contour():add("mark_enemy", marking_strength, time_multiplier)
 end
 function UnitNetworkHandler:mark_minion(unit, minion_owner_peer_id, convert_enemies_health_multiplier_level, passive_convert_enemies_health_multiplier_level, sender)
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_character_and_sender(unit, sender) then
@@ -1510,7 +1522,7 @@ function UnitNetworkHandler:mark_minion(unit, minion_owner_peer_id, convert_enem
 		health_multiplier = health_multiplier * tweak_data.upgrades.values.player.passive_convert_enemies_health_multiplier[passive_convert_enemies_health_multiplier_level]
 	end
 	unit:character_damage():convert_to_criminal(health_multiplier)
-	managers.game_play_central:add_friendly_contour(unit)
+	unit:contour():add("friendly")
 	managers.groupai:state():sync_converted_enemy(unit)
 	if minion_owner_peer_id == managers.network:session():local_peer():id() then
 		managers.player:count_up_player_minions()
@@ -1807,4 +1819,16 @@ function UnitNetworkHandler:remove_unit(unit, sender)
 		Network:detach_unit(unit)
 	end
 	unit:set_slot(0)
+end
+function UnitNetworkHandler:sync_gui_net_event(unit, event_id, value, sender)
+	if not alive(unit) or not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
+		return
+	end
+	unit:digital_gui():sync_gui_net_event(event_id, value)
+end
+function UnitNetworkHandler:sync_proximity_activation(unit, proximity_name, range_data_string, sender)
+	if not alive(unit) or not alive(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
+		return
+	end
+	unit:damage():sync_proximity_activation(proximity_name, range_data_string)
 end

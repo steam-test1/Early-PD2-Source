@@ -1,16 +1,15 @@
 core:import("CoreSequenceManager")
 CoreUnitDamage = CoreUnitDamage or class()
 UnitDamage = UnitDamage or class(CoreUnitDamage)
+local ids_damage = Idstring("damage")
 function CoreUnitDamage:init(unit, default_body_extension_class, body_extension_class_map, ignore_body_collisions, ignore_mover_collisions, mover_collision_ignore_duration)
 	self._unit = unit
 	self._unit_element = managers.sequence:get(unit:name(), false, true)
 	self._damage = 0
-	self._variables = {}
-	for k, v in pairs(self._unit_element._set_variables) do
-		self._variables[k] = v
+	if self._unit_element._set_variables and next(self._unit_element._set_variables) then
+		self._variables = clone(self._unit_element._set_variables)
 	end
-	self._ids_damage = Idstring("damage")
-	self._unit:set_extension_update_enabled(self._ids_damage, self._update_func_map ~= nil)
+	self._unit:set_extension_update_enabled(ids_damage, self._update_func_map ~= nil)
 	for name, element in pairs(self._unit_element:get_proximity_element_map()) do
 		local data = {}
 		data.name = name
@@ -130,7 +129,7 @@ function CoreUnitDamage:update(unit, t, dt)
 		end
 	else
 		Application:error("Some scripter tried to enable the damage extension on unit \"" .. tostring(unit:name()) .. "\" or an artist have specified more than one damage-extension in the unit xml. This would have resulted in a crash, so fix it!")
-		self._unit:set_extension_update_enabled(self._ids_damage, false)
+		self._unit:set_extension_update_enabled(ids_damage, false)
 	end
 end
 function CoreUnitDamage:set_update_callback(func_name, data)
@@ -139,7 +138,7 @@ function CoreUnitDamage:set_update_callback(func_name, data)
 		if not self._update_func_map[func_name] then
 			if not self._update_func_count then
 				self._update_func_count = 0
-				self._unit:set_extension_update_enabled(self._ids_damage, true)
+				self._unit:set_extension_update_enabled(ids_damage, true)
 			end
 			self._update_func_count = self._update_func_count + 1
 		end
@@ -148,7 +147,7 @@ function CoreUnitDamage:set_update_callback(func_name, data)
 		self._update_func_count = self._update_func_count - 1
 		self._update_func_map[func_name] = nil
 		if self._update_func_count == 0 then
-			self._unit:set_extension_update_enabled(self._ids_damage, false)
+			self._unit:set_extension_update_enabled(ids_damage, false)
 			self._update_func_map = nil
 			self._update_func_count = nil
 		end
@@ -161,6 +160,7 @@ function CoreUnitDamage:populate_proximity_range_data(data, sub_data_name, eleme
 		data[sub_data_name].activation_count = 0
 		data[sub_data_name].max_activation_count = element:get_max_activation_count()
 		data[sub_data_name].delay = element:get_delay()
+		data[sub_data_name].last_check_time = TimerManager:game():time() + math.rand(math.min(data[sub_data_name].delay, 0))
 		data[sub_data_name].range = element:get_range()
 		data[sub_data_name].count = element:get_count()
 		data[sub_data_name].is_within = sub_data_name == "within_data"
@@ -189,37 +189,57 @@ function CoreUnitDamage:update_proximity_list(unit, t, dt)
 	if managers.sequence:is_proximity_enabled() then
 		for name, data in pairs(self._proximity_map) do
 			if data.enabled and t >= data.last_check_time + data.interval then
-				local range_data, reversed
+				local range_data, reversed, range_data_string
 				if data.is_within then
 					range_data = data.outside_data
+					range_data_string = "outside_data"
 					if not range_data then
 						range_data = data.within_data
+						range_data_string = "within_data"
 						reversed = true
 					else
 						reversed = false
 					end
 				else
 					range_data = data.within_data
+					range_data_string = "within_data"
 					if not range_data then
 						range_data = data.outside_data
+						range_data_string = "outside_data"
 						reversed = true
 					else
 						reversed = false
 					end
 				end
-				if self:check_proximity_activation_count(data) and t >= data.last_check_time + range_data.delay and self:update_proximity(unit, t, dt, data, range_data) ~= reversed then
-					data.last_check_time = t
+				data.last_check_time = t
+				if self:check_proximity_activation_count(data) and t >= range_data.last_check_time + range_data.delay and self:update_proximity(unit, t, dt, data, range_data) ~= reversed then
+					range_data.last_check_time = t
 					data.is_within = not data.is_within
 					if not reversed and self:is_proximity_range_active(range_data) then
 						range_data.activation_count = range_data.activation_count + 1
-						self._proximity_env = self._proximity_env or CoreSequenceManager.SequenceEnvironment:new("proximity", self._unit, self._unit, nil, Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0), 0, Vector3(0, 0, 0), nil, self._unit_element)
-						range_data.element:activate_elements(self._proximity_env)
+						self:_do_proximity_activation(range_data)
+						self:_check_send_sync_proximity_activation(name, range_data_string)
 						self:check_proximity_activation_count(data)
 					end
 				end
 			end
 		end
 	end
+end
+function CoreUnitDamage:_do_proximity_activation(range_data)
+	self._proximity_env = self._proximity_env or CoreSequenceManager.SequenceEnvironment:new("proximity", self._unit, self._unit, nil, Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0), 0, Vector3(0, 0, 0), nil, self._unit_element)
+	range_data.element:activate_elements(self._proximity_env)
+end
+function CoreUnitDamage:_check_send_sync_proximity_activation(name, range_data_string)
+	if not Network:is_server() or self._unit:id() == -1 then
+		return
+	end
+	managers.network:session():send_to_peers_synched("sync_proximity_activation", self._unit, name, range_data_string)
+end
+function CoreUnitDamage:sync_proximity_activation(name, range_data_string)
+	local data = self._proximity_map[name]
+	local range_data = data[range_data_string]
+	self:_do_proximity_activation(range_data)
 end
 function CoreUnitDamage:is_proximity_range_active(range_data)
 	return range_data and (range_data.max_activation_count < 0 or range_data.activation_count < range_data.max_activation_count)
@@ -239,11 +259,12 @@ function CoreUnitDamage:update_proximity(unit, t, dt, data, range_data)
 	else
 		pos = self._unit:position()
 	end
-	local unit_list
-	if range_data.quick then
-		unit_list = self._unit:find_units_quick("sphere", pos, range_data.range, data.slotmask)
-	else
-		unit_list = self._unit:find_units("sphere", pos, range_data.range, data.slotmask)
+	local unit_list = {}
+	local units = self._unit:find_units_quick("all", data.slotmask)
+	for _, unit in ipairs(units) do
+		if mvector3.distance(pos, unit:movement():m_newest_pos()) < range_data.range then
+			table.insert(unit_list, unit)
+		end
 	end
 	if data.is_within and range_data.is_within ~= data.is_within or not data.is_within and range_data.is_within == data.is_within then
 		return #unit_list <= range_data.count
@@ -442,11 +463,13 @@ function CoreUnitDamage:save(data)
 		state.damage = self._damage
 		changed = true
 	end
-	for k, v in pairs(self._variables) do
-		if self._unit_element._set_variables[k] ~= v and (k ~= "damage" or v ~= self._damage) then
-			state.variables = table.map_copy(self._variables)
-			changed = true
-		else
+	if self._variables then
+		for k, v in pairs(self._variables) do
+			if (self._unit_element._set_variables == nil or self._unit_element._set_variables[k] ~= v) and (k ~= "damage" or v ~= self._damage) then
+				state.variables = table.map_copy(self._variables)
+				changed = true
+			else
+			end
 		end
 	end
 	if self._proximity_count then
@@ -534,14 +557,16 @@ function CoreUnitDamage:load(data)
 				self._proximity_map = self._proximity_map or {}
 				for attribute_name, attribute_value in pairs(data) do
 					if attribute_name == "ref_object" then
-						self._proximity_map[name][attribute_name] = attribute_value and self._unit:get_object(Idstring(attribute_value))
+						self._proximity_map[name][attribute_name] = attribute_value and self._unit:get_object(attribute_value)
 					elseif attribute_name == "slotmask" then
 						self._proximity_map[name][attribute_name] = managers.slot:get_mask(attribute_value)
 					elseif attribute_name == "last_check_time" then
 						self._proximity_map[name][attribute_name] = TimerManager:game():time() - attribute_value
 					elseif attribute_name == "within_data" or attribute_name == "outside_data" then
 						for range_attribute_name, range_attribute_value in pairs(attribute_value) do
-							self._proximity_map[name][attribute_name][range_attribute_name] = range_attribute_value
+							if range_attribute_name ~= "last_check_time" then
+								self._proximity_map[name][attribute_name][range_attribute_name] = range_attribute_value
+							end
 						end
 					else
 						self._proximity_map[name][attribute_name] = attribute_value
@@ -823,7 +848,7 @@ end
 function CoreUnitDamage:add_damage(endurance_type, attack_unit, dest_body, normal, position, direction, damage, velocity)
 	if self._unit_element then
 		self._damage = self._damage + damage
-		if self._damage >= self._unit_element._global_vars.endurance then
+		if self._damage >= self._unit_element:get_endurance() then
 			return true, damage
 		else
 			return false, damage
@@ -1236,6 +1261,10 @@ end
 function CoreUnitDamage:has_sequence(sequence_name)
 	return self._unit_element and self._unit_element:has_sequence(sequence_name)
 end
+function CoreUnitDamage:set_variable(key, val)
+	self._variables = self._variables or {}
+	self._variables[key] = val
+end
 CoreBodyDamage = CoreBodyDamage or class()
 function CoreBodyDamage:init(unit, unit_extension, body, body_element)
 	self._unit = unit
@@ -1255,11 +1284,6 @@ function CoreBodyDamage:init(unit, unit_extension, body, body_element)
 			self._damage[k] = 0
 		end
 	end
-	self._inflict = {}
-	self._original_inflict = {}
-	self._inflict_time = {}
-	self._run_exit_inflict_sequences = {}
-	self._inflict_updator_map = {}
 	if self._body_element then
 		local inflict_element_list = self._body_element:get_inflict_element_list()
 		if inflict_element_list then
@@ -1269,21 +1293,26 @@ function CoreBodyDamage:init(unit, unit_extension, body, body_element)
 				if updator_type_class then
 					local updator = updator_type_class:new(unit, body, self, inflict_element, self._unit_element)
 					if updator:is_valid() then
+						self._inflict_updator_map = self._inflict_updator_map or {}
 						self._inflict_updator_map[damage_type] = updator
 					end
 				else
 					local inflict_data = {}
+					self._inflict = self._inflict or {}
 					self._inflict[damage_type] = inflict_data
 					inflict_data.damage = inflict_element:get_damage() or 0
 					inflict_data.interval = inflict_element:get_interval() or 0
 					inflict_data.instant = inflict_element:get_instant()
 					inflict_data.enabled = inflict_element:get_enabled()
 					inflict_data = {}
+					self._original_inflict = self._original_inflict or {}
 					self._original_inflict[damage_type] = inflict_data
 					for k, v in pairs(inflict_data) do
 						inflict_data[k] = v
 					end
+					self._inflict_time = self._inflict_time or {}
 					self._inflict_time[damage_type] = {}
+					self._run_exit_inflict_sequences = self._run_exit_inflict_sequences or {}
 					self._run_exit_inflict_sequences[damage_type] = 0 < inflict_element:exit_sequence_count()
 				end
 			end
@@ -1311,7 +1340,7 @@ function CoreBodyDamage:get_inflict_time(damage_type, src_unit)
 	return self._inflict_time[damage_type][src_unit]
 end
 function CoreBodyDamage:can_inflict_damage(damage_type, src_unit)
-	if self._inflict[damage_type] and self._inflict[damage_type].enabled then
+	if self._inflict and self._inflict[damage_type] and self._inflict[damage_type].enabled then
 		local last_time = self._inflict_time[damage_type][src_unit:key()]
 		if last_time then
 			local delayed = last_time + self._inflict[damage_type].interval > TimerManager:game():time()
@@ -1342,7 +1371,7 @@ function CoreBodyDamage:exit_inflict_damage(damage_type, src_body, normal, pos, 
 		local list = self._inflict_time[damage_type]
 		if list[unit_key] then
 			list[unit_key] = nil
-			if self._run_exit_inflict_sequences[damage_type] then
+			if self._run_exit_inflict_sequences and self._run_exit_inflict_sequences[damage_type] then
 				local env = CoreSequenceManager.SequenceEnvironment:new(damage_type, src_unit, self._unit, self._body, normal, pos, dir, 0, velocity, nil, self._unit_element)
 				self._body_element:activate_inflict_exit(env)
 			end
@@ -1447,7 +1476,7 @@ function CoreBodyDamage:get_inflict_enabled(damage_type)
 	return self:get_inflict_attribute(damage_type, "enabled")
 end
 function CoreBodyDamage:set_inflict_attribute(damage_type, attribute, attribute_value)
-	local inflict = self._inflict[damage_type]
+	local inflict = self._inflict and self._inflict[damage_type]
 	if inflict then
 		if attribute_value ~= nil then
 			inflict[attribute] = attribute_value
@@ -1456,7 +1485,7 @@ function CoreBodyDamage:set_inflict_attribute(damage_type, attribute, attribute_
 			return false, true
 		end
 	else
-		local updator = self._inflict_updator_map[damage_type]
+		local updator = self._inflict_updator_map and self._inflict_updator_map[damage_type]
 		if updator then
 			return updator:set_attribute(attribute, attribute_value), true
 		else
@@ -1465,11 +1494,11 @@ function CoreBodyDamage:set_inflict_attribute(damage_type, attribute, attribute_
 	end
 end
 function CoreBodyDamage:get_inflict_attribute(damage_type, attribute)
-	local inflict = self._inflict[damage_type]
+	local inflict = self._inflict and self._inflict[damage_type]
 	if inflict then
 		return inflict[attribute]
 	else
-		local updator = self._inflict_updator_map[damage_type]
+		local updator = self._inflict_updator_map and self._inflict_updator_map[damage_type]
 		if updator then
 			return updator:get_attribute(attribute)
 		else
@@ -1488,23 +1517,27 @@ function CoreBodyDamage:save(data)
 		else
 		end
 	end
-	for damage_type, inflict_data in pairs(self._inflict) do
-		for k, v in pairs(inflict_data) do
-			if v ~= self._original_inflict[damage_type][k] then
-				state.inflict = state.inflict or {}
-				state.inflict[damage_type] = state.inflict[damage_type] or {}
-				state.inflict[damage_type][k] = v
-				changed = true
+	if self._inflict then
+		for damage_type, inflict_data in pairs(self._inflict) do
+			for k, v in pairs(inflict_data) do
+				if v ~= self._original_inflict[damage_type][k] then
+					state.inflict = state.inflict or {}
+					state.inflict[damage_type] = state.inflict[damage_type] or {}
+					state.inflict[damage_type][k] = v
+					changed = true
+				end
 			end
 		end
 	end
 	local updator_state
-	for damage_type, updator in pairs(self._inflict_updator_map) do
-		local sub_updator_state = {}
-		if updator:save(sub_updator_state) then
-			updator_state = updator_state or {}
-			updator_state[damage_type] = sub_updator_state
-			changed = true
+	if self._inflict_updator_map then
+		for damage_type, updator in pairs(self._inflict_updator_map) do
+			local sub_updator_state = {}
+			if updator:save(sub_updator_state) then
+				updator_state = updator_state or {}
+				updator_state[damage_type] = sub_updator_state
+				changed = true
+			end
 		end
 	end
 	state.InflictUpdatorMap = updator_state
@@ -1524,12 +1557,13 @@ function CoreBodyDamage:load(data)
 		if state.inflict then
 			for damage_type, inflict_data in pairs(state.inflict) do
 				for k, v in pairs(state.inflict) do
+					self._inflict = self._inflict or {}
 					self._inflict[damage_type][k] = v
 				end
 			end
 		end
 		local updator_state = state.InflictUpdatorMap
-		if updator_state then
+		if updator_state and self._inflict_updator_map then
 			for damage_type, updator in pairs(self._inflict_updator_map) do
 				local sub_updator_state = updator_state[damage_type]
 				if sub_updator_state then
@@ -1908,7 +1942,10 @@ function CoreInflictFireUpdator:set_fire_object_name(name)
 	if not self._fire_object then
 		self:set_enabled(false)
 		Application:error("Invalid inflict fire element object \"" .. tostring(name) .. "\".")
-		self._body_damage_ext:get_inflict_updator_map()[self.DAMAGE_TYPE] = nil
+		local inflict_updator_map = self._body_damage_ext:get_inflict_updator_map()
+		if inflict_updator_map then
+			inflict_updator_map[self.DAMAGE_TYPE] = nil
+		end
 		return
 	end
 	self:set_fire_height(self._fire_height)

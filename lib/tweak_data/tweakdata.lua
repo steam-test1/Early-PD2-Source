@@ -26,6 +26,7 @@ require("lib/tweak_data/GuiTweakData")
 require("lib/tweak_data/MoneyTweakData")
 require("lib/tweak_data/AssetsTweakData")
 require("lib/tweak_data/DLCTweakData")
+require("lib/tweak_data/InfamyTweakData")
 TweakData = TweakData or class()
 require("lib/tweak_data/TweakDataPD2")
 TweakData.RELOAD = true
@@ -218,6 +219,7 @@ function TweakData:init()
 	self.gui = GuiTweakData:new()
 	self.assets = AssetsTweakData:new(self)
 	self.dlc = DLCTweakData:new(self)
+	self.infamy = InfamyTweakData:new(self)
 	self.EFFECT_QUALITY = 0.5
 	if SystemInfo:platform() == Idstring("X360") then
 		self.EFFECT_QUALITY = 0.5
@@ -356,6 +358,7 @@ function TweakData:init()
 		"mrorange",
 		"mrai"
 	}
+	self.system_chat_color = Color(255, 255, 212, 0) / 255
 	self.chat_colors = {
 		Color(self.peer_vector_colors[1]:unpack()),
 		Color(self.peer_vector_colors[2]:unpack()),
@@ -379,6 +382,7 @@ function TweakData:init()
 	self.screen_colors.friend_color = Color(255, 41, 204, 122) / 255
 	self.screen_colors.regular_color = Color(255, 41, 150, 240) / 255
 	self.screen_colors.pro_color = Color(255, 255, 51, 51) / 255
+	self.screen_colors.dlc_color = Color(255, 255, 212, 0) / 255
 	self.screen_colors.stats_positive = Color(255, 191, 221, 125) / 255
 	self.screen_colors.stats_negative = Color(255, 254, 93, 99) / 255
 	self.screen_colors.stats_mods = Color(255, 229, 229, 76) / 255
@@ -708,6 +712,14 @@ function TweakData:init()
 	self.interaction.numpad_keycard.equipment_consume = true
 	self.interaction.numpad_keycard.start_active = false
 	self.interaction.numpad_keycard.axis = "z"
+	self.interaction.timelock_panel = {}
+	self.interaction.timelock_panel.icon = "equipment_bank_manager_key"
+	self.interaction.timelock_panel.text_id = "hud_int_timelock_panel"
+	self.interaction.timelock_panel.equipment_text_id = "hud_int_timelock_panel_no_keycard"
+	self.interaction.timelock_panel.special_equipment = "bank_manager_key"
+	self.interaction.timelock_panel.equipment_consume = true
+	self.interaction.timelock_panel.start_active = false
+	self.interaction.timelock_panel.axis = "z"
 	self.interaction.take_weapons = {}
 	self.interaction.take_weapons.icon = "develop"
 	self.interaction.take_weapons.text_id = "hud_int_take_weapons"
@@ -781,6 +793,7 @@ function TweakData:init()
 	self.interaction.pick_lock_deposit_transport = deep_clone(self.interaction.pick_lock_hard_no_skill)
 	self.interaction.pick_lock_deposit_transport.timer = 15
 	self.interaction.pick_lock_deposit_transport.axis = "y"
+	self.interaction.pick_lock_deposit_transport.interact_distance = 80
 	self.interaction.cant_pick_lock = {}
 	self.interaction.cant_pick_lock.icon = "equipment_bank_manager_key"
 	self.interaction.cant_pick_lock.text_id = "hud_int_pick_lock"
@@ -1137,6 +1150,27 @@ function TweakData:init()
 		category = "trip_mine",
 		upgrade = "can_switch_on_off"
 	}
+	self.interaction.sentry_gun_refill = {}
+	self.interaction.sentry_gun_refill.icon = "equipment_ammo_bag"
+	self.interaction.sentry_gun_refill.text_id = "debug_interact_grenade_crate_take_grenades"
+	self.interaction.sentry_gun_refill.contour = "deployable"
+	self.interaction.sentry_gun_refill.requires_upgrade = {category = "sentry_gun", upgrade = "can_reload"}
+	self.interaction.sentry_gun_refill.timer = 1.5
+	self.interaction.sentry_gun_refill.blocked_hint = "full_grenades"
+	self.interaction.sentry_gun_refill.sound_start = "bar_bag_generic"
+	self.interaction.sentry_gun_refill.sound_interupt = "bar_bag_generic_cancel"
+	self.interaction.sentry_gun_refill.sound_done = "bar_bag_generic_finished"
+	self.interaction.sentry_gun_refill.action_text_id = "hud_action_taking_grenades"
+	self.interaction.grenade_crate = {}
+	self.interaction.grenade_crate.icon = "equipment_ammo_bag"
+	self.interaction.grenade_crate.text_id = "debug_interact_grenade_crate_take_grenades"
+	self.interaction.grenade_crate.contour = "deployable"
+	self.interaction.grenade_crate.timer = 1.5
+	self.interaction.grenade_crate.blocked_hint = "full_grenades"
+	self.interaction.grenade_crate.sound_start = "bar_bag_generic"
+	self.interaction.grenade_crate.sound_interupt = "bar_bag_generic_cancel"
+	self.interaction.grenade_crate.sound_done = "bar_bag_generic_finished"
+	self.interaction.grenade_crate.action_text_id = "hud_action_taking_grenades"
 	self.interaction.ammo_bag = {}
 	self.interaction.ammo_bag.icon = "equipment_ammo_bag"
 	self.interaction.ammo_bag.text_id = "debug_interact_ammo_bag_take_ammo"
@@ -1248,6 +1282,8 @@ function TweakData:init()
 	self.interaction.invisible_interaction_open.timer = 0.5
 	self.interaction.money_briefcase = deep_clone(self.interaction.invisible_interaction_open)
 	self.interaction.money_briefcase.axis = "x"
+	self.interaction.grenade_briefcase = deep_clone(self.interaction.invisible_interaction_open)
+	self.interaction.grenade_briefcase.contour = "deployable"
 	self.interaction.cash_register = deep_clone(self.interaction.invisible_interaction_open)
 	self.interaction.cash_register.axis = "x"
 	self.interaction.cash_register.interact_distance = 110
@@ -1283,7 +1319,6 @@ function TweakData:init()
 	self.interaction.sewer_manhole.axis = "z"
 	self.interaction.sewer_manhole.interact_distance = 200
 	self.interaction.sewer_manhole.equipment_text_id = "debug_interact_equipment_crowbar"
-	self.interaction.sewer_manhole.special_equipment = "crowbar"
 	self.interaction.circuit_breaker = {}
 	self.interaction.circuit_breaker.icon = "interaction_powerbox"
 	self.interaction.circuit_breaker.text_id = "debug_interact_circuit_breaker"
@@ -1736,6 +1771,16 @@ function TweakData:init()
 	self.interaction.open_slash_close = {}
 	self.interaction.open_slash_close.text_id = "hud_int_open_slash_close"
 	self.interaction.open_slash_close.start_active = false
+	self.interaction.open_slash_close_act = {}
+	self.interaction.open_slash_close_act.text_id = "hud_int_open_slash_close"
+	self.interaction.open_slash_close_act.action_text_id = "hud_action_open_slash_close"
+	self.interaction.open_slash_close_act.timer = 1
+	self.interaction.open_slash_close_act.start_active = true
+	self.interaction.raise_balloon = {}
+	self.interaction.raise_balloon.text_id = "hud_int_hold_raise_balloon"
+	self.interaction.raise_balloon.action_text_id = "hud_action_raise_balloon"
+	self.interaction.raise_balloon.start_active = false
+	self.interaction.raise_balloon.timer = 2
 	self.interaction.stn_int_place_camera = {}
 	self.interaction.stn_int_place_camera.text_id = "hud_int_place_camera"
 	self.interaction.stn_int_place_camera.start_active = true
@@ -1797,6 +1842,65 @@ function TweakData:init()
 	self.interaction.crate_loot.sound_done = "bar_crowbar_end"
 	self.interaction.halloween_trick = {}
 	self.interaction.halloween_trick.text_id = "hud_int_trick_treat"
+	self.interaction.disassemble_turret = {}
+	self.interaction.disassemble_turret.text_id = "hud_int_hold_disassemble_turret"
+	self.interaction.disassemble_turret.action_text_id = "hud_action_disassemble_turret"
+	self.interaction.disassemble_turret.blocked_hint = "carry_block"
+	self.interaction.disassemble_turret.start_active = false
+	self.interaction.disassemble_turret.timer = 3
+	self.interaction.disassemble_turret.sound_start = "bar_steal_circuit"
+	self.interaction.disassemble_turret.sound_interupt = "bar_steal_circuit_cancel"
+	self.interaction.disassemble_turret.sound_done = "bar_steal_circuit_finished"
+	self.interaction.take_ammo = {}
+	self.interaction.take_ammo.text_id = "hud_int_hold_pack_shells"
+	self.interaction.take_ammo.action_text_id = "hud_action_packing_shells"
+	self.interaction.take_ammo.blocked_hint = "carry_block"
+	self.interaction.take_ammo.start_active = false
+	self.interaction.take_ammo.timer = 2
+	self.interaction.bank_note = {}
+	self.interaction.bank_note.text_id = "hud_int_bank_note"
+	self.interaction.bank_note.start_active = false
+	self.interaction.bank_note.timer = 3
+	self.interaction.pickup_boards = {}
+	self.interaction.pickup_boards.text_id = "hud_int_hold_pickup_boards"
+	self.interaction.pickup_boards.action_text_id = "hud_action_picking_up"
+	self.interaction.pickup_boards.start_active = false
+	self.interaction.pickup_boards.timer = 2
+	self.interaction.pickup_boards.axis = "z"
+	self.interaction.pickup_boards.special_equipment_block = "boards"
+	self.interaction.pickup_boards.sound_start = "bar_pick_up_planks"
+	self.interaction.pickup_boards.sound_interupt = "bar_pick_up_planks_cancel"
+	self.interaction.pickup_boards.sound_done = "bar_pick_up_planks_finished"
+	self.interaction.need_boards = {}
+	self.interaction.need_boards.contour = "interactable_icon"
+	self.interaction.need_boards.text_id = "debug_interact_stash_planks"
+	self.interaction.need_boards.action_text_id = "hud_action_barricading"
+	self.interaction.need_boards.start_active = false
+	self.interaction.need_boards.timer = 2.5
+	self.interaction.need_boards.equipment_text_id = "hud_equipment_need_boards"
+	self.interaction.need_boards.special_equipment = "boards"
+	self.interaction.need_boards.equipment_consume = true
+	self.interaction.need_boards.sound_start = "bar_barricade_window"
+	self.interaction.need_boards.sound_interupt = "bar_barricade_window_cancel"
+	self.interaction.need_boards.sound_done = "bar_barricade_window_finished"
+	self.interaction.need_boards.axis = "z"
+	self.interaction.uload_database = {}
+	self.interaction.uload_database.text_id = "hud_int_hold_use_computer"
+	self.interaction.uload_database.action_text_id = "hud_action_using_computer"
+	self.interaction.uload_database.timer = 0.5
+	self.interaction.uload_database.start_active = false
+	self.interaction.uload_database.sound_start = "bar_keyboard"
+	self.interaction.uload_database.sound_interupt = "bar_keyboard_cancel"
+	self.interaction.uload_database.sound_done = "bar_keyboard_finished"
+	self.interaction.uload_database.axis = "x"
+	self.interaction.uload_database_jammed = {}
+	self.interaction.uload_database_jammed.text_id = "hud_int_hold_resume_upload"
+	self.interaction.uload_database_jammed.action_text_id = "hud_action_resuming_upload"
+	self.interaction.uload_database_jammed.timer = 1
+	self.interaction.uload_database_jammed.sound_start = "bar_keyboard"
+	self.interaction.uload_database_jammed.sound_interupt = "bar_keyboard_cancel"
+	self.interaction.uload_database_jammed.sound_done = "bar_keyboard_finished"
+	self.interaction.uload_database_jammed.axis = "x"
 	self.gui = self.gui or {}
 	self.gui.BOOT_SCREEN_LAYER = 1
 	self.gui.TITLE_SCREEN_LAYER = 1
@@ -2166,8 +2270,10 @@ function TweakData:init()
 	self.achievement.most_wanted = 100
 	self.achievement.fully_loaded = 9
 	self.achievement.weapon_collector = 18
+	self.achievement.arms_dealer = 72
 	self.achievement.how_do_you_like_me_now = "level_1"
 	self.achievement.like_an_angry_bear = "bear"
+	self.achievement.merry_christmas = "santa_happy"
 	self.achievement.witch_doctor = {
 		mask = "witch",
 		stat = "halloween_4_stats"
@@ -2184,14 +2290,122 @@ function TweakData:init()
 		mask = "venomorph",
 		stat = "halloween_7_stats"
 	}
-	self.achievement.in_soviet_russia = {
-		mask = "bear",
-		stat = "halloween_10_stats"
-	}
 	self.achievement.unique_selling_point = "usp"
-	self.achievement.try_out_your_usp = {
-		weapon = "usp",
-		stat = "halloween_8_stats"
+	self.achievement.relation_with_bulldozer = {
+		mask = "clinton",
+		stat = "armored_8_stat"
+	}
+	self.achievement.no_we_cant = {
+		mask = "obama",
+		stat = "armored_10_stat"
+	}
+	self.achievement.heat_around_the_corner = "heat"
+	self.achievement.fire_in_the_hole = {
+		grenade = "frag",
+		stat = "gage_9_stats"
+	}
+	self.achievement.infamous = {
+		"ignominy_1",
+		"ignominy_2",
+		"ignominy_3",
+		"ignominy_4",
+		"ignominy_5"
+	}
+	self.achievement.enemy_kill_achievements = {
+		try_out_your_usp = {
+			weapon = "usp",
+			stat = "halloween_8_stats"
+		},
+		license_to_kill = {
+			weapon = "ppk",
+			stat = "armored_5_stat"
+		},
+		im_not_a_crook = {
+			mask = "nixon",
+			weapon = "s552",
+			enemy = "sniper",
+			stat = "armored_7_stat"
+		},
+		fool_me_once = {
+			mask = "bush",
+			weapon = "m45",
+			enemy = "shield",
+			stat = "armored_9_stat"
+		},
+		wanted = {
+			mask = "goat",
+			weapon = "ak5",
+			stat = "gage_1_stats"
+		},
+		three_thousand_miles = {
+			mask = "panda",
+			weapon = "p90",
+			stat = "gage_2_stats"
+		},
+		commando = {
+			mask = "pitbull",
+			weapon = "aug",
+			stat = "gage_3_stats"
+		},
+		public_enemies = {
+			mask = "eagle",
+			weapon = "colt_1911",
+			stat = "gage_4_stats"
+		},
+		inception = {
+			weapon = "scar",
+			stat = "gage_5_stats"
+		},
+		hard_corps = {
+			weapon = "mp7",
+			stat = "gage_6_stats"
+		},
+		above_the_law = {
+			weapon = "p226",
+			stat = "gage_7_stats"
+		}
+	}
+	self.achievement.complete_heist_achievements = {
+		in_soviet_russia = {
+			stat = "halloween_10_stats",
+			mask = "bear",
+			difficulty = "overkill_145",
+			contracts = {"vlad"}
+		},
+		i_take_scores = {
+			stat = "armored_4_stat",
+			mask = "heat",
+			difficulty = "overkill_145",
+			jobs = {
+				"arm_cro",
+				"arm_cro_prof",
+				"arm_und",
+				"arm_und_prof",
+				"arm_hcm",
+				"arm_hcm_prof",
+				"arm_par",
+				"arm_par_prof",
+				"arm_fac",
+				"arm_fac_prof"
+			}
+		},
+		eco_round = {
+			award = "charliesierra_7",
+			no_shots = "primaries",
+			difficulty = "overkill_145",
+			jobs = {"roberts"}
+		}
+	}
+	self.achievement.four_mask_achievements = {
+		reindeer_games = {
+			award = "charliesierra_9",
+			masks = {
+				"santa_happy",
+				"santa_mad",
+				"santa_drunk",
+				"santa_surprise"
+			}
+		}
 	}
 	self.pickups = {}
 	self.pickups.ammo = {
@@ -2276,8 +2490,12 @@ function TweakData:init()
 		"track_04",
 		"track_05",
 		"track_06",
-		"track_07"
+		"track_07",
+		"track_08",
+		"track_09",
+		"track_10"
 	}
+	self.music.heist.switches_infamous = {"track_11"}
 	self.music.default = deep_clone(self.music.heist)
 	self.blame = {}
 	self.blame.default = "hint_blame_missing"
@@ -2339,6 +2557,15 @@ function TweakData:init()
 	self.blame.cop_fire = "hint_cop_fire"
 	self.blame.cop_voting = "hint_cop_voting"
 	self.blame.cop_breaking_entering = "hint_cop_breaking_entering"
+	self.blame.sys_explosion = "hint_alert_explosion"
+	self.blame.civ_explosion = "hint_alert_explosion"
+	self.blame.cop_explosion = "hint_alert_explosion"
+	self.blame.gan_explosion = "hint_alert_explosion"
+	self.blame.cam_explosion = "hint_alert_explosion"
+	self.blame.sys_blackmailer = "hint_blame_blackmailer"
+	self.blame.sys_gensec = "hint_blame_gensec"
+	self.blame.sys_police_alerted = "hint_blame_police_alerted"
+	self.blame.sys_csgo_gunfire = "hint_blame_csgo_gunfire"
 	self.blame.met_criminal = "hint_met_criminal"
 	self.blame.mot_criminal = "hint_mot_criminal"
 	self.blame.gls_alarm = "hint_alarm_glass"
@@ -2386,6 +2613,11 @@ function TweakData:init()
 	}
 	self.casino.infamous_cost = 30000000
 	self.casino.infamous_chance = 3
+	self.grenades = {}
+	self.grenades.frag = {}
+	self.grenades.frag.damage = 30
+	self.grenades.frag.player_damage = 10
+	self.grenades.frag.range = 1000
 	self:set_difficulty()
 	self:set_mode()
 	self:digest_tweak_data()
@@ -2878,6 +3110,18 @@ function TweakData:get_controller_help_coords()
 			align = "right",
 			vertical = "center"
 		}
+		coords.menu_button_throw_grenade = {
+			x = 0,
+			y = 0,
+			align = "left",
+			vertical = "top"
+		}
+		coords.menu_button_weapon_firemode = {
+			x = 0,
+			y = 0,
+			align = "left",
+			vertical = "top"
+		}
 	else
 		coords.menu_button_sprint = {
 			x = 0,
@@ -2956,7 +3200,19 @@ function TweakData:get_controller_help_coords()
 			vertical = "bottom"
 		}
 		coords.menu_button_weapon_gadget = {
-			x = 209,
+			x = 0,
+			y = 243,
+			align = "right",
+			vertical = "center"
+		}
+		coords.menu_button_throw_grenade = {
+			x = 0,
+			y = 208,
+			align = "right",
+			vertical = "center"
+		}
+		coords.menu_button_weapon_firemode = {
+			x = 226,
 			y = 256,
 			align = "right",
 			vertical = "top"
@@ -2964,8 +3220,9 @@ function TweakData:get_controller_help_coords()
 		if SystemInfo:platform() == Idstring("WIN32") then
 			coords.menu_button_push_to_talk = {
 				x = 0,
-				y = 200,
-				align = "right"
+				y = 174,
+				align = "right",
+				vertical = "center"
 			}
 		end
 	end

@@ -11,10 +11,17 @@ function SelectUnitByNameModal:_build_buttons(panel, sizer)
 	UnitByName._build_buttons(self, panel, sizer)
 end
 function SelectUnitByNameModal:_on_select_unit()
-	self:on_cancel()
+	self:end_modal()
 end
 function SelectUnitByNameModal:on_cancel()
+	self._cancelled = true
+	self:end_modal()
+end
+function SelectUnitByNameModal:end_modal()
 	self._dialog:end_modal("hello")
+end
+function SelectUnitByNameModal:cancelled()
+	return self._cancelled
 end
 function SelectUnitByNameModal:selected_units()
 	return self:_selected_item_units()

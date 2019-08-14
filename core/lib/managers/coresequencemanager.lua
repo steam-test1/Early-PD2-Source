@@ -185,7 +185,7 @@ function SequenceManager:get_global_sequence_map()
 	return self._global_unit_element and self._global_unit_element._sequence_elements or self._global_core_unit_element and self._global_core_unit_element._sequence_elements or {}
 end
 function SequenceManager:get_global_filter(filter_name)
-	return (not self._global_unit_element or not self._global_unit_element._filters[filter_name]) and self._global_core_unit_element and self._global_core_unit_element._filters[filter_name]
+	return (not self._global_unit_element or not self._global_unit_element._filters or not self._global_unit_element._filters[filter_name]) and self._global_core_unit_element and self._global_core_unit_element._filters and self._global_core_unit_element._filters[filter_name]
 end
 function SequenceManager:set_collisions_enabled(enabled)
 	self._collisions_enabled = enabled
@@ -848,13 +848,13 @@ function SequenceEnvironment:init_static_env()
 	self.velocity = Vector3()
 	local global_core_unit_element = managers.sequence:get_global_core_unit_element()
 	if global_core_unit_element then
-		self.g_vars = table.map_copy(global_core_unit_element:get_global_set_var_map())
-		self.vars = table.map_copy(global_core_unit_element:get_set_var_map())
+		self.g_vars = table.map_copy(global_core_unit_element:get_global_set_var_map() or {})
+		self.vars = table.map_copy(global_core_unit_element:get_set_var_map() or {})
 	end
 	local global_unit_element = managers.sequence:get_global_unit_element()
 	if global_unit_element then
-		self.g_vars = table.map_copy(global_unit_element:get_global_set_var_map())
-		self.vars = table.map_copy(global_unit_element:get_set_var_map())
+		self.g_vars = table.map_copy(global_unit_element:get_global_set_var_map() or {})
+		self.vars = table.map_copy(global_unit_element:get_set_var_map() or {})
 	end
 	self.params = {}
 	self.__run_params = CoreTable.clone(self.params)
@@ -1178,7 +1178,6 @@ function BaseElement:init(node, unit_element)
 	self._unit_element = unit_element
 	local __filter_name, __delayed_filter_name
 	if node then
-		self._element_name = node._meta
 		self._node_file = self:retrieve_node_file(node)
 		self._node_line = self:retrieve_node_line(node)
 		self._parameters = {}
@@ -1350,7 +1349,7 @@ end
 function BaseElement:check_invalid_node(node, valid_node_list)
 	if self:is_valid_xml_node(node) then
 		local unit_name = self._unit_element and self._unit_element._name or self._name or "[None]"
-		Application:error("\"" .. tostring(node:name()) .. "\" elements for unit \"" .. tostring(unit_name) .. "\" are not supported in the \"" .. tostring(self._element_name) .. "\" elements, only the following are allowed: " .. SequenceManager:get_keys_as_string(valid_node_list, "[None]", true, #valid_node_list > 0) .. " " .. self:get_xml_origin())
+		Application:error("\"" .. tostring(node:name()) .. "\" elements for unit \"" .. tostring(unit_name) .. "\" are not supported in the \"" .. tostring(self._element_name or "<nil>") .. "\" elements, only the following are allowed: " .. SequenceManager:get_keys_as_string(valid_node_list, "[None]", true, #valid_node_list > 0) .. " " .. self:get_xml_origin())
 	end
 end
 function BaseElement:is_valid_xml_node(node)
@@ -1412,19 +1411,28 @@ UnitElement = UnitElement or class(BaseElement)
 function UnitElement:init(node, name, is_global)
 	BaseElement.init(self, node, self)
 	self._name = name
-	self._global_vars = {}
-	self._set_global_vars = {}
-	self._set_variables = {}
 	if not is_global then
 		local global_core_unit_element = managers.sequence:get_global_core_unit_element()
 		if global_core_unit_element then
-			self._set_global_vars = table.map_copy(global_core_unit_element:get_global_set_var_map())
-			self._set_variables = table.map_copy(global_core_unit_element:get_set_var_map())
+			local global_vars = global_core_unit_element:get_global_set_var_map()
+			if global_vars then
+				self._set_global_vars = table.map_copy(global_vars)
+			end
+			local vars = global_core_unit_element:get_set_var_map()
+			if vars then
+				self._set_variables = table.map_copy(vars)
+			end
 		end
 		local global_unit_element = managers.sequence:get_global_unit_element()
 		if global_unit_element then
-			self._set_global_vars = table.map_copy(global_unit_element:get_global_set_var_map())
-			self._set_variables = table.map_copy(global_unit_element:get_set_var_map())
+			local global_vars = global_unit_element:get_global_set_var_map()
+			if global_vars then
+				self._set_global_vars = table.map_copy(global_vars)
+			end
+			local vars = global_unit_element:get_set_var_map()
+			if vars then
+				self._set_variables = table.map_copy(vars)
+			end
 		end
 	end
 	local endurance = self:get("endurance")
@@ -1433,9 +1441,10 @@ function UnitElement:init(node, name, is_global)
 	else
 		endurance = 0
 	end
-	self._global_vars.endurance = endurance
-	self._triggers = {}
-	self._filters = {}
+	if endurance ~= 0 then
+		self._global_vars = self._global_vars or {}
+		self._global_vars.endurance = endurance
+	end
 	self._sequence_elements = {}
 	self._bodies = {}
 	self._proximity_element = nil
@@ -1445,6 +1454,7 @@ function UnitElement:init(node, name, is_global)
 			if element_name == "variables" then
 				for _, v_data in ipairs(data) do
 					local name = v_data._meta
+					self._set_variables = self._set_variables or {}
 					self._set_variables[name] = self:get_static("value", v_data.value, nil, data)
 					if self._set_variables[name] then
 						self._set_variables[name] = self._set_variables[name](SequenceEnvironment)
@@ -1453,6 +1463,7 @@ function UnitElement:init(node, name, is_global)
 			elseif element_name == "global_variables" then
 				for _, v_data in ipairs(data) do
 					local name = v_data._meta
+					self._global_vars = self._global_vars or {}
 					self._global_vars[name] = self:get_static("value", v_data.value, nil, data)
 					if self._global_vars[name] then
 						self._global_vars[name] = self._global_vars[name](SequenceEnvironment)
@@ -1467,9 +1478,11 @@ function UnitElement:init(node, name, is_global)
 			local element_name = data._meta
 			if element_name == "trigger" then
 				local trigger = TriggerDeclarationElement:new(data, self)
+				self._triggers = self._triggers or {}
 				self._triggers[trigger._name] = trigger
 			elseif element_name == "filter" then
 				local filter = FilterElement:new(data, self)
+				self._filters = self._filters or {}
 				self._filters[filter._name] = filter
 			elseif element_name == "sequence" then
 				local name = self:get_static("name", data.name, nil, data)
@@ -1485,7 +1498,7 @@ function UnitElement:init(node, name, is_global)
 				table.insert(water_node_list, child_node)
 			elseif element_name == "proximities" then
 				if not self._proximity_element then
-					self._proximity_element = ProximityElement:new(child_node, self)
+					self._proximity_element = ProximityElement:new(data, self)
 				else
 					Application:throw_exception("\"" .. tostring(node:name()) .. "\" element for unit \"" .. tostring(unit_element._name) .. "\" has more than one \"proximity\" element.")
 				end
@@ -1519,8 +1532,11 @@ function UnitElement:init(node, name, is_global)
 				self._bodies[body_element._name] = body_element
 			end
 		end
-		for k, v in pairs(self._global_vars) do
-			self._set_global_vars[k] = v
+		if self._global_vars then
+			for k, v in pairs(self._global_vars) do
+				_set_global_vars = _set_global_vars or {}
+				self._set_global_vars[k] = v
+			end
 		end
 	end
 end
@@ -1572,16 +1588,18 @@ function UnitElement:get_body_element(body_name)
 end
 function UnitElement:get_trigger_name_list()
 	local trigger_name_list = {}
-	for name, _ in pairs(self._triggers) do
-		table.insert(trigger_name_list, name)
+	if self._triggers then
+		for name, _ in pairs(self._triggers) do
+			table.insert(trigger_name_list, name)
+		end
 	end
 	return trigger_name_list
 end
 function UnitElement:has_trigger_name(trigger_name)
-	return self._triggers[trigger_name] ~= nil
+	return self._triggers and self._triggers[trigger_name] ~= nil
 end
 function UnitElement:get_trigger_name_map()
-	return self._triggers
+	return self._triggers or {}
 end
 function UnitElement:get_sequence_name_list()
 	local sequence_name_list = {}
@@ -1613,9 +1631,10 @@ function UnitElement:get_body_element_list()
 	return self._bodies
 end
 function UnitElement:get_endurance()
-	return self._global_vars.endurance
+	return self._global_vars and self._global_vars.endurance or 0
 end
 function UnitElement:set_endurance(endurance)
+	self._global_vars = self._global_vars or {}
 	self._global_vars.endurance = endurance
 end
 function UnitElement:reset_damage(unit)
@@ -1675,7 +1694,7 @@ function UnitElement:load_by_unit(unit, data)
 	end
 end
 function UnitElement:get_filter(filter_name)
-	return self._filters[filter_name] or managers.sequence:get_global_filter(filter_name)
+	return self._filters and self._filters[filter_name] or managers.sequence:get_global_filter(filter_name)
 end
 function UnitElement:get_water_element_map()
 	return self._water_element_map
@@ -1683,11 +1702,13 @@ end
 function UnitElement:save(data)
 	local state = {}
 	local changed = false
-	for k, v in pairs(self._global_vars) do
-		if self._set_global_vars[k] ~= v then
-			state.global_vars = table.map_copy(self._global_vars)
-			changed = true
-		else
+	if self._global_vars then
+		for k, v in pairs(self._global_vars) do
+			if not self._set_global_vars or self._set_global_vars[k] ~= v then
+				state.global_vars = table.map_copy(self._global_vars)
+				changed = true
+			else
+			end
 		end
 	end
 	if changed then
@@ -1696,7 +1717,7 @@ function UnitElement:save(data)
 end
 function UnitElement:load(data)
 	local state = data[self._name]
-	if state then
+	if state and state.global_vars then
 		self._global_vars = table.map_copy(state.global_vars)
 	end
 end
@@ -1893,17 +1914,13 @@ ProximityElement = ProximityElement or class(BaseElement)
 function ProximityElement:init(node, unit_element)
 	BaseElement.init(self, node, unit_element)
 	self._element_map = {}
-	for child_node in node:children() do
-		if child_node:name() == "proximity" then
-			local element = ProximityTypeElement:new(child_node, unit_element)
-			local proximity_name = element:get_name()
-			if not self._element_map[proximity_name:key()] then
-				self._element_map[proximity_name:key()] = element
-			else
-				element:print_error("Proximity with name \"" .. proximity_name:t() .. "\" has already been defined.", false, nil)
-			end
+	for _, child_node in ipairs(node) do
+		local element = ProximityTypeElement:new(child_node, unit_element)
+		local proximity_name = element:get_name()
+		if not self._element_map[proximity_name] then
+			self._element_map[proximity_name] = element
 		else
-			self:check_invalid_node(child_node, {"proximity"})
+			element:print_error("Proximity with name \"" .. proximity_name:t() .. "\" has already been defined.", false, nil)
 		end
 	end
 end
@@ -1937,7 +1954,7 @@ function ProximityTypeElement:init(node, unit_element)
 	end
 	self._interval = self:get("interval")
 	self._interval = self._interval and tonumber(self._interval(SequenceEnvironment))
-	self._interval = math.min(tonumber(self._interval) or 0, self.MIN_INTERVAL)
+	self._interval = math.max(tonumber(self._interval) or 0, self.MIN_INTERVAL)
 	self._quick = self:get("quick")
 	self._quick = not self._quick or self._quick(SequenceEnvironment) or true
 	self._start_within = self:get("start_within")
@@ -1947,22 +1964,23 @@ function ProximityTypeElement:init(node, unit_element)
 	end
 	self._within_element = nil
 	self._outside_element = nil
-	for child_node in node:children() do
-		local name = child_node:name()
+	for _, child_node in ipairs(node) do
+		local name = child_node._meta
 		if name == "within" then
 			if not self._within_element then
 				self._within_element = ProximityRangeElement:new(child_node, unit_element, true)
 			else
 				Application:throw_exception("Unit \"" .. tostring(unit_element._name) .. "\" have defined more than one \"within\" element.")
 			end
-		elseif name == "outside" then
-			if not self._outside_element then
-				self._outside_element = ProximityRangeElement:new(child_node, unit_element, false)
-			else
-				Application:throw_exception("Unit \"" .. tostring(unit_element._name) .. "\" have defined more than one \"outside\" element.")
-			end
 		else
-			self:check_invalid_node(child_node, {"within", "outside"})
+			if name == "outside" then
+				if not self._outside_element then
+					self._outside_element = ProximityRangeElement:new(child_node, unit_element, false)
+				else
+					Application:throw_exception("Unit \"" .. tostring(unit_element._name) .. "\" have defined more than one \"outside\" element.")
+				end
+			else
+			end
 		end
 	end
 	if (not self._within_element or #self._within_element._elements == 0) and (not self._outside_element or #self._outside_element._elements == 0) then
@@ -2012,8 +2030,8 @@ function ProximityRangeElement:init(node, unit_element, within)
 	if not self._range or 0 >= self._range then
 		Application:throw_exception("\"" .. tostring(name) .. "\" element on unit \"" .. tostring(unit_element._name) .. "\" doesn't have a range specified or it is not more than zero (specified range: " .. tostring(self._range) .. ").")
 	end
-	for child_node in node:children() do
-		local name = child_node:name()
+	for _, child_node in ipairs(node) do
+		local name = child_node._meta
 		if name == "run_sequence" then
 			local element = managers.sequence:parse_event(child_node, unit_element)
 			if element then
@@ -4170,13 +4188,13 @@ SetVariableElement = SetVariableElement or class(SetGlobalVariableElement)
 SetVariableElement.NAME = "set_variable"
 function SetVariableElement:set_variable(env, name, value)
 	env.vars[name] = value
-	env.dest_unit:damage()._variables[name] = value
+	env.dest_unit:damage():set_variable(name, value)
 end
 SetVariablesElement = SetVariablesElement or class(SetGlobalVariablesElement)
 SetVariablesElement.NAME = "set_variables"
 function SetVariablesElement:set_variable(env, name, value)
 	env.vars[name] = value
-	env.dest_unit:damage()._variables[name] = value
+	env.dest_unit:damage():set_variable(name, value)
 end
 SetWaterElement = SetWaterElement or class(BaseElement)
 SetWaterElement.NAME = "set_water"

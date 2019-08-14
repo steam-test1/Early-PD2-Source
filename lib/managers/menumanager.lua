@@ -728,7 +728,6 @@ function MenuManager:exit_online_menues()
 	end
 	self:open_menu("menu_main")
 	if not managers.menu:is_pc_controller() then
-		managers.menu:active_menu().input:deactivate_controller_mouse()
 	end
 end
 function MenuManager:leave_online_menu()
@@ -849,6 +848,7 @@ function MenuManager:do_clear_progress()
 	managers.blackmarket:reset()
 	managers.dlc:on_reset_profile()
 	managers.mission:on_reset_profile()
+	managers.infamy:reset()
 	managers.crimenet:reset_seed()
 	if Global.game_settings.difficulty == "overkill_145" then
 		Global.game_settings.difficulty = "overkill"
@@ -880,6 +880,14 @@ function MenuCallbackHandler:dlc_buy_pc()
 	print("[MenuCallbackHandler:dlc_buy_pc]")
 	Steam:overlay_activate("store", 218620)
 end
+function MenuCallbackHandler:dlc_buy_gage_pack_pc()
+	print("[MenuCallbackHandler:dlc_buy_gage_pack_pc]")
+	Steam:overlay_activate("store", 267380)
+end
+function MenuCallbackHandler:dlc_buy_armadillo_pc()
+	print("[MenuCallbackHandler:dlc_buy_armadillo_pc]")
+	Steam:overlay_activate("store", 264610)
+end
 function MenuCallbackHandler:dlc_buy_ps3()
 	print("[MenuCallbackHandler:dlc_buy_ps3]")
 	managers.dlc:buy_product("dlc1")
@@ -905,14 +913,32 @@ end
 function MenuCallbackHandler:not_has_all_dlcs()
 	return not self:has_all_dlcs()
 end
+function MenuCallbackHandler:has_armored_transport()
+	return managers.dlc:has_armored_transport()
+end
+function MenuCallbackHandler:not_has_armored_transport()
+	return not self:has_armored_transport()
+end
+function MenuCallbackHandler:has_gage_pack()
+	return managers.dlc:has_gage_pack()
+end
+function MenuCallbackHandler:not_has_gage_pack()
+	return not self:has_gage_pack()
+end
 function MenuCallbackHandler:reputation_check(data)
 	return managers.experience:current_level() >= data:value()
 end
 function MenuCallbackHandler:non_overkill_145(data)
 	return true
 end
+function MenuCallbackHandler:to_be_continued()
+	return true
+end
 function MenuCallbackHandler:is_level_145()
 	return managers.experience:current_level() >= 145
+end
+function MenuCallbackHandler:is_level_100()
+	return managers.experience:current_level() >= 100
 end
 function MenuCallbackHandler:is_level_50()
 	return managers.experience:current_level() >= 50
@@ -973,6 +999,12 @@ function MenuCallbackHandler:is_prof_job()
 end
 function MenuCallbackHandler:is_normal_job()
 	return not self:is_prof_job()
+end
+function MenuCallbackHandler:is_not_max_rank()
+	return managers.experience:current_rank() < #tweak_data.infamy.ranks
+end
+function MenuCallbackHandler:can_become_infamous()
+	return self:is_level_100() and self:is_not_max_rank()
 end
 function MenuCallbackHandler:singleplayer_restart()
 	return self:is_singleplayer() and self:has_full_game() and self:is_normal_job() and not managers.job:stage_success()
@@ -1098,7 +1130,7 @@ function MenuCallbackHandler:toggle_ready(item)
 	if managers.menu:active_menu() and managers.menu:active_menu().renderer and managers.menu:active_menu().renderer.set_ready_items_enabled then
 		managers.menu:active_menu().renderer:set_ready_items_enabled(not ready)
 	end
-	managers.network:game():on_set_member_ready(managers.network:session():local_peer():id(), ready)
+	managers.network:game():on_set_member_ready(managers.network:session():local_peer():id(), ready, true)
 end
 function MenuCallbackHandler:freeflight(item)
 	if setup:freeflight() then
@@ -1601,6 +1633,51 @@ function MenuCallbackHandler:play_safehouse(params)
 		return
 	end
 	managers.menu:show_play_safehouse_question({yes_func = yes_func})
+end
+function MenuCallbackHandler:_increase_infamous()
+	managers.menu_scene:destroy_infamy_card()
+	if managers.experience:current_level() < 100 or managers.experience:current_rank() >= #tweak_data.infamy.ranks then
+		return
+	end
+	local rank = managers.experience:current_rank() + 1
+	managers.experience:reset()
+	managers.experience:set_current_rank(rank)
+	managers.money:deduct_from_total(managers.money:total())
+	managers.money:deduct_from_offshore(Application:digest_value(tweak_data.infamy.ranks[rank], false))
+	managers.skilltree:reset()
+	managers.blackmarket:reset_equipped()
+	if managers.menu_component then
+		managers.menu_component:refresh_player_profile_gui()
+	end
+	local logic = managers.menu:active_menu().logic
+	if logic then
+		logic:refresh_node()
+		logic:select_item("crimenet")
+	end
+	if rank <= #tweak_data.achievement.infamous then
+		managers.achievment:award(tweak_data.achievement.infamous[rank])
+	end
+	managers.savefile:save_progress()
+	managers.savefile:save_setting(true)
+	self._sound_source:post_event("infamous_player_join_stinger")
+end
+function MenuCallbackHandler:become_infamous(params)
+	local infamous_cost = Application:digest_value(tweak_data.infamy.ranks[managers.experience:current_rank() + 1], false)
+	local params = {}
+	params.cost = managers.experience:cash_string(infamous_cost)
+	if infamous_cost <= managers.money:offshore() and managers.experience:current_level() >= 100 then
+		function params.yes_func()
+			local rank = managers.experience:current_rank() + 1
+			managers.menu:open_node("blackmarket_preview_node", {
+				{
+					back_callback = callback(self, self, "_increase_infamous")
+				}
+			})
+			managers.menu_scene:spawn_infamy_card(rank)
+			self._sound_source:post_event("infamous_stinger_level_" .. (rank < 10 and "0" or "") .. tostring(rank))
+		end
+	end
+	managers.menu:show_confirm_become_infamous(params)
 end
 function MenuCallbackHandler:choice_choose_character(item)
 	local character = item:value()
@@ -2116,8 +2193,8 @@ function MenuCallbackHandler:debug_next_stage()
 	})
 end
 function MenuCallbackHandler:debug_give_alot_of_lootdrops()
-	for i = 1, 10 do
-		managers.lootdrop:new_debug_drop(1000, true, i)
+	for i = 1, 4 do
+		managers.lootdrop:new_debug_drop(100, true, i)
 	end
 end
 function MenuCallbackHandler:debug_give_money()
@@ -2221,6 +2298,9 @@ function MenuCallbackHandler:print_global_steam_stats_7days()
 end
 function MenuCallbackHandler:print_global_steam_stats_30days()
 	managers.statistics:debug_print_stats(true, 30)
+end
+function MenuCallbackHandler:print_global_steam_stats_alltime()
+	managers.statistics:debug_print_stats(true)
 end
 MenuChallenges = MenuChallenges or class()
 function MenuChallenges:modify_node(node, up)
@@ -3348,6 +3428,8 @@ MenuCustomizeControllerCreator.CONTROLS = {
 	"switch_weapon",
 	"reload",
 	"weapon_gadget",
+	"weapon_firemode",
+	"throw_grenade",
 	"run",
 	"jump",
 	"duck",
@@ -3426,6 +3508,12 @@ MenuCustomizeControllerCreator.CONTROLS_INFO.push_to_talk = {
 }
 MenuCustomizeControllerCreator.CONTROLS_INFO.continue = {
 	text_id = "menu_button_continue"
+}
+MenuCustomizeControllerCreator.CONTROLS_INFO.throw_grenade = {
+	text_id = "menu_button_throw_grenade"
+}
+MenuCustomizeControllerCreator.CONTROLS_INFO.weapon_firemode = {
+	text_id = "menu_button_weapon_firemode"
 }
 function MenuCustomizeControllerCreator:modify_node(node)
 	local new_node = deep_clone(node)
@@ -3510,6 +3598,119 @@ function MenuCrimeNetContractInitiator:modify_node(original_node, data)
 	node:parameters().menu_component_data = data
 	return node
 end
+function MenuCallbackHandler:set_contact_info(item)
+	local parameters = item:parameters() or {}
+	local id = parameters.name
+	local name_id = parameters.text_id
+	local files = parameters.files
+	local active_node_gui = managers.menu:active_menu().renderer:active_node_gui()
+	if active_node_gui and active_node_gui.set_contact_info and active_node_gui:get_contact_info() ~= item:name() then
+		active_node_gui:set_contact_info(id, name_id, files, 1)
+	end
+	local logic = managers.menu:active_menu().logic
+	if logic then
+		logic:refresh_node()
+	end
+end
+function MenuCallbackHandler:is_current_contact_info(item)
+	local active_node_gui = managers.menu:active_menu().renderer:active_node_gui()
+	if active_node_gui and active_node_gui.get_contact_info then
+		return active_node_gui:get_contact_info() == item:name()
+	end
+	return false
+end
+MenuCrimeNetContactInfoInitiator = MenuCrimeNetContactInfoInitiator or class()
+function MenuCrimeNetContactInfoInitiator:modify_node(original_node, data)
+	local node = original_node
+	local codex_data = {}
+	local contacts = {}
+	for _, codex_d in ipairs(tweak_data.gui.crime_net.codex) do
+		local codex = {}
+		codex.id = codex_d.id
+		codex.name_lozalized = managers.localization:to_upper_text(codex_d.name_id) .. " (" .. tostring(#codex_d) .. ")"
+		for _, info_data in ipairs(codex_d) do
+			local data = {}
+			data.id = info_data.id
+			data.name_lozalized = managers.localization:to_upper_text(info_data.name_id)
+			data.files = {}
+			for page, file_data in ipairs(info_data) do
+				local file = {}
+				file.desc_lozalized = file_data.desc_id and managers.localization:text(file_data.desc_id) or ""
+				file.post_event = file_data.post_event
+				file.videos = file_data.videos and deep_clone(file_data.videos) or {}
+				file.lock = file_data.lock
+				if file_data.video then
+					table.insert(file.videos, file_data.video)
+				end
+				table.insert(data.files, file)
+			end
+			table.insert(codex, data)
+		end
+		table.insert(codex_data, codex)
+	end
+	node:clean_items()
+	for i, codex in ipairs(codex_data) do
+		self:create_divider(node, codex.id, codex.name_lozalized, nil, tweak_data.screen_colors.text)
+		for i, info_data in ipairs(codex) do
+			self:create_item(node, info_data)
+		end
+		self:create_divider(node, i)
+	end
+	local params = {
+		name = "back",
+		text_id = "menu_back",
+		previous_node = "true",
+		visible_callback = "is_pc_controller",
+		align = "left",
+		last_item = "true",
+		gui_node_custom = "true",
+		pd2_corner = "true"
+	}
+	local data_node = {}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
+	node:set_default_item_name("bain")
+	node:select_item("bain")
+	return node
+end
+function MenuCrimeNetContactInfoInitiator:refresh_node(node)
+	return node
+end
+function MenuCrimeNetContactInfoInitiator:create_divider(node, id, text_id, size, color)
+	local params = {
+		name = "divider_" .. id,
+		no_text = not text_id,
+		text_id = text_id,
+		localize = "false",
+		size = size or 8,
+		color = color
+	}
+	local data_node = {
+		type = "MenuItemDivider"
+	}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
+end
+function MenuCrimeNetContactInfoInitiator:create_item(node, contact)
+	local text_id = contact.name_lozalized
+	local files = contact.files
+	local video_id = contact.video
+	local color_ranges
+	local params = {
+		name = contact.id,
+		text_id = text_id,
+		color_ranges = color_ranges,
+		localize = "false",
+		callback = "set_contact_info",
+		files = files,
+		icon = "guis/textures/scrollarrow",
+		icon_rotation = 270,
+		icon_visible_callback = "is_current_contact_info"
+	}
+	local data_node = {}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
+end
 MenuCrimeNetSpecialInitiator = MenuCrimeNetSpecialInitiator or class()
 function MenuCrimeNetSpecialInitiator:modify_node(original_node, data)
 	local node = original_node
@@ -3537,23 +3738,29 @@ function MenuCrimeNetSpecialInitiator:setup_node(node)
 				local contact = tweak_data.narrative.jobs[job_id].contact
 				if table.contains(contacts, contact) then
 					jobs[contact] = jobs[contact] or {}
+					local dlc = tweak_data.narrative.jobs[job_id].dlc
+					dlc = not dlc or tweak_data.dlc[dlc] and tweak_data.dlc[dlc].free or managers.dlc:has_dlc(dlc)
 					table.insert(jobs[contact], {
 						id = job_id,
-						enabled = max_jc >= (tweak_data.narrative.jobs[job_id].jc or 0) + (tweak_data.narrative.jobs[job_id].professional and 1 or 0) and not tweak_data.narrative.jobs[job_id].wrapped_to_job
+						enabled = dlc and not tweak_data.narrative.jobs[job_id].wrapped_to_job
 					})
 				end
 			end
 			local job_tweak = tweak_data.narrative.jobs
 			for _, contracts in pairs(jobs) do
 				table.sort(contracts, function(x, y)
-					if job_tweak[x.id].jc < job_tweak[y.id].jc then
-						return true
+					if x.enabled ~= y.enabled then
+						return x.enabled
 					end
-					if job_tweak[x.id].jc > job_tweak[y.id].jc then
-						return false
+					local string_x = managers.localization:to_upper_text(job_tweak[x.id].name_id)
+					local string_y = managers.localization:to_upper_text(job_tweak[y.id].name_id)
+					local ids_x = Idstring(string_x)
+					local ids_y = Idstring(string_y)
+					if ids_x ~= ids_y then
+						return string_x < string_y
 					end
-					if managers.localization:text(job_tweak[x.id].name_id) < managers.localization:text(job_tweak[y.id].name_id) then
-						return true
+					if job_tweak[x.id].jc ~= job_tweak[y.id].jc then
+						return job_tweak[x.id].jc <= job_tweak[y.id].jc
 					end
 					return false
 				end)
@@ -3601,18 +3808,17 @@ function MenuCrimeNetSpecialInitiator:setup_node(node)
 			self:create_divider(node, "end")
 		end
 	end
-	if MenuCallbackHandler:is_win32() then
-		local params = {
-			name = "back",
-			text_id = "menu_back",
-			previous_node = "true",
-			align = "right",
-			last_item = "true"
-		}
-		local data_node = {}
-		local new_item = node:create_item(data_node, params)
-		node:add_item(new_item)
-	end
+	local params = {
+		name = "back",
+		text_id = "menu_back",
+		previous_node = "true",
+		visible_callback = "is_pc_controller",
+		align = "right",
+		last_item = "true"
+	}
+	local data_node = {}
+	local new_item = node:create_item(data_node, params)
+	node:add_item(new_item)
 	node:set_default_item_name("contact_filter")
 	node:select_item("contact_filter")
 	return node
@@ -3637,6 +3843,19 @@ function MenuCrimeNetSpecialInitiator:create_job(node, contract)
 	local job_tweak = tweak_data.narrative.jobs[id]
 	local text_id = managers.localization:to_upper_text(job_tweak.name_id)
 	local color_ranges
+	if job_tweak.dlc and tweak_data.dlc[job_tweak.dlc] and not tweak_data.dlc[job_tweak.dlc].free then
+		local pro_text = "  DLC"
+		local s_len = utf8.len(text_id)
+		text_id = text_id .. pro_text
+		local e_len = utf8.len(text_id)
+		color_ranges = {
+			{
+				start = s_len,
+				stop = e_len,
+				color = tweak_data.screen_colors.dlc_color
+			}
+		}
+	end
 	if job_tweak.professional then
 		local pro_text = "  " .. managers.localization:to_upper_text("cn_menu_pro_job")
 		local s_len = utf8.len(text_id)

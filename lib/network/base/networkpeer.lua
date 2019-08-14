@@ -17,7 +17,8 @@ function NetworkPeer:init(name, rpc, id, loading, synced, in_lobby, character, u
 		Network:set_connection_persistent(self._steam_rpc, true)
 		Network:set_throttling_disabled(self._steam_rpc, true)
 	end
-	self._level = 0
+	self._level = nil
+	self._rank = 0
 	self._in_lobby = in_lobby
 	self._loading = loading
 	self._synced = synced
@@ -40,7 +41,11 @@ function NetworkPeer:init(name, rpc, id, loading, synced, in_lobby, character, u
 	if self._rpc and not self._loading and managers.network.voice_chat.on_member_added and self._rpc:ip_at_index(0) ~= Network:self("TCP_IP"):ip_at_index(0) then
 		managers.network.voice_chat:on_member_added(self)
 	end
-	self._profile = {level = nil, outfit_string = ""}
+	self._profile = {
+		level = nil,
+		rank = nil,
+		outfit_string = ""
+	}
 	self._handshakes = {}
 end
 function NetworkPeer:set_rpc(rpc)
@@ -97,6 +102,7 @@ function NetworkPeer:load(data)
 	self._xnaddr = data.xnaddr
 	self._join_attempt_identifier = data.join_attempt_identifier
 	self._muted = data.muted
+	self._rank = data.rank
 	self:chk_enable_queue()
 	self:_chk_flush_msg_queues()
 	if self._rpc and not self._loading and managers.network.voice_chat.on_member_added then
@@ -127,6 +133,7 @@ function NetworkPeer:save(data)
 	data.xnaddr = self._xnaddr
 	data.join_attempt_identifier = self._join_attempt_identifier
 	data.muted = self._muted
+	data.rank = self._rank
 	print("[NetworkPeer:save]", inspect(data))
 end
 function NetworkPeer:name()
@@ -499,8 +506,18 @@ end
 function NetworkPeer:level()
 	return self._level
 end
-function NetworkPeer:set_profile(level)
+function NetworkPeer:set_rank(rank)
+	self._rank = rank
+	if managers.hud then
+		managers.hud:update_name_label_by_peer(self)
+	end
+end
+function NetworkPeer:rank()
+	return self._rank
+end
+function NetworkPeer:set_profile(level, rank)
 	self._profile.level = level
+	self._profile.rank = rank
 end
 function NetworkPeer:set_outfit_string(outfit_string)
 	self._profile.outfit_string = outfit_string

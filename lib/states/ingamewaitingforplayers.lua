@@ -221,7 +221,7 @@ function IngameWaitingForPlayersState:at_enter()
 		Global.local_member:sync_lobby_data(managers.network:session():server_peer())
 		Global.local_member:sync_data(managers.network:session():server_peer())
 	end
-	if managers.job:interupt_stage() then
+	if managers.job:interupt_stage() and not tweak_data.levels[managers.job:interupt_stage()].bonus_escape then
 		managers.menu_component:post_event("escape_menu")
 	end
 end
@@ -235,6 +235,9 @@ end
 function IngameWaitingForPlayersState:set_dropin(char_name)
 	self._started_from_beginning = false
 	print("Joining as " .. char_name)
+end
+function IngameWaitingForPlayersState:check_is_dropin()
+	return not self._started_from_beginning
 end
 function IngameWaitingForPlayersState:at_exit()
 	print("[IngameWaitingForPlayersState:at_exit()]")

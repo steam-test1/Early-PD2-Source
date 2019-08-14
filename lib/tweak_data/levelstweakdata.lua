@@ -44,6 +44,41 @@ function LevelsTweakData:init()
 	self.framing_frame_3.music = "heist"
 	self.framing_frame_3.package = "packages/narr_framing_3"
 	self.framing_frame_3.cube = "cube_apply_heist_bank"
+	self.election_day_1 = {}
+	self.election_day_1.name_id = "heist_election_day_1_hl"
+	self.election_day_1.briefing_id = "eday1_brief"
+	self.election_day_1.world_name = "narratives/e_election_day/stage_1"
+	self.election_day_1.intro_event = "nothing"
+	self.election_day_1.outro_event = "nothing"
+	self.election_day_1.music = "heist"
+	self.election_day_1.package = {
+		"packages/narr_election1"
+	}
+	self.election_day_1.cube = "cube_apply_heist_bank"
+	self.election_day_2 = {}
+	self.election_day_2.name_id = "heist_election_day_2_hl"
+	self.election_day_2.briefing_id = "eday2_brief"
+	self.election_day_2.world_name = "narratives/e_election_day/stage_2"
+	self.election_day_2.intro_event = "nothing"
+	self.election_day_2.outro_event = "nothing"
+	self.election_day_2.music = "heist"
+	self.election_day_2.package = {
+		"packages/narr_election2"
+	}
+	self.election_day_2.cube = "cube_apply_heist_bank"
+	self.election_day_3 = {}
+	self.election_day_3.name_id = "heist_election_day_3_hl"
+	self.election_day_3.briefing_id = "eday3_brief"
+	self.election_day_3.world_name = "narratives/e_election_day/stage_3"
+	self.election_day_3.intro_event = "nothing"
+	self.election_day_3.outro_event = "nothing"
+	self.election_day_3.music = "heist"
+	self.election_day_3.package = "packages/narr_election3"
+	self.election_day_3.cube = "cube_apply_heist_bank"
+	self.election_day_3_skip1 = deep_clone(self.election_day_3)
+	self.election_day_3_skip1.briefing_id = "eday3_brief_skip1"
+	self.election_day_3_skip2 = deep_clone(self.election_day_3)
+	self.election_day_3_skip2.briefing_id = "eday3_brief_skip2"
 	self.alex_1 = {}
 	self.alex_1.name_id = "heist_alex_1_hl"
 	self.alex_1.briefing_id = "heist_alex_1_briefing"
@@ -283,12 +318,34 @@ function LevelsTweakData:init()
 		"Play_pln_branchbank_cash_stage1_intro_a"
 	}
 	self.branchbank.outro_event = "Play_pln_branchbank_stage1_end"
+	self.branchbank_cloaker = {}
+	self.branchbank_cloaker.name_id = "heist_cloak_hl"
+	self.branchbank_cloaker.briefing_id = "heist_cloak_briefing"
+	self.branchbank_cloaker.briefing_dialog = "Play_pln_branchbank_random_stage1_brief"
+	self.branchbank_cloaker.world_name = "narratives/h_firestarter/stage_3_cloaker"
+	self.branchbank_cloaker.intro_event = {
+		"Play_pln_branchbank_random_a_intro_a",
+		"Play_pln_branchbank_gold_a_intro_a",
+		"Play_pln_branchbank_depositbox_a_intro_a",
+		"Play_pln_branchbank_cash_stage1_intro_a"
+	}
+	self.branchbank_cloaker.outro_event = "Play_pln_branchbank_stage1_end"
+	self.branchbank_cloaker.package = "packages/narr_firestarter3"
 	self.branchbank.music = "heist"
 	self.branchbank.package = "packages/narr_firestarter3"
 	self.branchbank.cube = "cube_apply_heist_bank"
 	self.branchbank.mission_data = {
 		{mission = "standalone"}
 	}
+	self.fwb = {}
+	self.fwb.name_id = "heist_fwb_hl"
+	self.fwb.briefing_id = "heist_fwb_briefing"
+	self.fwb.world_name = "narratives/vlad/fwb"
+	self.fwb.intro_event = "nothing"
+	self.fwb.outro_event = "nothing"
+	self.fwb.music = "heist"
+	self.fwb.package = "packages/vlad_fwb"
+	self.fwb.cube = "cube_apply_heist_bank"
 	self.escape_cafe_day = {}
 	self.escape_cafe_day.name_id = "heist_escape_cafe_hl"
 	self.escape_cafe_day.briefing_id = "heist_escape_cafe_briefing"
@@ -371,6 +428,128 @@ function LevelsTweakData:init()
 	self.safehouse.package = "packages/safehouse"
 	self.safehouse.cube = "cube_apply_heist_bank"
 	self.safehouse.team_ai_off = true
+	self.arm_cro = {}
+	self.arm_cro.name_id = "heist_arm_cro_hl"
+	self.arm_cro.briefing_id = "heist_arm_cro_briefing"
+	self.arm_cro.briefing_dialog = "Play_pln_at1_brf_01"
+	self.arm_cro.world_name = "narratives/armadillo/arm_cro"
+	self.arm_cro.intro_event = "Play_pln_at1_intro_02"
+	self.arm_cro.outro_event = {
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03",
+		"Play_pln_at1_end_01b",
+		"Play_pln_at1_end_02b",
+		"Play_pln_at1_end_03b"
+	}
+	self.arm_cro.music = "heist"
+	self.arm_cro.package = "packages/narr_arm_cro"
+	self.arm_cro.cube = "cube_apply_heist_bank"
+	self.arm_und = {}
+	self.arm_und.name_id = "heist_arm_und_hl"
+	self.arm_und.briefing_id = "heist_arm_und_briefing"
+	self.arm_und.briefing_dialog = "Play_pln_at1_brf_05"
+	self.arm_und.world_name = "narratives/armadillo/arm_und"
+	self.arm_und.intro_event = "Play_pln_at1_intro_06"
+	self.arm_und.outro_event = {
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03",
+		"Play_pln_at1_end_01b",
+		"Play_pln_at1_end_02b",
+		"Play_pln_at1_end_03b"
+	}
+	self.arm_und.music = "heist"
+	self.arm_und.package = "packages/narr_arm_und"
+	self.arm_und.cube = "cube_apply_heist_bank"
+	self.arm_bri = {}
+	self.arm_bri.name_id = "heist_arm_bri_hl"
+	self.arm_bri.briefing_id = "heist_arm_bri_briefing"
+	self.arm_bri.briefing_dialog = "Play_pln_at1_cbf_01"
+	self.arm_bri.world_name = "narratives/armadillo/arm_bri"
+	self.arm_bri.intro_event = "Play_pln_at1_intro_01"
+	self.arm_bri.outro_event = {
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03",
+		"Play_pln_at1_end_01b",
+		"Play_pln_at1_end_02b",
+		"Play_pln_at1_end_03b"
+	}
+	self.arm_bri.music = "heist"
+	self.arm_bri.package = "packages/narr_arm_bri"
+	self.arm_bri.cube = "cube_apply_heist_bank"
+	self.arm_hcm = {}
+	self.arm_hcm.name_id = "heist_arm_hcm_hl"
+	self.arm_hcm.briefing_id = "heist_arm_hcm_briefing"
+	self.arm_hcm.briefing_dialog = "Play_pln_at1_brf_02"
+	self.arm_hcm.world_name = "narratives/armadillo/arm_hcm"
+	self.arm_hcm.intro_event = "Play_pln_at1_intro_03"
+	self.arm_hcm.outro_event = {
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03",
+		"Play_pln_at1_end_01b",
+		"Play_pln_at1_end_02b",
+		"Play_pln_at1_end_03b"
+	}
+	self.arm_hcm.music = "heist"
+	self.arm_hcm.package = "packages/narr_arm_hcm"
+	self.arm_hcm.cube = "cube_apply_heist_bank"
+	self.arm_par = {}
+	self.arm_par.name_id = "heist_arm_par_hl"
+	self.arm_par.briefing_id = "heist_arm_par_briefing"
+	self.arm_par.briefing_dialog = "Play_pln_at1_brf_04"
+	self.arm_par.world_name = "narratives/armadillo/arm_par"
+	self.arm_par.intro_event = "Play_pln_at1_intro_05"
+	self.arm_par.outro_event = {
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03",
+		"Play_pln_at1_end_01b",
+		"Play_pln_at1_end_02b",
+		"Play_pln_at1_end_03b"
+	}
+	self.arm_par.music = "heist"
+	self.arm_par.package = "packages/narr_arm_par"
+	self.arm_par.cube = "cube_apply_heist_bank"
+	self.arm_fac = {}
+	self.arm_fac.name_id = "heist_arm_fac_hl"
+	self.arm_fac.briefing_id = "heist_arm_fac_briefing"
+	self.arm_fac.briefing_dialog = "Play_pln_at1_brf_03"
+	self.arm_fac.world_name = "narratives/armadillo/arm_fac"
+	self.arm_fac.intro_event = "Play_pln_at1_intro_04"
+	self.arm_fac.outro_event = {
+		"Play_pln_at1_end_01",
+		"Play_pln_at1_end_02",
+		"Play_pln_at1_end_03",
+		"Play_pln_at1_end_01b",
+		"Play_pln_at1_end_02b",
+		"Play_pln_at1_end_03b"
+	}
+	self.arm_fac.music = "heist"
+	self.arm_fac.package = "packages/narr_arm_fac"
+	self.arm_fac.cube = "cube_apply_heist_bank"
+	self.arm_for = {}
+	self.arm_for.name_id = "heist_arm_for_hl"
+	self.arm_for.briefing_id = "heist_arm_for_briefing"
+	self.arm_for.briefing_dialog = "Play_pln_tr1_brf_01"
+	self.arm_for.world_name = "narratives/armadillo/arm_for"
+	self.arm_for.intro_event = "Play_pln_tr1_intro_01"
+	self.arm_for.outro_event = {
+		"Play_pln_tr1_end_01",
+		"Play_pln_tr1_end_02"
+	}
+	self.arm_for.music = "heist"
+	self.arm_for.package = "packages/narr_arm_for"
+	self.arm_for.cube = "cube_apply_heist_bank"
+	self.arm_for.bonus_escape = true
+	self.arm_for.static_experience = {
+		4000,
+		7000,
+		15000,
+		25000
+	}
 	self.family = {}
 	self.family.name_id = "heist_family_hl"
 	self.family.briefing_id = "heist_family_briefing"
@@ -384,6 +563,68 @@ function LevelsTweakData:init()
 	self.family.music = "heist"
 	self.family.package = "packages/narr_family"
 	self.family.cube = "cube_apply_heist_bank"
+	self.on_time_1 = {}
+	self.on_time_1.name_id = "heist_on_time_1_hl"
+	self.on_time_1.briefing_id = "heist_on_time_1_briefing"
+	self.on_time_1.briefing_dialog = "Play_pln_watchdogs_new_stage1_brief"
+	self.on_time_1.briefing_assets_gui = Idstring("guis/mission_briefing/preload_stage_watchdogs_1")
+	self.on_time_1.world_name = "wip/on_time/stage_1"
+	self.on_time_1.intro_event = "Play_pln_watchdogs_new_stage1_intro_a"
+	self.on_time_1.outro_event = {
+		"Play_pln_watchdogs_new_stage1_end_a",
+		"Play_pln_watchdogs_new_stage1_end_b"
+	}
+	self.on_time_1.music = "heist"
+	self.on_time_1.package = {
+		"packages/level_debug"
+	}
+	self.on_time_1.cube = "cube_apply_heist_bank"
+	self.on_time_2 = {}
+	self.on_time_2.name_id = "heist_on_time_2_hl"
+	self.on_time_2.briefing_id = "heist_on_time_2_briefing"
+	self.on_time_2.briefing_dialog = "Play_pln_watchdogs_new_stage2_brief"
+	self.on_time_2.briefing_assets_gui = Idstring("guis/mission_briefing/preload_stage_watchdogs_2")
+	self.on_time_2.world_name = "wip/on_time/stage_2_3"
+	self.on_time_2.intro_event = {
+		"Play_pln_watchdogs_new_stage2_intro_a",
+		"Play_pln_watchdogs_new_stage2_intro_b"
+	}
+	self.on_time_2.outro_event = {
+		"Play_pln_watchdogs_new_stage2_end_a",
+		"Play_pln_watchdogs_new_stage2_end_b"
+	}
+	self.on_time_2.music = "heist"
+	self.on_time_2.package = {
+		"packages/level_debug"
+	}
+	self.on_time_2.cube = "cube_apply_heist_bank"
+	self.big = {}
+	self.big.name_id = "heist_big_hl"
+	self.big.briefing_id = "heist_big_briefing"
+	self.big.briefing_dialog = "Play_pln_big_brief"
+	self.big.world_name = "wip/big_4"
+	self.big.intro_event = "Play_pln_firestarter_stage3_intro_a"
+	self.big.outro_event = {
+		"Play_pln_firestarter_stage3_end_a",
+		"Play_pln_firestarter_stage3_end_b"
+	}
+	self.big.music = "heist"
+	self.big.package = "packages/level_debug"
+	self.big.cube = "cube_apply_heist_bank"
+	self.roberts = {}
+	self.roberts.name_id = "heist_roberts_hl"
+	self.roberts.briefing_id = "heist_roberts_briefing"
+	self.roberts.briefing_dialog = "Play_pln_cs1_brf"
+	self.roberts.world_name = "narratives/bain/roberts"
+	self.roberts.intro_event = "Play_pln_cs1_intro_01"
+	self.roberts.outro_event = {
+		"Play_pln_cs1_end_01",
+		"Play_pln_cs1_end_02",
+		"Play_pln_cs1_end_03"
+	}
+	self.roberts.music = "heist"
+	self.roberts.package = "packages/narr_roberts"
+	self.roberts.cube = "cube_apply_heist_bank"
 	self.haunted = {}
 	self.haunted.name_id = "heist_haunted_hl"
 	self.haunted.briefing_id = "heist_haunted_briefing"
@@ -393,6 +634,33 @@ function LevelsTweakData:init()
 	self.haunted.music = "heist"
 	self.haunted.package = "packages/narr_haunted"
 	self.haunted.cube = "cube_apply_heist_bank"
+	self.heat = {}
+	self.heat.name_id = "heist_heat_hl"
+	self.heat.briefing_id = "heist_heat_briefing"
+	self.heat.world_name = "wip/heat"
+	self.heat.intro_event = "lol"
+	self.heat.outro_event = {"lol", "lolo"}
+	self.heat.music = "heist"
+	self.heat.package = "packages/narr_heat"
+	self.heat.cube = "cube_apply_heist_bank"
+	self.monolithic_1 = {}
+	self.monolithic_1.name_id = "heist_monolithic_1_hl"
+	self.monolithic_1.briefing_id = "heist_monolithic_1_briefing"
+	self.monolithic_1.world_name = "wip/monolithic/stage_1"
+	self.monolithic_1.intro_event = "lol"
+	self.monolithic_1.outro_event = {"lol", "lolo"}
+	self.monolithic_1.music = "heist"
+	self.monolithic_1.package = "packages/level_debug"
+	self.monolithic_1.cube = "cube_apply_heist_bank"
+	self.blueharvest_2 = {}
+	self.blueharvest_2.name_id = "heist_blueharvest_2_hl"
+	self.blueharvest_2.briefing_id = "heist_blueharvest_2_briefing"
+	self.blueharvest_2.world_name = "wip/blueharvest/stage_2"
+	self.blueharvest_2.intro_event = "lol"
+	self.blueharvest_2.outro_event = {"lol", "lolo"}
+	self.blueharvest_2.music = "heist"
+	self.blueharvest_2.package = "packages/level_debug"
+	self.blueharvest_2.cube = "cube_apply_heist_bank"
 	self.test01 = {}
 	self.test01.name_id = "heist_test01_hl"
 	self.test01.briefing_id = "heist_test01"
@@ -405,7 +673,7 @@ function LevelsTweakData:init()
 	self.test02 = {}
 	self.test02.name_id = "heist_test02_hl"
 	self.test02.briefing_id = "heist_test02"
-	self.test02.world_name = "wip/paz"
+	self.test02.world_name = "narratives/armadillo/arm_for"
 	self.test02.intro_event = "nothing"
 	self.test02.outro_event = "nothing"
 	self.test02.music = "heist"
@@ -883,6 +1151,11 @@ function LevelsTweakData:init()
 		"framing_frame_1",
 		"framing_frame_2",
 		"framing_frame_3",
+		"election_day_1",
+		"election_day_2",
+		"election_day_3",
+		"election_day_3_skip1",
+		"election_day_3_skip2",
 		"watchdogs_1",
 		"watchdogs_2",
 		"alex_1",
@@ -897,6 +1170,7 @@ function LevelsTweakData:init()
 		"mallcrasher",
 		"nightclub",
 		"branchbank",
+		"fwb",
 		"escape_cafe",
 		"escape_park",
 		"escape_cafe_day",
@@ -906,8 +1180,36 @@ function LevelsTweakData:init()
 		"escape_garage",
 		"escape_overpass_night",
 		"safehouse",
+		"arm_fac",
+		"arm_par",
+		"arm_hcm",
+		"arm_bri",
+		"arm_cro",
+		"arm_und",
+		"arm_for",
 		"family",
-		"haunted"
+		"on_time_1",
+		"on_time_2",
+		"big",
+		"roberts",
+		"haunted",
+		"branchbank_cloaker",
+		"heat",
+		"monolithic_1",
+		"blueharvest_2",
+		"test01",
+		"test02",
+		"test03",
+		"test04",
+		"test05",
+		"test06",
+		"test07",
+		"test08",
+		"test09",
+		"test10",
+		"escape_chain_test_1",
+		"escape_chain_test_2",
+		"vehicle_van_test"
 	}
 	self.escape_levels = {
 		"escape_cafe",
@@ -917,7 +1219,9 @@ function LevelsTweakData:init()
 		"escape_garage",
 		"escape_overpass_night",
 		"escape_cafe_day",
-		"escape_park_day"
+		"escape_park_day",
+		"election_day_3",
+		"arm_for"
 	}
 end
 function LevelsTweakData:get_level_index()
@@ -977,9 +1281,26 @@ function LevelsTweakData:get_music_switches()
 	if not Global.level_data then
 		return nil
 	end
+	local infamous
+	if managers.experience:current_rank() > 0 then
+		infamous = true
+	elseif managers.network and managers.network:game() then
+		for id, member in pairs(managers.network:game():all_members()) do
+			if member:peer() and 0 < member:peer():rank() then
+				infamous = true
+			else
+			end
+		end
+	end
 	local level_data = Global.level_data.level_id and tweak_data.levels[Global.level_data.level_id]
 	local music_id = level_data and level_data.music or "default"
-	return tweak_data.music[music_id].switches
+	local switches = deep_clone(tweak_data.music[music_id].switches)
+	if infamous and tweak_data.music[music_id].switches_infamous then
+		for _, data in pairs(tweak_data.music[music_id].switches_infamous) do
+			table.insert(switches, data)
+		end
+	end
+	return switches
 end
 function LevelsTweakData:get_music_event(stage)
 	local level_data = Global.level_data.level_id and tweak_data.levels[Global.level_data.level_id]

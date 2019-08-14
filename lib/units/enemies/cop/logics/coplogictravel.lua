@@ -1,46 +1,6 @@
 local tmp_vec1 = Vector3()
 local tmp_vec2 = Vector3()
 CopLogicTravel = class(CopLogicBase)
-CopLogicTravel.allowed_transitional_actions = {
-	{
-		"idle",
-		"hurt",
-		"dodge"
-	},
-	{"idle", "turn"},
-	{
-		"idle",
-		"shoot",
-		"reload"
-	},
-	{
-		"hurt",
-		"stand",
-		"crouch"
-	}
-}
-CopLogicTravel.allowed_transitional_actions_nav_link = {
-	{
-		"idle",
-		"hurt",
-		"dodge"
-	},
-	{
-		"idle",
-		"turn",
-		"walk"
-	},
-	{
-		"idle",
-		"shoot",
-		"reload"
-	},
-	{
-		"hurt",
-		"stand",
-		"crouch"
-	}
-}
 CopLogicTravel.damage_clbk = CopLogicIdle.damage_clbk
 CopLogicTravel.death_clbk = CopLogicAttack.death_clbk
 CopLogicTravel.on_detected_enemy_destroyed = CopLogicAttack.on_detected_enemy_destroyed
@@ -63,6 +23,10 @@ function CopLogicTravel.enter(data, new_logic_name, enter_params)
 	my_data.rsrv_pos = {}
 	if old_internal_data then
 		my_data.rsrv_pos = old_internal_data.rsrv_pos or my_data.rsrv_pos
+		my_data.turning = old_internal_data.turning
+		my_data.firing = old_internal_data.firing
+		my_data.shooting = old_internal_data.shooting
+		my_data.attention_unit = old_internal_data.attention_unit
 		if old_internal_data.nearest_cover then
 			my_data.nearest_cover = old_internal_data.nearest_cover
 			managers.navigation:reserve_cover(my_data.nearest_cover[1], data.pos_rsrv_id)
@@ -71,7 +35,6 @@ function CopLogicTravel.enter(data, new_logic_name, enter_params)
 			my_data.best_cover = old_internal_data.best_cover
 			managers.navigation:reserve_cover(my_data.best_cover[1], data.pos_rsrv_id)
 		end
-		my_data.attention_unit = old_internal_data.attention_unit
 	end
 	if data.char_tweak.announce_incomming then
 		my_data.announce_t = data.t + 2
@@ -84,27 +47,8 @@ function CopLogicTravel.enter(data, new_logic_name, enter_params)
 	if my_data.nearest_cover or my_data.best_cover then
 		CopLogicBase.add_delayed_clbk(my_data, my_data.cover_update_task_key, callback(CopLogicTravel, CopLogicTravel, "_update_cover", data), data.t + 1)
 	end
-	local allowed_actions
-	if data.unit:movement():chk_action_forbidden("walk") and data.unit:movement()._active_actions[2] then
-		allowed_actions = CopLogicTravel.allowed_transitional_actions_nav_link
-		my_data.wants_stop_old_walk_action = true
-	else
-		allowed_actions = CopLogicTravel.allowed_transitional_actions
-	end
-	CopLogicTravel.reset_actions(data, my_data, old_internal_data, allowed_actions)
-	if data.char_tweak.no_stand and data.unit:anim_data().stand then
-		CopLogicAttack._chk_request_action_crouch(data)
-	end
+	CopLogicIdle._chk_has_old_action(data, my_data)
 	local objective = data.objective
-	if objective.pose then
-		if data.objective.pose == "crouch" then
-			if data.char_tweak.allow_crouch and not data.unit:anim_data().crouch and not data.unit:anim_data().crouching then
-				CopLogicAttack._chk_request_action_crouch(data)
-			end
-		elseif not data.char_tweak.no_stand and not data.is_suppressed then
-			CopLogicAttack._chk_request_action_stand(data)
-		end
-	end
 	local path_data = objective.path_data
 	if path_data then
 		local path_style = objective.path_style
@@ -159,64 +103,9 @@ function CopLogicTravel.enter(data, new_logic_name, enter_params)
 	else
 		data.unit:brain():set_attention_settings({cbt = true})
 	end
+	my_data.attitude = data.objective.attitude or "avoid"
 	my_data.weapon_range = data.char_tweak.weapon[data.unit:inventory():equipped_unit():base():weapon_tweak_data().usage].range
 	data.unit:brain():set_update_enabled_state(false)
-end
-function CopLogicTravel.reset_actions(data, internal_data, old_internal_data, allowed_actions)
-	local busy_body_parts = {
-		false,
-		false,
-		false,
-		false
-	}
-	local active_actions = {}
-	for body_part = 1, 4 do
-		local active_action = data.unit:movement()._active_actions[body_part]
-		if active_action then
-			local aa_type = active_action:type()
-			for _, allowed_action in ipairs(allowed_actions[body_part]) do
-				if aa_type == allowed_action then
-					busy_body_parts[body_part] = true
-					table.insert(active_actions, aa_type)
-				else
-				end
-			end
-		end
-	end
-	local shoot_interrupted = true
-	for _, active_action in ipairs(active_actions) do
-		if active_action == "shoot" then
-			internal_data.shooting = old_internal_data.shooting
-			internal_data.firing = old_internal_data.firing
-			shoot_interrupted = false
-		elseif active_action == "turn" then
-			internal_data.turning = old_internal_data.turning
-		end
-	end
-	if shoot_interrupted then
-		data.unit:movement():set_allow_fire(false)
-		CopLogicBase._reset_attention(data)
-		internal_data.attention_unit = nil
-	end
-	local idle_body_part
-	if busy_body_parts[1] or busy_body_parts[2] and busy_body_parts[3] then
-		idle_body_part = 0
-	elseif busy_body_parts[2] then
-		idle_body_part = 3
-	elseif busy_body_parts[3] then
-		idle_body_part = 2
-	else
-		idle_body_part = 1
-	end
-	if idle_body_part > 0 then
-		local new_action = {
-			type = "idle",
-			body_part = idle_body_part,
-			sync = true
-		}
-		data.unit:brain():action_request(new_action)
-	end
-	return idle_body_part
 end
 function CopLogicTravel.exit(data, new_logic_name, enter_params)
 	CopLogicBase.exit(data, new_logic_name, enter_params)
@@ -254,11 +143,8 @@ function CopLogicTravel.queued_update(data)
 	if data.internal_data ~= my_data then
 		return
 	end
-	if my_data.wants_stop_old_walk_action then
-		if not data.unit:movement():chk_action_forbidden("walk") then
-			data.unit:movement():action_request({type = "idle", body_part = 2})
-			my_data.wants_stop_old_walk_action = nil
-		end
+	if my_data.has_old_action then
+		CopLogicAttack._upd_stop_old_action(data, my_data)
 	elseif my_data.advancing then
 		if my_data.announce_t and t > my_data.announce_t then
 			CopLogicTravel._try_anounce(data, my_data)
@@ -414,7 +300,7 @@ function CopLogicTravel.queued_update(data)
 		if not my_data.turning and not unit:movement():chk_action_forbidden("walk") and not data.unit:anim_data().reload then
 			if t > my_data.cover_leave_t then
 				my_data.cover_leave_t = nil
-			elseif data.attention_obj and data.attention_obj.reaction >= AIAttentionObject.REACT_SCARED and not CopLogicTravel._chk_request_action_turn_to_cover(data, my_data) and (not my_data.best_cover or not my_data.best_cover[4]) and not unit:anim_data().crouch and data.char_tweak.allow_crouch then
+			elseif data.attention_obj and data.attention_obj.reaction >= AIAttentionObject.REACT_SCARED and (not my_data.best_cover or not my_data.best_cover[4]) and not unit:anim_data().crouch and (not data.char_tweak.allowed_poses or data.char_tweak.allowed_poses.crouch) then
 				CopLogicAttack._chk_request_action_crouch(data)
 			end
 		end
@@ -430,7 +316,7 @@ function CopLogicTravel.queued_update(data)
 		local pose
 		if not data.char_tweak.crouch_move then
 			pose = "stand"
-		elseif data.char_tweak.no_stand then
+		elseif data.char_tweak.allowed_poses and not data.char_tweak.allowed_poses.stand then
 			pose = "crouch"
 		else
 			pose = data.is_suppressed and "crouch" or objective and objective.pose or "stand"
@@ -557,8 +443,8 @@ function CopLogicTravel._chk_request_action_turn_to_cover(data, my_data)
 		new_action_data.type = "turn"
 		new_action_data.body_part = 2
 		new_action_data.angle = error_spin
-		if data.unit:brain():action_request(new_action_data) then
-			my_data.turning = new_action_data.angle
+		my_data.turning = data.unit:brain():action_request(new_action_data)
+		if my_data.turning then
 			return true
 		end
 	end
@@ -579,12 +465,16 @@ function CopLogicTravel.action_complete_clbk(data, action)
 	local my_data = data.internal_data
 	local action_type = action:type()
 	if action_type == "walk" then
-		my_data.advancing = nil
 		my_data.rsrv_pos.stand = my_data.rsrv_pos.move_dest
 		my_data.rsrv_pos.move_dest = nil
-		if action:expired() and not my_data.starting_advance_action and my_data.coarse_path_index then
+		if action:expired() and not my_data.starting_advance_action and my_data.coarse_path_index and not my_data.has_old_action and my_data.advancing then
 			my_data.coarse_path_index = my_data.coarse_path_index + 1
+			if my_data.coarse_path_index > #my_data.coarse_path then
+				debug_pause_unit(data.unit, "[CopLogicTravel.action_complete_clbk] invalid coarse path index increment", inspect(my_data.coarse_path), my_data.coarse_path_index)
+				my_data.coarse_path_index = my_data.coarse_path_index - 1
+			end
 		end
+		my_data.advancing = nil
 		if my_data.moving_to_cover then
 			if action:expired() then
 				if my_data.best_cover then
@@ -980,7 +870,7 @@ function CopLogicTravel._set_verified_paths(data, verified_paths)
 	data.internal_data.advance_path = verified_paths.advance_path
 end
 function CopLogicTravel.chk_should_turn(data, my_data)
-	return not my_data.advancing and not my_data.turning and not data.unit:movement():chk_action_forbidden("walk")
+	return not my_data.advancing and not my_data.turning and not my_data.has_old_action and not data.unit:movement():chk_action_forbidden("walk")
 end
 function CopLogicTravel.complete_coarse_path(data, my_data, coarse_path)
 	local first_seg_id = coarse_path[1][1]

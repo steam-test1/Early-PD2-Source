@@ -165,7 +165,7 @@ function NetworkAccountSTEAM:publish_statistics(stats, force_store)
 	for key, stat in pairs(stats) do
 		local res
 		if stat.type == "int" then
-			local val = handler:get_stat(key)
+			local val = math.max(0, handler:get_stat(key))
 			if stat.method == "lowest" then
 				if val > stat.value then
 					res = handler:set_stat(key, stat.value)
@@ -179,8 +179,8 @@ function NetworkAccountSTEAM:publish_statistics(stats, force_store)
 					res = true
 				end
 			elseif stat.method == "set" then
-				res = handler:set_stat(key, stat.value)
-			elseif stat.value > 0 then
+				res = handler:set_stat(key, math.clamp(stat.value, 0, 2147483008))
+			elseif 0 < stat.value then
 				local mval = val / 1000 + stat.value / 1000
 				if mval >= 2147483 then
 					Application:error("[NetworkAccountSTEAM:publish_statistics] Warning, trying to set too high a value on stat " .. key)
@@ -192,7 +192,7 @@ function NetworkAccountSTEAM:publish_statistics(stats, force_store)
 				res = true
 			end
 		elseif stat.type == "float" then
-			if stat.value > 0 then
+			if 0 < stat.value then
 				local val = handler:get_stat_float(key)
 				res = handler:set_stat_float(key, val + stat.value)
 			else

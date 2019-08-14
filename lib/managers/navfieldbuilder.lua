@@ -418,7 +418,7 @@ function NavFieldBuilder:_expand_rooms()
 					if gnd_ray then
 						mvector3.set_z(new_enter_pos, gnd_ray.position.z)
 					else
-						print("! Error. NavFieldBuilder:_expand_rooms() ground ray failed! segment", segment[1], segment[2])
+						Application:error("! Error. NavFieldBuilder:_expand_rooms() ground ray failed! segment", segment[1], segment[2])
 						Application:draw_cylinder(new_enter_pos + self._up_vec, new_enter_pos + self._down_vec, self._gnd_ray_rad, 1, 0, 0)
 						managers.navigation:_draw_room(room, true)
 						Application:set_pause(true)
@@ -1013,8 +1013,7 @@ function NavFieldBuilder:_split_room(i_room, split_pos_along_dim, split_dim)
 			}
 		}
 	}
-	self:_add_room(new_room)
-	local i_new_room = #self._rooms
+	local i_new_room = #self._rooms + 1
 	for neighbour_index, neighbour_data in pairs(room.neighbours[split_opp_side]) do
 		if self._rooms[neighbour_data.room].neighbours then
 			self:_update_neighbour_data(neighbour_data.room, i_room, nil, split_side)
@@ -1093,6 +1092,7 @@ function NavFieldBuilder:_split_room(i_room, split_pos_along_dim, split_dim)
 		}
 		self:_update_neighbour_data(neighbour_data.room, i_room, new_data, split_perp_neg_side)
 	end
+	self:_add_room(new_room)
 	return i_new_room
 end
 function NavFieldBuilder:_create_empty_room()
@@ -1232,6 +1232,10 @@ function NavFieldBuilder:_round_pos_to_grid_center(pos)
 	return rounded_pos
 end
 function NavFieldBuilder:_add_room(room)
+	if not room.area then
+		debug_pause("[NavFieldBuilder:_add_room] missing area", inspect(room))
+		room.area = 0
+	end
 	table.insert(self._rooms, room)
 end
 function NavFieldBuilder:_trash_room(i_room)
@@ -1384,16 +1388,8 @@ function NavFieldBuilder:_create_room_doors(i_room)
 			local door = {}
 			if self._neg_dir_str_map[side] then
 				door.rooms = {i_neighbour, i_room}
-				door.room_access = {
-					self._door_access_types.walk,
-					self._door_access_types.walk
-				}
 			else
 				door.rooms = {i_room, i_neighbour}
-				door.room_access = {
-					self._door_access_types.walk,
-					self._door_access_types.walk
-				}
 			end
 			door.pos = neightbour_data.overlap[1]
 			door.pos1 = neightbour_data.overlap[2]

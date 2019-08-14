@@ -4,8 +4,33 @@ core:import("CoreClass")
 ElementCounter = ElementCounter or class(CoreMissionScriptElement.MissionScriptElement)
 function ElementCounter:init(...)
 	ElementCounter.super.init(self, ...)
+	self._digital_gui_units = {}
 	self._original_value = self._values.counter_target
 	self._triggers = {}
+end
+function ElementCounter:on_script_activated()
+	if not Network:is_server() then
+		return
+	end
+	if self._values.digital_gui_unit_ids then
+		for _, id in ipairs(self._values.digital_gui_unit_ids) do
+			if Global.running_simulation then
+				local unit = managers.editor:unit_with_id(id)
+				table.insert(self._digital_gui_units, unit)
+				unit:digital_gui():number_set(self._values.counter_target)
+			else
+				local unit = managers.worlddefinition:get_unit_on_load(id, callback(self, self, "_load_unit"))
+				if unit then
+					table.insert(self._digital_gui_units, unit)
+					unit:digital_gui():number_set(self._values.counter_target)
+				end
+			end
+		end
+	end
+end
+function ElementCounter:_load_unit(unit)
+	table.insert(self._digital_gui_units, unit)
+	unit:digital_gui():number_set(self._values.counter_target)
 end
 function ElementCounter:on_executed(instigator)
 	if not self._values.enabled then
@@ -13,6 +38,7 @@ function ElementCounter:on_executed(instigator)
 	end
 	if self._values.counter_target > 0 then
 		self._values.counter_target = self._values.counter_target - 1
+		self:_update_digital_guis_number()
 		if self:is_debug() then
 			self._mission_script:debug_output("Counter " .. self._editor_name .. ": " .. self._values.counter_target .. " Previous value: " .. self._values.counter_target + 1, Color(1, 0, 0.75, 0))
 		end
@@ -25,24 +51,29 @@ function ElementCounter:on_executed(instigator)
 end
 function ElementCounter:reset_counter_target(counter_target)
 	self._values.counter_target = counter_target
+	self:_update_digital_guis_number()
 end
 function ElementCounter:counter_operation_add(amount)
 	self._values.counter_target = self._values.counter_target + amount
+	self:_update_digital_guis_number()
 	self:_check_triggers("add")
 	self:_check_triggers("value")
 end
 function ElementCounter:counter_operation_subtract(amount)
 	self._values.counter_target = self._values.counter_target - amount
+	self:_update_digital_guis_number()
 	self:_check_triggers("subtract")
 	self:_check_triggers("value")
 end
 function ElementCounter:counter_operation_reset(amount)
 	self._values.counter_target = self._original_value
+	self:_update_digital_guis_number()
 	self:_check_triggers("reset")
 	self:_check_triggers("value")
 end
 function ElementCounter:counter_operation_set(amount)
 	self._values.counter_target = amount
+	self:_update_digital_guis_number()
 	self:_check_triggers("set")
 	self:_check_triggers("value")
 end
@@ -60,6 +91,13 @@ function ElementCounter:add_trigger(id, type, amount, callback)
 end
 function ElementCounter:counter_value()
 	return self._values.counter_target
+end
+function ElementCounter:_update_digital_guis_number()
+	for _, unit in ipairs(self._digital_gui_units) do
+		if alive(unit) then
+			unit:digital_gui():number_set(self._values.counter_target, true)
+		end
+	end
 end
 function ElementCounter:_check_triggers(type)
 	if not self._triggers[type] then
@@ -153,15 +191,10 @@ function ElementCounterFilter:on_executed(instigator)
 end
 function ElementCounterFilter:_values_ok()
 	if self._values.check_type == "counters_equal" then
-		local test_value
-		for _, id in ipairs(self._values.elements) do
-			local element = self:get_mission_element(id)
-			test_value = test_value or element:counter_value()
-			if test_value ~= element:counter_value() then
-				return false
-			end
-		end
-		return true
+		return self:_all_counter_values_equal()
+	end
+	if self._values.check_type == "counters_not_equal" then
+		return not self:_all_counter_values_equal()
 	end
 	if self._values.needed_to_execute == "all" then
 		return self:_all_counters_ok()
@@ -169,6 +202,17 @@ function ElementCounterFilter:_values_ok()
 	if self._values.needed_to_execute == "any" then
 		return self:_any_counters_ok()
 	end
+end
+function ElementCounterFilter:_all_counter_values_equal()
+	local test_value
+	for _, id in ipairs(self._values.elements) do
+		local element = self:get_mission_element(id)
+		test_value = test_value or element:counter_value()
+		if test_value ~= element:counter_value() then
+			return false
+		end
+	end
+	return true
 end
 function ElementCounterFilter:_all_counters_ok()
 	for _, id in ipairs(self._values.elements) do

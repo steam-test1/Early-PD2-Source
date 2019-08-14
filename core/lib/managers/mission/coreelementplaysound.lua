@@ -71,6 +71,12 @@ function ElementPlaySound:stop_simulation()
 	end
 	ElementPlaySound.super.stop_simulation(self)
 end
+function ElementPlaySound:pre_destroy()
+	if self._source then
+		self._source:stop()
+		self:sound_ended()
+	end
+end
 function ElementPlaySound:destroy()
 	if self._source then
 		self._source:stop()

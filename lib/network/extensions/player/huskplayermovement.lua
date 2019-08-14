@@ -267,6 +267,7 @@ function HuskPlayerMovement:init(unit)
 	self._m_head_rot = Rotation(self._look_dir, math.UP)
 	self._m_head_pos = self._obj_head:position()
 	self._m_detect_pos = mvector3.copy(self._m_head_pos)
+	self._m_newest_pos = mvector3.copy(self._m_pos)
 	self._footstep_style = nil
 	self._footstep_event = ""
 	self._state = "mask_off"
@@ -303,7 +304,7 @@ function HuskPlayerMovement:set_character_anim_variables()
 	if not char_name then
 		return
 	end
-	local mesh_name = self._char_model_names[char_name] .. (managers.player._player_mesh_suffix or "")
+	local mesh_name = (self._char_model_names[char_name] or "") .. (managers.player._player_mesh_suffix or "")
 	local mesh_obj = self._unit:get_object(Idstring(mesh_name))
 	if mesh_obj then
 		self._unit:get_object(Idstring(self._plr_mesh_name or self._char_model_names.german)):set_visibility(false)
@@ -393,6 +394,9 @@ end
 function HuskPlayerMovement:m_detect_pos()
 	return self._m_detect_pos
 end
+function HuskPlayerMovement:m_newest_pos()
+	return self._m_newest_pos
+end
 function HuskPlayerMovement:m_rot()
 	return self._m_rot
 end
@@ -413,9 +417,11 @@ function HuskPlayerMovement:_calculate_m_pose()
 	if self._move_data then
 		local path = self._move_data.path
 		mvector3.set(det_pos, path[#path])
+		mvector3.set(self._m_newest_pos, det_pos)
 		mvector3.set_z(det_pos, det_pos.z + self._m_head_pos.z - self._m_pos.z)
 	else
 		mvector3.set(det_pos, self._m_head_pos)
+		mvector3.set(self._m_newest_pos, self._m_pos)
 	end
 end
 function HuskPlayerMovement:set_position(pos)
@@ -524,6 +530,9 @@ function HuskPlayerMovement:_register_revive_SO()
 		nav_seg = self._unit:movement():nav_tracker():nav_segment(),
 		fail_clbk = callback(self, self, "on_revive_SO_failed"),
 		complete_clbk = callback(self, self, "on_revive_SO_completed"),
+		interrupt_dis = 300,
+		interrupt_health = 0.25,
+		interrupt_suppression = true,
 		scan = true,
 		action = {
 			type = "act",

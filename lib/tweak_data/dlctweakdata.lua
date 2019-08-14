@@ -38,6 +38,17 @@ function DLCTweakData:init(tweak_data)
 		}
 	}
 	self.pd2_clan2.content.upgrades = {"usp"}
+	self.pd2_clan3 = {}
+	self.pd2_clan3.content = {}
+	self.pd2_clan3.dlc = "has_pd2_clan"
+	self.pd2_clan3.content.loot_global_value = "pd2_clan"
+	self.pd2_clan3.content.loot_drops = {
+		{
+			type_items = "masks",
+			item_entry = "heat",
+			amount = 1
+		}
+	}
 	self.preorder = {}
 	self.preorder.dlc = "has_preorder"
 	self.preorder.content = {}
@@ -77,33 +88,6 @@ function DLCTweakData:init(tweak_data)
 	self.cce.content.loot_drops = {}
 	self.cce.content.upgrades = {
 		"player_crime_net_deal_2"
-	}
-	self.halloween = {}
-	self.halloween.free = true
-	self.halloween.content = {}
-	self.halloween.content.loot_drops = {
-		{
-			{
-				type_items = "masks",
-				item_entry = "pumpkin_king",
-				amount = 1
-			},
-			{
-				type_items = "masks",
-				item_entry = "witch",
-				amount = 1
-			},
-			{
-				type_items = "masks",
-				item_entry = "venomorph",
-				amount = 1
-			},
-			{
-				type_items = "masks",
-				item_entry = "frank",
-				amount = 1
-			}
-		}
 	}
 	self.halloween_nightmare_1 = {}
 	self.halloween_nightmare_1.dlc = "has_achievement"
@@ -150,6 +134,222 @@ function DLCTweakData:init(tweak_data)
 		{
 			type_items = "masks",
 			item_entry = "baby_cry",
+			amount = 1
+		}
+	}
+	self.armored_transport = {}
+	self.armored_transport.content = {}
+	self.armored_transport.dlc = "has_armored_transport"
+	self.armored_transport.content.loot_drops = {
+		{
+			{
+				type_items = "masks",
+				item_entry = "clinton",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "bush",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "obama",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "nixon",
+				amount = 1
+			}
+		},
+		{
+			{
+				type_items = "materials",
+				item_entry = "cash",
+				amount = 1
+			},
+			{
+				type_items = "materials",
+				item_entry = "jade",
+				amount = 1
+			},
+			{
+				type_items = "materials",
+				item_entry = "redwhiteblue",
+				amount = 1
+			},
+			{
+				type_items = "materials",
+				item_entry = "marble",
+				amount = 1
+			}
+		},
+		{
+			{
+				type_items = "textures",
+				item_entry = "racestripes",
+				amount = 1
+			},
+			{
+				type_items = "textures",
+				item_entry = "americaneagle",
+				amount = 1
+			},
+			{
+				type_items = "textures",
+				item_entry = "stars",
+				amount = 1
+			},
+			{
+				type_items = "textures",
+				item_entry = "forestcamo",
+				amount = 1
+			}
+		}
+	}
+	self.armored_transport.content.upgrades = {
+		"m45",
+		"s552",
+		"ppk"
+	}
+	self.gage_pack = {}
+	self.gage_pack.content = {}
+	self.gage_pack.dlc = "has_gage_pack"
+	self.gage_pack.content.loot_drops = {
+		{
+			type_items = "weapon_mods",
+			item_entry = "wpn_fps_upg_i_singlefire",
+			amount = 5
+		},
+		{
+			type_items = "weapon_mods",
+			item_entry = "wpn_fps_upg_i_autofire",
+			amount = 5
+		},
+		{
+			{
+				type_items = "masks",
+				item_entry = "goat",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "panda",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "pitbull",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "eagle",
+				amount = 1
+			}
+		},
+		{
+			{
+				type_items = "materials",
+				item_entry = "fur",
+				amount = 1
+			},
+			{
+				type_items = "materials",
+				item_entry = "galvanized",
+				amount = 1
+			},
+			{
+				type_items = "materials",
+				item_entry = "heavymetal",
+				amount = 1
+			},
+			{
+				type_items = "materials",
+				item_entry = "oilmetal",
+				amount = 1
+			}
+		},
+		{
+			{
+				type_items = "textures",
+				item_entry = "army",
+				amount = 1
+			},
+			{
+				type_items = "textures",
+				item_entry = "commando",
+				amount = 1
+			},
+			{
+				type_items = "textures",
+				item_entry = "hunter",
+				amount = 1
+			},
+			{
+				type_items = "textures",
+				item_entry = "digitalcamo",
+				amount = 1
+			}
+		}
+	}
+	self.gage_pack.content.upgrades = {
+		"mp7",
+		"scar",
+		"p226"
+	}
+	self.charliesierra = {}
+	self.charliesierra.content = {}
+	self.charliesierra.free = true
+	self.charliesierra.content.loot_global_value = "normal"
+	self.charliesierra.content.loot_drops = {
+		{
+			type_items = "weapon_mods",
+			item_entry = "wpn_fps_upg_o_acog",
+			amount = 1
+		}
+	}
+	self.pd2_clan4 = {}
+	self.pd2_clan4.content = {}
+	self.pd2_clan4.dlc = "has_pd2_clan"
+	self.pd2_clan4.content.loot_global_value = "pd2_clan"
+	self.pd2_clan4.content.loot_drops = {
+		{
+			type_items = "masks",
+			item_entry = "santa_happy",
+			amount = 1
+		}
+	}
+	self.xmas_soundtrack = {}
+	self.xmas_soundtrack.content = {}
+	self.xmas_soundtrack.dlc = "has_xmas_soundtrack"
+	self.xmas_soundtrack.content.loot_drops = {
+		{
+			{
+				type_items = "masks",
+				item_entry = "santa_mad",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "santa_drunk",
+				amount = 1
+			},
+			{
+				type_items = "masks",
+				item_entry = "santa_surprise",
+				amount = 1
+			}
+		}
+	}
+	self.sweettooth = {}
+	self.sweettooth.content = {}
+	self.sweettooth.dlc = "has_sweettooth"
+	self.sweettooth.content.loot_drops = {
+		{
+			type_items = "masks",
+			item_entry = "sweettooth",
 			amount = 1
 		}
 	}

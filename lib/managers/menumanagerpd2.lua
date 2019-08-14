@@ -51,13 +51,14 @@ end
 function MenuManager:setup_local_lobby_character()
 	local local_peer = managers.network:session():local_peer()
 	local level = managers.experience:current_level()
+	local rank = managers.experience:current_rank()
 	local character = local_peer:character()
 	local progress = managers.upgrades:progress()
 	if managers.menu_scene then
-		managers.menu_scene:set_lobby_character_out_fit(local_peer:id(), managers.blackmarket:outfit_string())
+		managers.menu_scene:set_lobby_character_out_fit(local_peer:id(), managers.blackmarket:outfit_string(), rank)
 	end
 	local_peer:set_outfit_string(managers.blackmarket:outfit_string())
-	managers.network:session():send_to_peers_loaded("sync_profile", level)
+	managers.network:session():send_to_peers_loaded("sync_profile", level, rank)
 	managers.network:session():send_to_peers_loaded("sync_outfit", managers.blackmarket:outfit_string())
 end
 function MenuManager:http_test()
@@ -132,14 +133,8 @@ function MenuCallbackHandler:crimenet_focus_changed(node, in_focus)
 			managers.crimenet:start()
 		end
 		managers.menu_component:create_crimenet_gui()
-		if managers.controller:get_default_wrapper_type() ~= "pc" then
-			managers.menu:active_menu().input:activate_controller_mouse()
-		end
 	else
 		managers.crimenet:stop()
-		if managers.controller:get_default_wrapper_type() ~= "pc" then
-			managers.menu:active_menu().input:deactivate_controller_mouse()
-		end
 		managers.menu_component:close_crimenet_gui()
 	end
 end
@@ -168,6 +163,20 @@ function MenuCallbackHandler:got_skillpoint_to_spend()
 end
 function MenuCallbackHandler:got_new_lootdrop()
 	return managers.blackmarket and managers.blackmarket:got_any_new_drop()
+end
+function MenuCallbackHandler:got_new_content_update()
+	return false
+end
+function MenuCallbackHandler:not_got_new_content_update()
+	return not self:got_new_content_update()
+end
+function MenuCallbackHandler:do_content_lootdrop(node)
+	managers.menu:back(true)
+	managers.menu:open_node("crimenet_contract_casino_lootdrop", {
+		secure_cards = 0,
+		preferred_item = nil,
+		increase_infamous = false
+	})
 end
 function MenuCallbackHandler:test_clicked_weapon(item)
 	if not item:parameter("customize") then
@@ -291,7 +300,7 @@ function MenuCallbackHandler:_update_outfit_information()
 		local local_peer = managers.network:session():local_peer()
 		if managers.menu_scene then
 			local id = local_peer:id()
-			managers.menu_scene:set_lobby_character_out_fit(id, outfit_string)
+			managers.menu_scene:set_lobby_character_out_fit(id, outfit_string, managers.experience:current_rank())
 		end
 		local kit_menu = managers.menu:get_menu("kit_menu")
 		if kit_menu then

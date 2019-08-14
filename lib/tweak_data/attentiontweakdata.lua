@@ -575,6 +575,15 @@ function AttentionTweakData:_init_prop()
 		release_delay = 1,
 		notice_requires_FOV = true
 	}
+	self.settings.prop_ene_ntl_edaycrate = {
+		reaction = "REACT_AIM",
+		filter = "all_enemy",
+		verification_interval = 0.4,
+		uncover_range = 300,
+		release_delay = 1,
+		notice_requires_FOV = true,
+		max_range = 700
+	}
 	self.settings.prop_ene_ntl = {
 		reaction = "REACT_AIM",
 		filter = "all_enemy",
@@ -606,6 +615,16 @@ function AttentionTweakData:_init_prop()
 		filter = "civilians_enemies",
 		verification_interval = 0.4,
 		uncover_range = 200,
+		release_delay = 1,
+		notice_requires_FOV = true
+	}
+	self.settings.no_staff_ene_ntl = {
+		reaction = "REACT_AIM",
+		filter = "law_enforcer",
+		verification_interval = 0.4,
+		uncover_range = 100,
+		suspicion_range = 1000,
+		max_range = 1200,
 		release_delay = 1,
 		notice_requires_FOV = true
 	}

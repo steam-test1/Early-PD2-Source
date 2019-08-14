@@ -63,7 +63,28 @@ CopActionAct._act_redirects.enemy_spawn = {
 	"e_sp_down_16m_left",
 	"e_sp_up_1_down_9m_var2",
 	"e_sp_down_8m_var3",
-	"e_sp_over_3_35m"
+	"e_sp_over_3_35m",
+	"e_sp_armored_truck_1st",
+	"e_sp_armored_truck_2nd",
+	"e_sp_armored_truck_3rd",
+	"e_sp_dizzy_stand",
+	"e_sp_dizzy_get_up",
+	"e_sp_dizzy_walk_left",
+	"e_sp_dizzy_walk_right",
+	"e_sp_dizzy_fall_get_up",
+	"e_sp_dizzy_stand_v2",
+	"e_sp_dizzy_walk_inplace",
+	"e_sp_dizzy_look_around",
+	"e_sp_car_exit_ntrl_front_r",
+	"e_sp_car_exit_ntrl_front_l",
+	"e_sp_down_5_5m",
+	"e_sp_up_ledge",
+	"e_sp_clk_3m_dwn_vent",
+	"e_sp_clk_3_5m_dwn_vent",
+	"e_sp_clk_up_manhole",
+	"e_sp_clk_up_water",
+	"e_sp_clk_over_2_5m",
+	"e_sp_clk_jump_dwn_5m_heli_l"
 }
 CopActionAct._act_redirects.civilian_spawn = {
 	"cm_sp_dj_loop",
@@ -110,6 +131,9 @@ CopActionAct._act_redirects.civilian_spawn = {
 	"cm_sp_wounded_lying",
 	"cm_sp_accident_scene",
 	"cm_sp_firefighter",
+	"cm_sp_investigate_hi",
+	"cm_sp_investigate_low",
+	"cm_sp_take_cover_hide",
 	"cf_sp_accident_scene",
 	"cf_sp_stand_idle_var1",
 	"cf_sp_stand_desk_1m",
@@ -196,6 +220,27 @@ CopActionAct._act_redirects.SO = {
 	"e_nl_up_5_down_1m_var2",
 	"e_nl_up_9_down_1m",
 	"e_nl_up_7_down_1m_var2",
+	"e_nl_up_2_down_8_2m",
+	"e_nl_down_3_35m",
+	"e_nl_down_8m_var2",
+	"e_nl_up_5m",
+	"e_nl_up_1_down_7_1m",
+	"e_nl_down_5m_var2",
+	"e_nl_down_5m_var3",
+	"e_nl_down_4m_var2",
+	"e_nl_up_2_75_down_1m",
+	"e_nl_up_0_5_down_5_5m",
+	"e_nl_cs_jump_desk",
+	"e_nl_cs_jump_window",
+	"e_nl_cs_dwn_front",
+	"e_nl_cs_dwn_back",
+	"e_nl_cs_up_short_ladder",
+	"e_nl_cs_up_long_ladder",
+	"e_nl_cs_up_back_ladder",
+	"e_nl_cs_up_front_ladder",
+	"e_nl_cs_up_sewer_ladder",
+	"e_nl_cs_dwn_sewer",
+	"e_nl_cs_up_8m_ladder",
 	"e_so_ntl_idle_tired",
 	"e_so_ntl_idle_kickpebble",
 	"e_so_ntl_idle_look",
@@ -209,6 +254,8 @@ CopActionAct._act_redirects.SO = {
 	"e_so_ntl_leanwall",
 	"e_so_ntl_talk_phone",
 	"e_so_plant_c4_low",
+	"e_so_plant_c4_hi",
+	"e_so_plant_c4_floor",
 	"e_so_ntl_look_up_wall",
 	"e_so_alarm_under_table",
 	"e_so_std_alarm",
@@ -224,6 +271,16 @@ CopActionAct._act_redirects.SO = {
 	"e_so_ntl_bouncer_step_right",
 	"e_so_investigate_truck",
 	"e_so_investigate_truck_slope",
+	"e_so_container_impact_01",
+	"e_so_container_impact_02",
+	"e_so_container_impact_03",
+	"e_so_container_kick",
+	"e_so_not_dizzy_look_v2",
+	"e_so_not_dizzy_look",
+	"e_so_hide_under_car_enter",
+	"e_so_hide_2_5m_vent_enter",
+	"e_so_hide_behind_door_enter",
+	"e_so_hide_ledge_enter",
 	"cmf_so_lean_r_wall",
 	"cmf_so_lean_bar",
 	"cmf_so_call_police",
@@ -241,7 +298,11 @@ CopActionAct._act_redirects.SO = {
 	"cmf_so_talk",
 	"cmf_so_idle",
 	"cmf_so_press_alarm_wall",
-	"cmf_so_press_alarm_table"
+	"cmf_so_press_alarm_table",
+	"cm_so_investigate_hi",
+	"cm_so_investigate_low",
+	"cm_so_hide",
+	"cmf_so_smoke"
 }
 function CopActionAct:init(action_desc, common_data)
 	self._common_data = common_data
@@ -497,6 +558,7 @@ function CopActionAct:save(save_data)
 		local state_index = self._machine:state_name_to_index(state_name)
 		save_data.variant = state_index
 	end
+	save_data.pos_z = mvector3.z(self._common_data.pos)
 end
 function CopActionAct:need_upd()
 	return self._attention or self._waiting_full_blend
@@ -544,6 +606,7 @@ function CopActionAct:_play_anim()
 	if type(self._action_desc.variant) == "number" then
 		redir_name = self._machine:index_to_state_name(self._action_desc.variant)
 		redir_res = self._ext_movement:play_state_idstr(redir_name, self._action_desc.start_anim_time)
+		self._unit:movement():set_position(self._unit:movement():m_pos():with_z(self._action_desc.pos_z))
 	else
 		redir_name = self._action_desc.variant
 		redir_res = self._ext_movement:play_redirect(redir_name, self._action_desc.start_anim_time)

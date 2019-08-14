@@ -18,6 +18,12 @@ function SkillTreeTweakData:init()
 		hightier = digest(4),
 		hightierpro = digest(8)
 	}
+	self.unlock_tree_cost = {
+		digest(0),
+		digest(0),
+		digest(0),
+		digest(0)
+	}
 	self.skills = {}
 	self.skills.mastermind = {
 		["name_id"] = "menu_mastermind",
@@ -330,8 +336,7 @@ function SkillTreeTweakData:init()
 		[2] = {
 			upgrades = {
 				"player_intimidate_range_mul",
-				"player_intimidate_aura",
-				"player_ene_hostage_lim_1"
+				"player_intimidate_aura"
 			},
 			cost = self.costs.pro
 		}

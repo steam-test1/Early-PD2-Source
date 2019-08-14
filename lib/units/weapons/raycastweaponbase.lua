@@ -67,6 +67,12 @@ end
 function RaycastWeaponBase:selection_index()
 	return self:weapon_tweak_data().use_data.selection_index
 end
+function RaycastWeaponBase:get_stance_id()
+	return self:weapon_tweak_data().use_stance or self:get_name_id()
+end
+function RaycastWeaponBase:movement_penalty()
+	return tweak_data.upgrades.weapon_movement_penalty[self:weapon_tweak_data().category] or 1
+end
 function RaycastWeaponBase:_create_use_setups()
 	local sel_index = tweak_data.weapon[self._name_id].use_data.selection_index
 	local use_data = {}
@@ -130,10 +136,10 @@ function RaycastWeaponBase:dryfire()
 	self:play_tweak_data_sound("dryfire")
 end
 function RaycastWeaponBase:recoil_wait()
-	return self:fire_mode() == "auto" and self:weapon_tweak_data().fire_mode_data.fire_rate or nil
+	return tweak_data.weapon[self._name_id].FIRE_MODE == "auto" and self:weapon_tweak_data().fire_mode_data.fire_rate or nil
 end
 function RaycastWeaponBase:_fire_sound()
-	self:play_tweak_data_sound("fire")
+	self:play_tweak_data_sound(self:fire_mode() == "auto" and "fire_auto" or "fire_single", "fire")
 end
 function RaycastWeaponBase:start_shooting_allowed()
 	return self._next_fire_allowed <= Application:time()
@@ -169,12 +175,27 @@ function RaycastWeaponBase:trigger_held(...)
 	return fired
 end
 function RaycastWeaponBase:fire(from_pos, direction, dmg_mul, shoot_player, spread_mul, autohit_mul, suppr_mul, target_unit)
+	if managers.player:has_activate_temporary_upgrade("temporary", "no_ammo_cost_buff") then
+		managers.player:deactivate_temporary_upgrade("temporary", "no_ammo_cost_buff")
+		if managers.player:has_category_upgrade("temporary", "no_ammo_cost") then
+			managers.player:activate_temporary_upgrade("temporary", "no_ammo_cost")
+		end
+	end
 	if not managers.player:has_activate_temporary_upgrade("temporary", "no_ammo_cost") then
 		if self:get_ammo_remaining_in_clip() == 0 then
 			return
 		end
-		self:set_ammo_remaining_in_clip(self:get_ammo_remaining_in_clip() - 1)
-		self:set_ammo_total(self:get_ammo_total() - 1)
+		local ammo_usage = 1
+		if managers.player:has_category_upgrade(self:weapon_tweak_data().category, "consume_no_ammo_chance") then
+			local roll = math.rand(1)
+			local chance = managers.player:upgrade_value(self:weapon_tweak_data().category, "consume_no_ammo_chance", 0)
+			if roll < chance then
+				ammo_usage = 0
+				print("NO AMMO COST")
+			end
+		end
+		self:set_ammo_remaining_in_clip(self:get_ammo_remaining_in_clip() - ammo_usage)
+		self:set_ammo_total(self:get_ammo_total() - ammo_usage)
 	end
 	local user_unit = self._setup.user_unit
 	self:_check_ammo_total(user_unit)
@@ -509,6 +530,11 @@ end
 function RaycastWeaponBase:get_ammo_total()
 	return self._ammo_total and self:digest_value(self._ammo_total, false) or self:digest_value(self._ammo_total2, false)
 end
+function RaycastWeaponBase:get_ammo_ratio()
+	local ammo_max = self:get_ammo_max()
+	local ammo_total = self:get_ammo_total()
+	return ammo_total / math.max(ammo_max, 1)
+end
 function RaycastWeaponBase:set_ammo_remaining_in_clip(ammo_remaining_in_clip)
 	if self._ammo_remaining_in_clip then
 		if self._ammo_remaining_in_clip2 then
@@ -706,6 +732,19 @@ function RaycastWeaponBase:add_ammo_from_bag(available)
 	print(wanted, can_have, math.ceil(can_have * ammo_max), self:get_ammo_total())
 	return can_have
 end
+function RaycastWeaponBase:reduce_ammo_by_procentage_of_total(ammo_procentage)
+	local ammo_max = self:get_ammo_max()
+	local ammo_total = self:get_ammo_total()
+	local ammo_ratio = self:get_ammo_ratio()
+	if ammo_total == 0 then
+		return
+	end
+	local ammo_after_reduction = math.max(math.ceil(ammo_total - ammo_max * ammo_procentage), 0)
+	self:set_ammo_total(math.min(ammo_total, ammo_after_reduction))
+	print(math.min(ammo_total, ammo_after_reduction), ammo_after_reduction, ammo_max * ammo_procentage)
+	local ammo_remaining_in_clip = self:get_ammo_remaining_in_clip()
+	self:set_ammo_remaining_in_clip(math.min(ammo_after_reduction, ammo_remaining_in_clip))
+end
 function RaycastWeaponBase:on_equip()
 end
 function RaycastWeaponBase:on_unequip()
@@ -716,9 +755,11 @@ end
 function RaycastWeaponBase:on_disabled()
 	self._enabled = false
 end
-function RaycastWeaponBase:play_tweak_data_sound(event)
-	if tweak_data.weapon[self._name_id].sounds[event] then
-		self:play_sound(tweak_data.weapon[self._name_id].sounds[event])
+function RaycastWeaponBase:play_tweak_data_sound(event, alternative_event)
+	local sounds = tweak_data.weapon[self._name_id].sounds
+	local event = sounds and (sounds[event] or sounds[alternative_event])
+	if event then
+		self:play_sound(event)
 	end
 end
 function RaycastWeaponBase:play_sound(event)
@@ -779,27 +820,40 @@ function InstantBulletBase:on_collision(col_ray, weapon_unit, user_unit, damage,
 			end
 		end
 	end
-	managers.game_play_central:physics_push(col_ray)
 	if hit_unit:character_damage() and hit_unit:character_damage().damage_bullet then
-		return self:give_impact_damage(col_ray, weapon_unit, user_unit, damage)
+		local is_alive = not hit_unit:character_damage():dead()
+		local result = self:give_impact_damage(col_ray, weapon_unit, user_unit, damage)
+		local is_dead = hit_unit:character_damage():dead()
+		local push_multiplier = self:_get_character_push_multiplier(weapon_unit, is_alive and is_dead)
+		managers.game_play_central:physics_push(col_ray, push_multiplier)
+		return result
 	else
 	end
+	managers.game_play_central:physics_push(col_ray)
 	return nil
 end
+function InstantBulletBase:_get_character_push_multiplier(weapon_unit, died)
+	if alive(weapon_unit) and weapon_unit:base():weapon_tweak_data().category == "shotgun" then
+		return nil
+	end
+	return died and 2.5 or nil
+end
 function InstantBulletBase:on_hit_player(col_ray, weapon_unit, user_unit, damage)
+	local armor_piercing = alive(weapon_unit) and weapon_unit:base():weapon_tweak_data().armor_piercing or nil
 	col_ray.unit = managers.player:player_unit()
-	return self:give_impact_damage(col_ray, weapon_unit, user_unit, damage)
+	return self:give_impact_damage(col_ray, weapon_unit, user_unit, damage, armor_piercing)
 end
 function InstantBulletBase:play_impact_sound_and_effects(col_ray)
 	managers.game_play_central:play_impact_sound_and_effects({col_ray = col_ray})
 end
-function InstantBulletBase:give_impact_damage(col_ray, weapon_unit, user_unit, damage)
+function InstantBulletBase:give_impact_damage(col_ray, weapon_unit, user_unit, damage, armor_piercing)
 	local action_data = {}
 	action_data.variant = "bullet"
 	action_data.damage = damage
 	action_data.weapon_unit = weapon_unit
 	action_data.attacker_unit = user_unit
 	action_data.col_ray = col_ray
+	action_data.armor_piercing = armor_piercing
 	local defense_data = col_ray.unit:character_damage():damage_bullet(action_data)
 	return defense_data
 end

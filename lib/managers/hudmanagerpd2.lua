@@ -123,6 +123,14 @@ function HUDManager:_set_teammate_weapon_selected(i, id, icon)
 		end
 	end
 end
+function HUDManager:recreate_weapon_firemode(i)
+	if self._teammate_panels[i] then
+		self._teammate_panels[i]:recreate_weapon_firemode()
+	end
+end
+function HUDManager:set_teammate_weapon_firemode(i, id, firemode)
+	self._teammate_panels[i]:set_weapon_firemode(id, firemode)
+end
 function HUDManager:set_ammo_amount(selection_index, max_clip, current_clip, current_left, max)
 	if selection_index > 2 then
 		print("set_ammo_amount", selection_index, max_clip, current_clip, current_left, max)
@@ -215,9 +223,6 @@ end
 function HUDManager:clear_player_special_equipments()
 	self._teammate_panels[HUDManager.PLAYER_PANEL]:clear_special_equipment()
 end
-function HUDManager:set_perk_equipment(i, data)
-	self._teammate_panels[i]:set_perk_equipment(data)
-end
 function HUDManager:add_item(data)
 	self:set_deployable_equipment(HUDManager.PLAYER_PANEL, data)
 end
@@ -229,6 +234,12 @@ function HUDManager:set_item_amount(index, amount)
 end
 function HUDManager:set_teammate_deployable_equipment_amount(i, index, data)
 	self._teammate_panels[i]:set_deployable_equipment_amount(index, data)
+end
+function HUDManager:set_teammate_grenades(i, data)
+	self._teammate_panels[i]:set_grenades(data)
+end
+function HUDManager:set_teammate_grenades_amount(i, data)
+	self._teammate_panels[i]:set_grenades_amount(data)
 end
 function HUDManager:set_player_condition(icon_data, text)
 	self:set_teammate_condition(HUDManager.PLAYER_PANEL, icon_data, text)
@@ -316,10 +327,18 @@ function HUDManager:_create_ammo_test()
 end
 function HUDManager:_create_hud_chat()
 	local hud = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_PD2)
-	if self._hud_chat then
-		self._hud_chat:remove()
+	if self._hud_chat_ingame then
+		self._hud_chat_ingame:remove()
 	end
-	self._hud_chat = HUDChat:new(self._saferect, hud)
+	self._hud_chat_ingame = HUDChat:new(self._saferect, hud)
+	self._hud_chat = self._hud_chat_ingame
+end
+function HUDManager:_create_hud_chat_access()
+	local hud = managers.hud:script(IngameAccessCamera.GUI_SAFERECT)
+	if self._hud_chat_access then
+		self._hud_chat_access:remove()
+	end
+	self._hud_chat_access = HUDChat:new(self._saferect, hud)
 end
 function HUDManager:_create_assault_corner()
 	local hud = managers.hud:script(PlayerBase.PLAYER_INFO_HUD_PD2)
@@ -361,10 +380,13 @@ function HUDManager:add_teammate_panel(character_name, player_name, ai, peer_id)
 						amount = peer_cable_ties.amount
 					})
 				end
-				local peer_perk = managers.player:get_synced_perk(peer_id)
-				if peer_perk then
-					local icon = tweak_data.upgrades.definitions[peer_perk.perk].icon
-					self:set_perk_equipment(i, {icon = icon})
+				local peer_grenades = managers.player:get_synced_grenades(peer_id)
+				if peer_grenades then
+					local icon = tweak_data.blackmarket.grenades[peer_grenades.grenade].icon
+					self:set_teammate_grenades(i, {
+						icon = icon,
+						amount = Application:digest_value(peer_grenades.amount, false)
+					})
 				end
 			end
 			local unit = managers.criminals:character_unit_by_name(character_name)
@@ -667,6 +689,18 @@ function HUDManager:on_hit_confirmed()
 	end
 	self._hud_hit_confirm:on_hit_confirmed()
 end
+function HUDManager:on_headshot_confirmed()
+	if not managers.user:get_setting("hit_indicator") then
+		return
+	end
+	self._hud_hit_confirm:on_headshot_confirmed()
+end
+function HUDManager:on_crit_confirmed()
+	if not managers.user:get_setting("hit_indicator") then
+		return
+	end
+	self._hud_hit_confirm:on_crit_confirmed()
+end
 function HUDManager:_create_hit_direction(hud)
 	hud = hud or managers.hud:script(PlayerBase.PLAYER_INFO_HUD_PD2)
 	self._hud_hit_direction = HUDHitDirection:new(hud)
@@ -714,12 +748,17 @@ function HUDManager:_add_name_label(data)
 	local last_id = self._hud.name_labels[#self._hud.name_labels] and self._hud.name_labels[#self._hud.name_labels].id or 0
 	local id = last_id + 1
 	local character_name = data.name
+	local rank = 0
 	local peer_id
 	local is_husk_player = data.unit:base().is_husk_player
 	if is_husk_player then
 		peer_id = data.unit:network():peer():id()
 		local level = data.unit:network():peer():level()
-		data.name = data.name .. " [" .. level .. "]"
+		rank = data.unit:network():peer():rank()
+		if level then
+			local experience = (rank > 0 and managers.experience:rank_string(rank) .. "-" or "") .. level
+			data.name = data.name .. " (" .. experience .. ")"
+		end
 	end
 	local panel = hud.panel:panel({
 		name = "name_label" .. id
@@ -784,6 +823,20 @@ function HUDManager:_add_name_label(data)
 	text:set_size(panel:size())
 	action:set_size(panel:size())
 	action:set_x(radius * 2 + 4)
+	if rank > 0 then
+		local infamy_icon = tweak_data.hud_icons:get_icon_data("infamy_icon")
+		local infamy = panel:bitmap({
+			name = "infamy",
+			texture = infamy_icon,
+			layer = 0,
+			w = 16,
+			h = 32,
+			color = crim_color
+		})
+		panel:set_w(panel:w() + infamy:w())
+		text:set_size(panel:size())
+		infamy:set_x(panel:w() - w - infamy:w())
+	end
 	panel:set_w(panel:w() + bag:w() + 4)
 	bag:set_right(panel:w())
 	bag:set_y(4)
@@ -925,6 +978,7 @@ function HUDManager:setup_access_camera_hud()
 	local hud = managers.hud:script(IngameAccessCamera.GUI_SAFERECT)
 	local full_hud = managers.hud:script(IngameAccessCamera.GUI_FULLSCREEN)
 	self._hud_access_camera = HUDAccessCamera:new(hud, full_hud)
+	self:_create_hud_chat_access()
 end
 function HUDManager:set_access_camera_name(name)
 	self._hud_access_camera:set_camera_name(name)

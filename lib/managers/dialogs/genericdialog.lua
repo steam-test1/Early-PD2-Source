@@ -42,8 +42,9 @@ function GenericDialog:set_title(text, no_upper)
 	self._panel_script:set_title(text, no_upper)
 end
 function GenericDialog:mouse_moved(o, x, y)
-	if self._panel_script:moved_scroll_bar(x, y) then
-		return
+	local used, pointer = self._panel_script:moved_scroll_bar(x, y)
+	if used then
+		return used, pointer
 	end
 	local x, y = managers.mouse_pointer:convert_1280_mouse_pos(x, y)
 	for i, panel in ipairs(self._panel_script._text_box_buttons_panel:children()) do
@@ -51,6 +52,7 @@ function GenericDialog:mouse_moved(o, x, y)
 			self._panel_script:set_focus_button(i)
 		end
 	end
+	return false, "arrow"
 end
 function GenericDialog:mouse_pressed(o, button, x, y)
 	if button == Idstring("0") then

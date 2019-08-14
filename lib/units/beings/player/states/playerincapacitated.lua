@@ -6,6 +6,7 @@ function PlayerIncapacitated:init(unit)
 end
 function PlayerIncapacitated:enter(state_data, enter_data)
 	PlayerIncapacitated.super.enter(self, state_data, enter_data)
+	self:_interupt_action_ladder(managers.player:player_timer():time())
 	self._revive_SO_data = {
 		unit = self._unit
 	}
@@ -85,7 +86,7 @@ function PlayerIncapacitated:_start_action_incapacitated(t)
 	self:_stance_entered()
 	self:_update_crosshair_offset()
 	self._unit:kill_mover()
-	self._unit:activate_mover(Idstring("duck"))
+	self:_activate_mover(Idstring("duck"))
 	self._unit:camera():play_redirect(self._ids_tased_exit)
 	self._unit:camera()._camera_unit:base():animate_fov(75)
 end
@@ -97,7 +98,7 @@ function PlayerIncapacitated:_end_action_incapacitated(t)
 	self:_stance_entered()
 	self:_update_crosshair_offset()
 	self._unit:kill_mover()
-	self._unit:activate_mover(Idstring("stand"))
+	self:_activate_mover(Idstring("stand"))
 end
 function PlayerIncapacitated:pre_destroy(unit)
 	PlayerBleedOut._unregister_revive_SO(self)

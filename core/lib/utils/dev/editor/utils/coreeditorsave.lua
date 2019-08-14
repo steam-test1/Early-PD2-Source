@@ -27,6 +27,7 @@ function save_data_table(unit)
 	t.projection_light = CoreEditorUtils.has_projection_light(unit)
 	t.projection_lights = ud.projection_lights
 	t.projection_textures = ud.projection_textures
+	t.ladder = _editable_ladder_table(unit)
 	return t
 end
 function _light_data_table(unit)
@@ -75,6 +76,16 @@ function _editable_gui_data_table(unit)
 			text = unit:editable_gui():text(),
 			font_color = unit:editable_gui():font_color(),
 			font_size = unit:editable_gui():font_size()
+		}
+	end
+	return t
+end
+function _editable_ladder_table(unit)
+	local t
+	if unit:ladder() then
+		t = {
+			width = unit:ladder():width(),
+			height = unit:ladder():height()
 		}
 	end
 	return t

@@ -49,6 +49,9 @@ function JobManager:activate_job(job_id, current_stage)
 		Application:error("No job named", job_id, "!")
 		return
 	end
+	if job.job_wrapper then
+		return self:activate_job(job.job_wrapper[math.random(#job.job_wrapper)], current_stage)
+	end
 	self._global.current_job = {
 		job_id = job_id,
 		current_stage = current_stage or 1,
@@ -226,6 +229,9 @@ function JobManager:current_contact_id()
 end
 function JobManager:current_contact_data()
 	if self._global.interupt_stage then
+		if tweak_data.levels[self._global.interupt_stage].bonus_escape then
+			return tweak_data.narrative.contacts.bain
+		end
 		return tweak_data.narrative.contacts.interupt
 	end
 	return tweak_data.narrative.contacts[self:current_contact_id()]

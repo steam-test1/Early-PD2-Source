@@ -173,7 +173,13 @@ function NavigationManager:_draw_pos_reservations(t)
 		if not entry.expire_t then
 			Application:draw_sphere(entry.position, entry.radius, 0, 0, 0)
 			if res.unit then
-				Application:draw_cylinder(entry.position, res.unit:movement():m_pos(), 3, 0, 0, 0)
+				if alive(res.unit) then
+					Application:draw_cylinder(entry.position, res.unit:movement():m_pos(), 3, 0, 0, 0)
+				else
+					Application:error("[NavigationManager:_draw_pos_reservations] dead unit. reserved from:", res.stack, "unit name:", res.u_name)
+					Application:draw_sphere(entry.position, entry.radius + 5, 1, 0, 1)
+					Application:set_pause(true)
+				end
 			end
 		else
 			Application:draw_sphere(entry.position, entry.radius, 0.3, 0.3, 0.3)
@@ -315,6 +321,13 @@ function NavigationManager:set_load_data(data)
 			self:_reconstruct_geographic_segments()
 		end
 		self._nav_segments = data.nav_segments
+		for nav_seg_id, nav_seg in pairs(self._nav_segments) do
+			local new_neighbours_list = {}
+			for other_nav_seg_id, door_list in pairs(nav_seg.neighbours) do
+				new_neighbours_list[other_nav_seg_id] = clone(door_list)
+			end
+			nav_seg.neighbours = new_neighbours_list
+		end
 		self._visibility_groups = data.vis_groups
 		if allow_debug_info then
 			local helper_blockers = data.helper_blockers
@@ -490,6 +503,10 @@ function NavigationManager:delete_nav_segment(id)
 	self:set_debug_draw_state(draw_options)
 end
 function NavigationManager:build_visibility_graph(complete_clbk, all_visible, neg_filter, pos_filter, ray_dis)
+	if not next(self._nav_segments) then
+		Application:error("[NavigationManager:build_visibility_graph] ground needs to be built before visibilty graph")
+		return
+	end
 	local draw_options = self._draw_enabled
 	self:set_debug_draw_state(false)
 	self._build_complete_clbk = complete_clbk
@@ -958,12 +975,17 @@ function NavigationManager:register_anim_nav_link(element)
 	local end_nav_seg_id = nav_link:end_nav_segment()
 	if start_nav_seg_id ~= end_nav_seg_id then
 		local start_nav_seg = self._nav_segments[start_nav_seg_id]
-		local start_nav_seg_neighbours = start_nav_seg.neighbours
-		if start_nav_seg_neighbours[end_nav_seg_id] then
-			table.insert(start_nav_seg_neighbours[end_nav_seg_id], nav_link)
+		if nav_link:is_obstructed() then
+			start_nav_seg.disabled_neighbours[end_nav_seg_id] = start_nav_seg.disabled_neighbours[end_nav_seg_id] or {}
+			table.insert(start_nav_seg.disabled_neighbours[end_nav_seg_id], nav_link)
 		else
-			start_nav_seg_neighbours[end_nav_seg_id] = {nav_link}
-			managers.groupai:state():on_nav_seg_neighbour_state(start_nav_seg_id, end_nav_seg_id, true)
+			local start_nav_seg_neighbours = start_nav_seg.neighbours
+			if start_nav_seg_neighbours[end_nav_seg_id] then
+				table.insert(start_nav_seg_neighbours[end_nav_seg_id], nav_link)
+			else
+				start_nav_seg_neighbours[end_nav_seg_id] = {nav_link}
+				managers.groupai:state():on_nav_seg_neighbour_state(start_nav_seg_id, end_nav_seg_id, true)
+			end
 		end
 	end
 end
@@ -978,21 +1000,36 @@ function NavigationManager:unregister_anim_nav_link(element)
 	local start_nav_seg_id = nav_link:start_nav_segment()
 	local end_nav_seg_id = nav_link:end_nav_segment()
 	local start_nav_seg = self._nav_segments[start_nav_seg_id]
-	local start_nav_seg_neighbours = start_nav_seg.neighbours
-	if start_nav_seg_neighbours[end_nav_seg_id] then
-		for i_door, door_id in pairs(start_nav_seg_neighbours[end_nav_seg_id]) do
+	if element:nav_link():is_obstructed() then
+		for i_door, door_id in pairs(start_nav_seg.disabled_neighbours[end_nav_seg_id]) do
 			if door_id == nav_link then
-				if #start_nav_seg_neighbours[end_nav_seg_id] == 1 then
-					start_nav_seg_neighbours[end_nav_seg_id] = nil
-					managers.groupai:state():on_nav_seg_neighbour_state(start_nav_seg_id, end_nav_seg_id, false)
-				else
-					table.remove(start_nav_seg_neighbours[end_nav_seg_id], i_door)
+				table.remove(start_nav_seg.disabled_neighbours[end_nav_seg_id], i_door)
+				if not next(start_nav_seg.disabled_neighbours[end_nav_seg_id]) then
+					start_nav_seg.disabled_neighbours[end_nav_seg_id] = nil
 				end
-			else
+				if not next(start_nav_seg.disabled_neighbours) then
+					start_nav_seg.disabled_neighbours = nil
+					else
+					end
+				end
+		end
+	else
+		local start_nav_seg_neighbours = start_nav_seg.neighbours
+		if start_nav_seg_neighbours[end_nav_seg_id] then
+			for i_door, door_id in pairs(start_nav_seg_neighbours[end_nav_seg_id]) do
+				if door_id == nav_link then
+					if #start_nav_seg_neighbours[end_nav_seg_id] == 1 then
+						start_nav_seg_neighbours[end_nav_seg_id] = nil
+						managers.groupai:state():on_nav_seg_neighbour_state(start_nav_seg_id, end_nav_seg_id, false)
+					else
+						table.remove(start_nav_seg_neighbours[end_nav_seg_id], i_door)
+					end
+				else
+				end
 			end
 		end
+		managers.groupai:state():on_nav_link_unregistered(element:id())
 	end
-	managers.groupai:state():on_nav_link_unregistered(element._id)
 	element:set_nav_link()
 	self._quad_field:remove_nav_link(element._id)
 end
@@ -1550,6 +1587,8 @@ function NavigationManager:add_pos_reservation(desc)
 			for u_key, u_data in pairs(managers.enemy:all_enemies()) do
 				if u_data.unit:movement():pos_rsrv_id() == desc.filter then
 					self._pos_reservations[desc.id].unit = u_data.unit
+					self._pos_reservations[desc.id].u_name = u_data.unit:name()
+					self._pos_reservations[desc.id].stack = Application:stack()
 					return
 				end
 			end
@@ -1905,14 +1944,28 @@ function NavigationManager:remove_obstacle(obstacle_unit, obstacle_obj_name)
 		end
 	end
 end
-function NavigationManager:clbk_navfield(event_name, args)
+function NavigationManager:clbk_navfield(event_name, args, args2, args3)
 	if event_name == "add_nav_seg_neighbours" then
 		for nav_seg_id, add_neighbours in pairs(args) do
 			local nav_seg = self._nav_segments[nav_seg_id]
 			for _, other_nav_seg_id in ipairs(add_neighbours) do
 				if nav_seg.disabled_neighbours[other_nav_seg_id] then
-					nav_seg.neighbours[other_nav_seg_id] = nav_seg.disabled_neighbours[other_nav_seg_id]
-					nav_seg.disabled_neighbours[other_nav_seg_id] = nil
+					nav_seg.neighbours[other_nav_seg_id] = nav_seg.neighbours[other_nav_seg_id] or {}
+					local i_door = 1
+					while i_door <= #nav_seg.disabled_neighbours[other_nav_seg_id] do
+						local door_id = table.remove(nav_seg.disabled_neighbours[other_nav_seg_id], i_door)
+						if type(door_id) ~= "table" then
+							table.insert(nav_seg.neighbours[other_nav_seg_id], door_id)
+						else
+							i_door = i_door + 1
+						end
+					end
+					if not next(nav_seg.disabled_neighbours[other_nav_seg_id]) then
+						nav_seg.disabled_neighbours[other_nav_seg_id] = nil
+					end
+					if not next(nav_seg.disabled_neighbours) then
+						nav_seg.disabled_neighbours = nil
+					end
 				end
 			end
 		end
@@ -1923,12 +1976,24 @@ function NavigationManager:clbk_navfield(event_name, args)
 		for nav_seg_id, rem_neighbours in pairs(args) do
 			local nav_seg = self._nav_segments[nav_seg_id]
 			for _, other_nav_seg_id in ipairs(rem_neighbours) do
+				local other_nav_seg = self._nav_segments[other_nav_seg_id]
 				nav_seg.disabled_neighbours = nav_seg.disabled_neighbours or {}
-				nav_seg.disabled_neighbours[other_nav_seg_id] = nav_seg.neighbours[other_nav_seg_id]
-				nav_seg.neighbours[other_nav_seg_id] = nil
+				nav_seg.disabled_neighbours[other_nav_seg_id] = nav_seg.disabled_neighbours[other_nav_seg_id] or {}
+				local i_door = 1
+				while i_door <= #nav_seg.neighbours[other_nav_seg_id] do
+					if type(nav_seg.neighbours[other_nav_seg_id][i_door]) ~= "table" then
+						local door_id = table.remove(nav_seg.neighbours[other_nav_seg_id], i_door)
+						table.insert(nav_seg.disabled_neighbours[other_nav_seg_id], door_id)
+					else
+						i_door = i_door + 1
+					end
+				end
+				if not next(nav_seg.neighbours[other_nav_seg_id]) then
+					nav_seg.neighbours[other_nav_seg_id] = nil
+				end
 			end
 		end
-		for nav_seg_id, add_neighbours in pairs(args) do
+		for nav_seg_id, rem_neighbours in pairs(args) do
 			managers.groupai:state():on_nav_seg_neighbours_state(nav_seg_id, args, false)
 		end
 	elseif event_name == "invalidated_script_data" then
@@ -1946,6 +2011,53 @@ function NavigationManager:clbk_navfield(event_name, args)
 				end
 			end
 		end
+	elseif event_name == "unobstruct_nav_link" then
+		local nav_seg_from_id = args
+		local nav_seg_to_id = args2
+		local nav_link_id = args3
+		local nav_seg_from = self._nav_segments[nav_seg_from_id]
+		if not nav_seg_from.disabled_neighbours[nav_seg_to_id] then
+			debug_pause("[NavigationManager:clbk_navfield] did not have such disabled neighbour", event_name, args, args2, args3)
+			return
+		end
+		for i_door, door in pairs(nav_seg_from.disabled_neighbours[nav_seg_to_id]) do
+			if type(door) == "userdata" and door:script_data().element:id() == nav_link_id then
+				local is_first_door = not nav_seg_from.neighbours[nav_seg_to_id]
+				nav_seg_from.neighbours[nav_seg_to_id] = nav_seg_from.neighbours[nav_seg_to_id] or {}
+				table.insert(nav_seg_from.disabled_neighbours[nav_seg_to_id], table.remove(nav_seg_from.neighbours[nav_seg_to_id], i_door))
+				if not next(nav_seg_from.disabled_neighbours[nav_seg_to_id]) then
+					nav_seg_from.disabled_neighbours[nav_seg_to_id] = nil
+				end
+				if is_first_door then
+					managers.groupai:state():on_nav_seg_neighbour_state(nav_seg_from_id, nav_seg_to_id, true)
+				end
+				return
+			end
+		end
+		debug_pause("[NavigationManager:clbk_navfield] did not find nav_link", event_name, args, args2, args3)
+	elseif event_name == "obstruct_nav_link" then
+		local nav_seg_from_id = args
+		local nav_seg_to_id = args2
+		local nav_link_id = args3
+		local nav_seg_from = self._nav_segments[nav_seg_from_id]
+		if not nav_seg_from.neighbours[nav_seg_to_id] then
+			debug_pause("[NavigationManager:clbk_navfield] did not have such neighbour", event_name, args, args2, args3)
+			return
+		end
+		for i_door, door in pairs(nav_seg_from.neighbours[nav_seg_to_id]) do
+			if type(door) == "table" and door:script_data().element:id() == nav_link_id then
+				nav_seg_from.disabled_neighbours = nav_seg_from.disabled_neighbours or {}
+				nav_seg_from.disabled_neighbours[nav_seg_to_id] = nav_seg_from.disabled_neighbours[nav_seg_to_id] or {}
+				table.insert(nav_seg_from.disabled_neighbours[nav_seg_to_id], table.remove(nav_seg_from.neighbours[nav_seg_to_id], i_door))
+				if not next(nav_seg_from.neighbours[nav_seg_to_id]) then
+					nav_seg_from.neighbours[nav_seg_to_id] = nil
+					managers.groupai:state():on_nav_seg_neighbour_state(nav_seg_from_id, nav_seg_to_id, false)
+				end
+				managers.groupai:state():on_nav_link_unregistered(nav_link_id)
+				return
+			end
+		end
+		debug_pause("[NavigationManager:clbk_navfield] did not find nav_link", event_name, args, args2, args3)
 	elseif event_name == "add_quads" then
 		if not self._debug then
 			return

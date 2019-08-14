@@ -23,7 +23,7 @@ function UpgradesTweakData:_init_pd2_values()
 		0.95,
 		0.75,
 		0.65,
-		0.5
+		0.575
 	}
 	self.values.player.body_armor.concealment = {
 		30,
@@ -35,21 +35,21 @@ function UpgradesTweakData:_init_pd2_values()
 		1
 	}
 	self.values.player.body_armor.dodge = {
-		0.2,
-		0.1,
+		0.09,
 		0.05,
-		-0.05,
+		0.03,
+		-0.03,
 		-0.1,
-		-0.25,
-		-0.75
+		-0.3,
+		-0.5
 	}
 	self.values.player.body_armor.damage_shake = {
 		1,
 		0.96,
 		0.92,
 		0.85,
-		0.75,
-		0.65,
+		0.8,
+		0.7,
 		0.5
 	}
 	self.values.player.body_armor.stamina = {
@@ -57,16 +57,25 @@ function UpgradesTweakData:_init_pd2_values()
 		1,
 		0.95,
 		0.9,
-		0.75,
-		0.65,
-		0.5
+		0.85,
+		0.8,
+		0.7
+	}
+	self.values.player.body_armor.skill_ammo_mul = {
+		1,
+		1.02,
+		1.04,
+		1.06,
+		1.8,
+		1.1,
+		1.12
 	}
 	self.values.player.special_enemy_highlight = {true}
 	self.values.player.hostage_trade = {true}
 	self.values.player.sec_camera_highlight = {true}
 	self.values.player.sec_camera_highlight_mask_off = {true}
 	self.values.player.special_enemy_highlight_mask_off = {true}
-	self.ammo_bag_base = 4
+	self.ammo_bag_base = 3
 	self.ecm_jammer_base_battery_life = 20
 	self.ecm_jammer_base_low_battery_life = 8
 	self.ecm_jammer_base_range = 2500
@@ -76,15 +85,25 @@ function UpgradesTweakData:_init_pd2_values()
 	self.sentry_gun_base_ammo = 150
 	self.sentry_gun_base_armor = 10
 	self.doctor_bag_base = 2
+	self.grenade_crate_base = 3
+	self.max_grenade_amount = 3
 	self.cop_hurt_alert_radius_whisper = 600
 	self.cop_hurt_alert_radius = 400
 	self.drill_alert_radius = 2500
 	self.taser_malfunction_min = 1
 	self.taser_malfunction_max = 3
 	self.counter_taser_damage = 0.5
-	self.moral_boost_speed_bonus = 1.2
-	self.moral_boost_suppression_resistance = 1
-	self.moral_boost_time = 10
+	self.morale_boost_speed_bonus = 1.2
+	self.morale_boost_suppression_resistance = 1
+	self.morale_boost_time = 10
+	self.morale_boost_reload_speed_bonus = 1.2
+	self.morale_boost_base_cooldown = 3.5
+	self.max_weapon_dmg_mul_stacks = 5
+	self.hostage_near_player_radius = 1000
+	self.hostage_near_player_check_t = 0.5
+	self.hostage_near_player_multiplier = 1.25
+	self.weapon_movement_penalty = {}
+	self.weapon_movement_penalty.lmg = 0.8
 	self.values.player.crime_net_deal = {0.9, 0.8}
 	self.values.player.corpse_alarm_pager_bluff = {true}
 	self.values.player.marked_enemy_extra_damage = {true}
@@ -133,7 +152,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.pistol.swap_speed_multiplier = {1.5}
 	self.values.pistol.fire_rate_multiplier = {2}
 	self.values.player.revive_interaction_speed_multiplier = {0.5}
-	self.values.player.long_dis_revive = {0.75}
+	self.values.player.long_dis_revive = {0.75, 1}
 	self.values.doctor_bag.interaction_speed_multiplier = {0.8}
 	self.values.team.stamina.passive_multiplier = {1.15, 1.3}
 	self.values.player.passive_intimidate_range_mul = {1.25}
@@ -208,7 +227,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.drill_autorepair = {0.3}
 	self.values.player.sentry_gun_deploy_time_multiplier = {0.5}
 	self.values.sentry_gun.armor_multiplier = {2.5}
-	self.values.weapon.single_spread_multiplier = {0.5}
+	self.values.weapon.single_spread_multiplier = {0.8}
 	self.values.assault_rifle.recoil_multiplier = {0.75}
 	self.values.player.taser_malfunction = {true}
 	self.values.player.taser_self_shock = {true}
@@ -328,6 +347,71 @@ function UpgradesTweakData:_init_pd2_values()
 			35
 		}
 	}
+	self.values.player.detection_risk_damage_multiplier = {
+		{
+			0.05,
+			7,
+			"above",
+			40
+		}
+	}
+	self.values.player.overkill_health_to_damage_multiplier = {0.66}
+	self.values.player.tased_recover_multiplier = {0.5}
+	self.values.player.armor_regen_timer_stand_still_multiplier = {1.1}
+	self.values.player.secured_bags_speed_multiplier = {1.02}
+	self.values.temporary.no_ammo_cost_buff = {
+		{true, 60}
+	}
+	self.values.player.secured_bags_money_multiplier = {1.02}
+	self.values.pistol.stacking_hit_damage_multiplier = {0.1}
+	self.values.carry.movement_penalty_nullifier = {true}
+	self.values.temporary.berserker_damage_multiplier = {
+		{2, 6}
+	}
+	self.values.player.berserker_invulnerability = {true}
+	self.values.player.hostage_health_regen_addend = {0.005}
+	self.values.player.carry_sentry_and_trip = {true}
+	self.values.player.tier_armor_multiplier = {
+		1.1,
+		1.25,
+		1.5
+	}
+	self.values.shotgun.hip_fire_damage_multiplier = {1.2}
+	self.values.pistol.hip_fire_damage_multiplier = {1.2}
+	self.values.assault_rifle.hip_fire_damage_multiplier = {1.2}
+	self.values.smg.hip_fire_damage_multiplier = {1.2}
+	self.values.saw.hip_fire_damage_multiplier = {1.2}
+	self.values.shotgun.consume_no_ammo_chance = {0.01, 0.03}
+	self.values.player.add_armor_stat_skill_ammo_mul = {true}
+	self.values.saw.melee_knockdown_mul = {1.75}
+	self.values.shotgun.melee_knockdown_mul = {1.75}
+	self.values.player.assets_cost_multiplier_b = {0.5}
+	self.values.player.premium_contract_cost_multiplier = {0.5}
+	self.values.player.morale_boost_cooldown_multiplier = {0.5}
+	self.values.player.level_interaction_timer_multiplier = {
+		{0.01, 10}
+	}
+	self.values.team.player.clients_buy_assets = {true}
+	self.values.player.steelsight_normal_movement_speed = {true}
+	self.values.team.weapon.move_spread_multiplier = {1.1}
+	self.values.team.player.civ_intimidation_mul = {1.15}
+	self.values.sentry_gun.can_revive = {true}
+	self.values.sentry_gun.can_reload = {true}
+	self.sentry_gun_reload_ratio = 1
+	self.values.weapon.modded_damage_multiplier = {1.1}
+	self.values.weapon.modded_spread_multiplier = {0.9}
+	self.values.weapon.modded_recoil_multiplier = {0.9}
+	self.values.sentry_gun.armor_piercing_chance = {0.15}
+	self.values.sentry_gun.armor_piercing_chance_2 = {0.05}
+	self.values.weapon.armor_piercing_chance_2 = {0.05}
+	self.values.player.headshot_regen_armor_bonus = {0.05}
+	self.values.player.resist_firing_tased = {true}
+	self.values.player.crouch_dodge_chance = {0.1}
+	self.values.player.climb_speed_multiplier = {1.33, 1.75}
+	self.values.team.xp.stealth_multiplier = {1.5}
+	self.values.team.cash.stealth_money_multiplier = {1.5}
+	self.values.team.cash.stealth_bags_multiplier = {1.5}
+	self.values.player.close_to_hostage_boost = {true}
 	local editable_skill_descs = {
 		ammo_2x = {
 			{"2"},
@@ -563,7 +647,7 @@ function UpgradesTweakData:_init_pd2_values()
 			{}
 		},
 		sharpshooter = {
-			{"50%"},
+			{"20%"},
 			{"25%"}
 		},
 		shotgun_cqb = {
@@ -1028,6 +1112,15 @@ function UpgradesTweakData:init()
 	self:_new_raging_bull_definitions()
 	self:_saw_definitions()
 	self:_usp_definitions()
+	self:_m45_definitions()
+	self:_s552_definitions()
+	self:_ppk_definitions()
+	self:_mp7_definitions()
+	self:_scar_definitions()
+	self:_p226_definitions()
+	self:_hk21_definitions()
+	self:_m249_definitions()
+	self:_rpk_definitions()
 	self:_weapon_definitions()
 	self:_pistol_definitions()
 	self:_assault_rifle_definitions()
@@ -1092,12 +1185,14 @@ function UpgradesTweakData:_init_value_tables()
 	self.values.saw = {}
 	self.values.temporary = {}
 	self.values.team = {}
+	self.values.team.player = {}
 	self.values.team.weapon = {}
 	self.values.team.pistol = {}
 	self.values.team.xp = {}
 	self.values.team.armor = {}
 	self.values.team.stamina = {}
 	self.values.team.health = {}
+	self.values.team.cash = {}
 end
 function UpgradesTweakData:_init_values()
 	self.values.weapon = self.values.weapon or {}
@@ -1131,6 +1226,7 @@ function UpgradesTweakData:_init_values()
 		{true, 10}
 	}
 	self.values.team = self.values.team or {}
+	self.values.team.player = self.values.team.player or {}
 	self.values.team.pistol = self.values.team.pistol or {}
 	self.values.team.weapon = self.values.team.weapon or {}
 	self.values.team.weapon.suppression_recoil_multiplier = {0.75}
@@ -1259,6 +1355,24 @@ function UpgradesTweakData:_player_definitions()
 			}
 		}
 	end
+	self.definitions.player_add_armor_stat_skill_ammo_mul = {
+		category = "feature",
+		name_id = "menu_player_add_armor_stat_skill_ammo_mul",
+		upgrade = {
+			category = "player",
+			upgrade = "add_armor_stat_skill_ammo_mul",
+			value = 1
+		}
+	}
+	self.definitions.player_overkill_health_to_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_player_overkill_health_to_damage_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "overkill_health_to_damage_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.player_detection_risk_add_crit_chance = {
 		category = "feature",
 		name_id = "menu_player_detection_risk_add_crit_chance",
@@ -1274,6 +1388,15 @@ function UpgradesTweakData:_player_definitions()
 		upgrade = {
 			category = "player",
 			upgrade = "detection_risk_add_dodge_chance",
+			value = 1
+		}
+	}
+	self.definitions.player_detection_risk_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_player_detection_risk_damage_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "detection_risk_damage_multiplier",
 			value = 1
 		}
 	}
@@ -1513,6 +1636,33 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_tier_armor_multiplier_1 = {
+		category = "feature",
+		name_id = "menu_player_tier_armor_multiplier_1",
+		upgrade = {
+			category = "player",
+			upgrade = "tier_armor_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.player_tier_armor_multiplier_2 = {
+		category = "feature",
+		name_id = "menu_player_tier_armor_multiplier_2",
+		upgrade = {
+			category = "player",
+			upgrade = "tier_armor_multiplier",
+			value = 2
+		}
+	}
+	self.definitions.player_tier_armor_multiplier_3 = {
+		category = "feature",
+		name_id = "menu_player_tier_armor_multiplier_3",
+		upgrade = {
+			category = "player",
+			upgrade = "tier_armor_multiplier",
+			value = 3
+		}
+	}
 	self.definitions.player_passive_armor_multiplier_1 = {
 		category = "feature",
 		name_id = "menu_player_passive_armor_multiplier",
@@ -1540,12 +1690,39 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_armor_regen_timer_stand_still_multiplier = {
+		category = "feature",
+		name_id = "menu_player_armor_regen_timer_stand_still_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "armor_regen_timer_stand_still_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.player_wolverine_health_regen = {
 		category = "temporary",
 		name_id = "menu_player_wolverine_health_regen",
 		upgrade = {
 			category = "temporary",
 			upgrade = "wolverine_health_regen",
+			value = 1
+		}
+	}
+	self.definitions.player_hostage_health_regen_addend = {
+		category = "temporary",
+		name_id = "menu_player_hostage_health_regen_addend",
+		upgrade = {
+			category = "player",
+			upgrade = "hostage_health_regen_addend",
+			value = 1
+		}
+	}
+	self.definitions.player_close_to_hostage_boost = {
+		category = "temporary",
+		name_id = "menu_player_close_to_hostage_boost",
+		upgrade = {
+			category = "player",
+			upgrade = "close_to_hostage_boost",
 			value = 1
 		}
 	}
@@ -1858,6 +2035,15 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_berserker_invulnerability = {
+		category = "feature",
+		name_id = "menu_player_berserker_invulnerability",
+		upgrade = {
+			category = "player",
+			upgrade = "berserker_invulnerability",
+			value = 1
+		}
+	}
 	self.definitions.player_damage_multiplier_outnumbered = {
 		category = "temporary",
 		name_id = "menu_player_dmg_mul_outnumbered",
@@ -1918,6 +2104,33 @@ function UpgradesTweakData:_player_definitions()
 		upgrade = {
 			category = "player",
 			upgrade = "electrocution_resistance_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.player_tased_recover_multiplier = {
+		category = "feature",
+		name_id = "menu_player_tased_recover_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "tased_recover_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.player_secured_bags_speed_multiplier = {
+		category = "feature",
+		name_id = "menu_player_secured_bags_speed_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "secured_bags_speed_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.player_secured_bags_money_multiplier = {
+		category = "feature",
+		name_id = "menu_secured_bags_money_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "secured_bags_money_multiplier",
 			value = 1
 		}
 	}
@@ -2391,6 +2604,15 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_morale_boost_cooldown_multiplier = {
+		category = "feature",
+		name_id = "menu_player_morale_boost_cooldown_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "morale_boost_cooldown_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.player_long_dis_revive = {
 		category = "feature",
 		name_id = "menu_player_long_dis_revive",
@@ -2398,6 +2620,15 @@ function UpgradesTweakData:_player_definitions()
 			category = "player",
 			upgrade = "long_dis_revive",
 			value = 1
+		}
+	}
+	self.definitions.player_long_dis_revive_2 = {
+		category = "feature",
+		name_id = "menu_player_long_dis_revive",
+		upgrade = {
+			category = "player",
+			upgrade = "long_dis_revive",
+			value = 2
 		}
 	}
 	self.definitions.player_pick_lock_easy = {
@@ -2469,6 +2700,15 @@ function UpgradesTweakData:_player_definitions()
 		upgrade = {
 			category = "weapon",
 			upgrade = "armor_piercing_chance",
+			value = 1
+		}
+	}
+	self.definitions.weapon_armor_piercing_chance_2 = {
+		category = "feature",
+		name_id = "menu_weapon_armor_piercing_chance_2",
+		upgrade = {
+			category = "weapon",
+			upgrade = "armor_piercing_chance_2",
 			value = 1
 		}
 	}
@@ -2625,6 +2865,24 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_assets_cost_multiplier_b = {
+		category = "feature",
+		name_id = "menu_player_assets_cost_multiplier_b",
+		upgrade = {
+			category = "player",
+			upgrade = "assets_cost_multiplier_b",
+			value = 1
+		}
+	}
+	self.definitions.player_premium_contract_cost_multiplier = {
+		category = "feature",
+		name_id = "menu_player_premium_contract_cost_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "premium_contract_cost_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.passive_player_assets_cost_multiplier = {
 		category = "feature",
 		name_id = "menu_passive_player_assets_cost_multiplier",
@@ -2652,6 +2910,15 @@ function UpgradesTweakData:_player_definitions()
 			value = 1
 		}
 	}
+	self.definitions.player_carry_sentry_and_trip = {
+		category = "feature",
+		name_id = "menu_player_carry_sentry_and_trip",
+		upgrade = {
+			category = "player",
+			upgrade = "carry_sentry_and_trip",
+			value = 1
+		}
+	}
 	self.definitions.player_run_and_reload = {
 		category = "feature",
 		name_id = "menu_player_run_and_reload",
@@ -2659,6 +2926,69 @@ function UpgradesTweakData:_player_definitions()
 			category = "player",
 			upgrade = "run_and_reload",
 			value = 1
+		}
+	}
+	self.definitions.player_level_interaction_timer_multiplier = {
+		category = "feature",
+		name_id = "menu_player_level_interaction_timer_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "level_interaction_timer_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.player_steelsight_normal_movement_speed = {
+		category = "feature",
+		name_id = "menu_player_steelsight_normal_movement_speed",
+		upgrade = {
+			category = "player",
+			upgrade = "steelsight_normal_movement_speed",
+			value = 1
+		}
+	}
+	self.definitions.player_headshot_regen_armor_bonus = {
+		category = "feature",
+		name_id = "menu_player_headshot_regen_armor_bonus",
+		upgrade = {
+			category = "player",
+			upgrade = "headshot_regen_armor_bonus",
+			value = 1
+		}
+	}
+	self.definitions.player_resist_firing_tased = {
+		category = "feature",
+		name_id = "menu_player_resist_firing_tased",
+		upgrade = {
+			category = "player",
+			upgrade = "resist_firing_tased",
+			value = 1
+		}
+	}
+	self.definitions.player_crouch_dodge_chance = {
+		category = "feature",
+		name_id = "menu_player_crouch_dodge_chance",
+		upgrade = {
+			category = "player",
+			upgrade = "crouch_dodge_chance",
+			value = 1
+		}
+	}
+	self.definitions.player_climb_speed_multiplier_1 = {
+		category = "feature",
+		name_id = "menu_player_climb_speed_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "climb_speed_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.player_climb_speed_multiplier_2 = {
+		category = "feature",
+		name_id = "menu_player_climb_speed_multiplier",
+		upgrade = {
+			category = "player",
+			upgrade = "climb_speed_multiplier",
+			value = 2
 		}
 	}
 	self.definitions.toolset = {
@@ -3209,6 +3539,42 @@ function UpgradesTweakData:_sentry_gun_definitions()
 			value = 1
 		}
 	}
+	self.definitions.sentry_gun_can_revive = {
+		category = "feature",
+		name_id = "menu_sentry_gun_can_revive",
+		upgrade = {
+			category = "sentry_gun",
+			upgrade = "can_revive",
+			value = 1
+		}
+	}
+	self.definitions.sentry_gun_can_reload = {
+		category = "feature",
+		name_id = "menu_sentry_gun_can_reload",
+		upgrade = {
+			category = "sentry_gun",
+			upgrade = "can_reload",
+			value = 1
+		}
+	}
+	self.definitions.sentry_gun_armor_piercing_chance = {
+		category = "feature",
+		name_id = "menu_sentry_gun_armor_piercing_chance",
+		upgrade = {
+			category = "sentry_gun",
+			upgrade = "armor_piercing_chance",
+			value = 1
+		}
+	}
+	self.definitions.sentry_gun_armor_piercing_chance_2 = {
+		category = "feature",
+		name_id = "menu_sentry_gun_armor_piercing_chance_2",
+		upgrade = {
+			category = "sentry_gun",
+			upgrade = "armor_piercing_chance_2",
+			value = 1
+		}
+	}
 end
 function UpgradesTweakData:_rep_definitions()
 	local rep_upgrades = self.values.rep_upgrades
@@ -3503,6 +3869,11 @@ function UpgradesTweakData:_olympic_definitions()
 		weapon_id = "olympic",
 		factory_id = "wpn_fps_smg_olympic"
 	}
+	self.definitions.olympic_primary = {
+		category = "weapon",
+		weapon_id = "olympic_primary",
+		factory_id = "wpn_fps_smg_olympic_primary"
+	}
 end
 function UpgradesTweakData:_amcar_definitions()
 	self.definitions.amcar = {
@@ -3525,12 +3896,22 @@ function UpgradesTweakData:_new_m4_definitions()
 		weapon_id = "new_m4",
 		factory_id = "wpn_fps_ass_m4"
 	}
+	self.definitions.m4_secondary = {
+		category = "weapon",
+		weapon_id = "m4_secondary",
+		factory_id = "wpn_fps_ass_m4_secondary"
+	}
 end
 function UpgradesTweakData:_glock_18c_definitions()
 	self.definitions.glock_18c = {
 		category = "weapon",
 		weapon_id = "glock_18c",
 		factory_id = "wpn_fps_pis_g18c"
+	}
+	self.definitions.glock_18c_primary = {
+		category = "weapon",
+		weapon_id = "glock_18c_primary",
+		factory_id = "wpn_fps_pis_g18c_primary"
 	}
 end
 function UpgradesTweakData:_saiga_definitions()
@@ -3546,12 +3927,22 @@ function UpgradesTweakData:_akmsu_definitions()
 		weapon_id = "akmsu",
 		factory_id = "wpn_fps_smg_akmsu"
 	}
+	self.definitions.akmsu_primary = {
+		category = "weapon",
+		weapon_id = "akmsu_primary",
+		factory_id = "wpn_fps_smg_akmsu_primary"
+	}
 end
 function UpgradesTweakData:_ak74_definitions()
 	self.definitions.ak74 = {
 		category = "weapon",
 		weapon_id = "ak74",
 		factory_id = "wpn_fps_ass_74"
+	}
+	self.definitions.ak74_secondary = {
+		category = "weapon",
+		weapon_id = "ak74_secondary",
+		factory_id = "wpn_fps_ass_74_secondary"
 	}
 end
 function UpgradesTweakData:_akm_definitions()
@@ -3573,6 +3964,11 @@ function UpgradesTweakData:_aug_definitions()
 		category = "weapon",
 		weapon_id = "aug",
 		factory_id = "wpn_fps_ass_aug"
+	}
+	self.definitions.aug_secondary = {
+		category = "weapon",
+		weapon_id = "aug_secondary",
+		factory_id = "wpn_fps_ass_aug_secondary"
 	}
 end
 function UpgradesTweakData:_g36_definitions()
@@ -3609,6 +4005,11 @@ function UpgradesTweakData:_deagle_definitions()
 		weapon_id = "deagle",
 		factory_id = "wpn_fps_pis_deagle"
 	}
+	self.definitions.deagle_primary = {
+		category = "weapon",
+		weapon_id = "deagle_primary",
+		factory_id = "wpn_fps_pis_deagle_primary"
+	}
 end
 function UpgradesTweakData:_new_mp5_definitions()
 	self.definitions.new_mp5 = {
@@ -3622,6 +4023,11 @@ function UpgradesTweakData:_colt_1911_definitions()
 		category = "weapon",
 		weapon_id = "colt_1911",
 		factory_id = "wpn_fps_pis_1911"
+	}
+	self.definitions.colt_1911_primary = {
+		category = "weapon",
+		weapon_id = "colt_1911_primary",
+		factory_id = "wpn_fps_pis_1911_primary"
 	}
 end
 function UpgradesTweakData:_mac10_definitions()
@@ -3644,6 +4050,11 @@ function UpgradesTweakData:_b92fs_definitions()
 		category = "weapon",
 		weapon_id = "b92fs",
 		factory_id = "wpn_fps_pis_beretta"
+	}
+	self.definitions.b92fs_primary = {
+		category = "weapon",
+		weapon_id = "b92fs_primary",
+		factory_id = "wpn_fps_pis_beretta_primary"
 	}
 end
 function UpgradesTweakData:_huntsman_definitions()
@@ -3673,12 +4084,22 @@ function UpgradesTweakData:_new_raging_bull_definitions()
 		weapon_id = "new_raging_bull",
 		factory_id = "wpn_fps_pis_rage"
 	}
+	self.definitions.raging_bull_primary = {
+		category = "weapon",
+		weapon_id = "raging_bull_primary",
+		factory_id = "wpn_fps_pis_rage_primary"
+	}
 end
 function UpgradesTweakData:_saw_definitions()
 	self.definitions.saw = {
 		category = "weapon",
 		weapon_id = "saw",
 		factory_id = "wpn_fps_saw"
+	}
+	self.definitions.saw_secondary = {
+		category = "weapon",
+		weapon_id = "saw_secondary",
+		factory_id = "wpn_fps_saw_secondary"
 	}
 	self.definitions.saw_extra_ammo_multiplier = {
 		category = "feature",
@@ -3752,6 +4173,15 @@ function UpgradesTweakData:_saw_definitions()
 			value = 1
 		}
 	}
+	self.definitions.saw_hip_fire_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_saw_hip_fire_damage_multiplier",
+		upgrade = {
+			category = "saw",
+			upgrade = "hip_fire_damage_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.saw_armor_piercing_chance = {
 		category = "feature",
 		name_id = "menu_saw_armor_piercing_chance",
@@ -3779,15 +4209,130 @@ function UpgradesTweakData:_saw_definitions()
 			value = 1
 		}
 	}
+	self.definitions.saw_melee_knockdown_mul = {
+		category = "feature",
+		name_id = "menu_saw_melee_knockdown_mul",
+		upgrade = {
+			category = "saw",
+			upgrade = "melee_knockdown_mul",
+			value = 1
+		}
+	}
 end
 function UpgradesTweakData:_usp_definitions()
 	self.definitions.usp = {
 		category = "weapon",
 		weapon_id = "usp",
-		factory_id = "wpn_fps_pis_usp"
+		factory_id = "wpn_fps_pis_usp",
+		dlc = "pd2_clan"
+	}
+end
+function UpgradesTweakData:_m45_definitions()
+	self.definitions.m45 = {
+		category = "weapon",
+		weapon_id = "m45",
+		factory_id = "wpn_fps_smg_m45",
+		dlc = "armored_transport"
+	}
+end
+function UpgradesTweakData:_s552_definitions()
+	self.definitions.s552 = {
+		category = "weapon",
+		weapon_id = "s552",
+		factory_id = "wpn_fps_ass_s552",
+		dlc = "armored_transport"
+	}
+	self.definitions.s552_secondary = {
+		category = "weapon",
+		weapon_id = "s552_secondary",
+		factory_id = "wpn_fps_ass_s552_secondary",
+		dlc = "armored_transport"
+	}
+end
+function UpgradesTweakData:_ppk_definitions()
+	self.definitions.ppk = {
+		category = "weapon",
+		weapon_id = "ppk",
+		factory_id = "wpn_fps_pis_ppk",
+		dlc = "armored_transport"
+	}
+end
+function UpgradesTweakData:_mp7_definitions()
+	self.definitions.mp7 = {
+		category = "weapon",
+		weapon_id = "mp7",
+		factory_id = "wpn_fps_smg_mp7",
+		dlc = "gage_pack"
+	}
+end
+function UpgradesTweakData:_scar_definitions()
+	self.definitions.scar = {
+		category = "weapon",
+		weapon_id = "scar",
+		factory_id = "wpn_fps_ass_scar",
+		dlc = "gage_pack"
+	}
+end
+function UpgradesTweakData:_p226_definitions()
+	self.definitions.p226 = {
+		category = "weapon",
+		weapon_id = "p226",
+		factory_id = "wpn_fps_pis_p226",
+		dlc = "gage_pack"
+	}
+end
+function UpgradesTweakData:_hk21_definitions()
+	self.definitions.hk21 = {
+		category = "weapon",
+		weapon_id = "hk21",
+		factory_id = "wpn_fps_lmg_hk21",
+		dlc = "gage_pack_lmg"
+	}
+end
+function UpgradesTweakData:_m249_definitions()
+	self.definitions.m249 = {
+		category = "weapon",
+		weapon_id = "m249",
+		factory_id = "wpn_fps_lmg_m249",
+		dlc = "gage_pack_lmg"
+	}
+end
+function UpgradesTweakData:_rpk_definitions()
+	self.definitions.rpk = {
+		category = "weapon",
+		weapon_id = "rpk",
+		factory_id = "wpn_fps_lmg_rpk",
+		dlc = "gage_pack_lmg"
 	}
 end
 function UpgradesTweakData:_weapon_definitions()
+	self.definitions.weapon_modded_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_modded_damage_multiplier",
+		upgrade = {
+			category = "weapon",
+			upgrade = "modded_damage_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.weapon_modded_spread_multiplier = {
+		category = "feature",
+		name_id = "menu_modded_spread_multiplier",
+		upgrade = {
+			category = "weapon",
+			upgrade = "modded_spread_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.weapon_modded_recoil_multiplier = {
+		category = "feature",
+		name_id = "menu_modded_recoil_multiplier",
+		upgrade = {
+			category = "weapon",
+			upgrade = "modded_recoil_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.weapon_clip_ammo_increase_1 = {
 		category = "feature",
 		name_id = "menu_weapon_clip_ammo_increase_1",
@@ -4015,12 +4560,30 @@ function UpgradesTweakData:_pistol_definitions()
 			value = 1
 		}
 	}
+	self.definitions.pistol_hip_fire_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_pistol_hip_fire_damage_multiplier",
+		upgrade = {
+			category = "pistol",
+			upgrade = "hip_fire_damage_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.pistol_swap_speed_multiplier = {
 		category = "feature",
 		name_id = "menu_pistol_swap_speed_multiplier",
 		upgrade = {
 			category = "pistol",
 			upgrade = "swap_speed_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.pistol_stacking_hit_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_pistol_stacking_hit_damage_multiplier",
+		upgrade = {
+			category = "pistol",
+			upgrade = "stacking_hit_damage_multiplier",
 			value = 1
 		}
 	}
@@ -4071,6 +4634,15 @@ function UpgradesTweakData:_assault_rifle_definitions()
 			value = 1
 		}
 	}
+	self.definitions.assault_rifle_hip_fire_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_assault_rifle_hip_fire_damage_multiplier",
+		upgrade = {
+			category = "assault_rifle",
+			upgrade = "hip_fire_damage_multiplier",
+			value = 1
+		}
+	}
 	self.definitions.assault_rifle_zoom_increase = {
 		category = "feature",
 		name_id = "menu_assault_rifle_zoom_increase",
@@ -4115,6 +4687,15 @@ function UpgradesTweakData:_smg_definitions()
 		upgrade = {
 			category = "smg",
 			upgrade = "hip_fire_spread_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.smg_hip_fire_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_smg_hip_fire_damage_multiplier",
+		upgrade = {
+			category = "smg",
+			upgrade = "hip_fire_damage_multiplier",
 			value = 1
 		}
 	}
@@ -4165,8 +4746,53 @@ function UpgradesTweakData:_shotgun_definitions()
 			value = 1
 		}
 	}
+	self.definitions.shotgun_hip_fire_damage_multiplier = {
+		category = "feature",
+		name_id = "menu_shotgun_hip_fire_damage_multiplier",
+		upgrade = {
+			category = "shotgun",
+			upgrade = "hip_fire_damage_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.shotgun_consume_no_ammo_chance_1 = {
+		category = "feature",
+		name_id = "menu_shotgun_consume_no_ammo_chance",
+		upgrade = {
+			category = "shotgun",
+			upgrade = "consume_no_ammo_chance",
+			value = 1
+		}
+	}
+	self.definitions.shotgun_consume_no_ammo_chance_2 = {
+		category = "feature",
+		name_id = "menu_shotgun_consume_no_ammo_chance",
+		upgrade = {
+			category = "shotgun",
+			upgrade = "consume_no_ammo_chance",
+			value = 2
+		}
+	}
+	self.definitions.shotgun_melee_knockdown_mul = {
+		category = "feature",
+		name_id = "menu_shotgun_melee_knockdown_mul",
+		upgrade = {
+			category = "shotgun",
+			upgrade = "melee_knockdown_mul",
+			value = 1
+		}
+	}
 end
 function UpgradesTweakData:_carry_definitions()
+	self.definitions.carry_movement_penalty_nullifier = {
+		category = "feature",
+		name_id = "menu_carry_movement_penalty_nullifier",
+		upgrade = {
+			category = "carry",
+			upgrade = "movement_penalty_nullifier",
+			value = 1
+		}
+	}
 	self.definitions.carry_movement_speed_multiplier = {
 		category = "feature",
 		name_id = "menu_carry_movement_speed_multiplier",
@@ -4340,6 +4966,60 @@ function UpgradesTweakData:_team_definitions()
 			value = 1
 		}
 	}
+	self.definitions.team_clients_buy_assets = {
+		category = "team",
+		name_id = "menu_team_clients_buy_assets",
+		upgrade = {
+			category = "player",
+			upgrade = "clients_buy_assets",
+			value = 1
+		}
+	}
+	self.definitions.team_move_spread_multiplier = {
+		category = "team",
+		name_id = "menu_team_move_spread_multiplier",
+		upgrade = {
+			category = "weapon",
+			upgrade = "move_spread_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.team_civ_intimidation_mul = {
+		category = "team",
+		name_id = "menu_team_civ_intimidation_mul",
+		upgrade = {
+			category = "player",
+			upgrade = "civ_intimidation_mul",
+			value = 1
+		}
+	}
+	self.definitions.team_xp_stealth_multiplier = {
+		category = "team",
+		name_id = "menu_team_xp_stealth_multiplier",
+		upgrade = {
+			category = "xp",
+			upgrade = "stealth_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.team_cash_stealth_multiplier = {
+		category = "team",
+		name_id = "menu_team_cash_stealth_multiplier",
+		upgrade = {
+			category = "cash",
+			upgrade = "stealth_money_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.team_bags_stealth_multiplier = {
+		category = "team",
+		name_id = "menu_team_bags_stealth_multiplier",
+		upgrade = {
+			category = "cash",
+			upgrade = "stealth_bags_multiplier",
+			value = 1
+		}
+	}
 end
 function UpgradesTweakData:_temporary_definitions()
 	self.definitions.temporary_combat_medic_damage_multiplier1 = {
@@ -4377,6 +5057,24 @@ function UpgradesTweakData:_temporary_definitions()
 		upgrade = {
 			category = "temporary",
 			upgrade = "revive_health_boost",
+			value = 1
+		}
+	}
+	self.definitions.temporary_berserker_damage_multiplier = {
+		category = "temporary",
+		name_id = "menu_temporary_berserker_damage_multiplier",
+		upgrade = {
+			category = "temporary",
+			upgrade = "berserker_damage_multiplier",
+			value = 1
+		}
+	}
+	self.definitions.temporary_no_ammo_cost_buff = {
+		category = "temporary",
+		name_id = "menu_temporary_no_ammo_cost_buff",
+		upgrade = {
+			category = "temporary",
+			upgrade = "no_ammo_cost_buff",
 			value = 1
 		}
 	}
@@ -5031,99 +5729,6 @@ function UpgradesTweakData:_mossberg_definitions()
 			upgrade = {
 				category = "mossberg",
 				upgrade = "recoil_multiplier",
-				value = i
-			}
-		}
-	end
-end
-function UpgradesTweakData:_hk21_definitions()
-	self.definitions.hk21 = {
-		tree = 1,
-		step = 22,
-		category = "weapon",
-		weapon_id = "hk21",
-		unit_name = Idstring("units/weapons/hk21/hk21"),
-		name_id = "debug_hk21",
-		title_id = "debug_upgrade_new_weapon",
-		subtitle_id = "debug_hk21_short",
-		icon = "hk21",
-		image = "upgrades_hk21",
-		image_slice = "upgrades_hk21_slice",
-		unlock_lvl = 140,
-		prio = "high",
-		description_text_id = "des_hk21"
-	}
-	for i, _ in ipairs(self.values.hk21.clip_ammo_increase) do
-		local depends_on = i - 1 > 0 and "hk21_mag" .. i - 1 or "hk21"
-		local unlock_lvl = 141
-		local prio = i == 1 and "high"
-		self.definitions["hk21_mag" .. i] = {
-			tree = 1,
-			step = self.steps.hk21.clip_ammo_increase[i],
-			category = "feature",
-			name_id = "debug_upgrade_hk21_mag" .. i,
-			title_id = "debug_hk21_short",
-			subtitle_id = "debug_upgrade_mag" .. i,
-			icon = "hk21",
-			image = "upgrades_hk21",
-			image_slice = "upgrades_hk21_slice",
-			description_text_id = "clip_ammo_increase",
-			depends_on = depends_on,
-			unlock_lvl = unlock_lvl,
-			prio = prio,
-			upgrade = {
-				category = "hk21",
-				upgrade = "clip_ammo_increase",
-				value = i
-			}
-		}
-	end
-	for i, _ in ipairs(self.values.hk21.recoil_multiplier) do
-		local depends_on = i - 1 > 0 and "hk21_recoil" .. i - 1 or "hk21"
-		local unlock_lvl = 141
-		local prio = i == 1 and "high"
-		self.definitions["hk21_recoil" .. i] = {
-			tree = 1,
-			step = self.steps.hk21.recoil_multiplier[i],
-			category = "feature",
-			name_id = "debug_upgrade_hk21_recoil" .. i,
-			title_id = "debug_hk21_short",
-			subtitle_id = "debug_upgrade_recoil" .. i,
-			icon = "hk21",
-			image = "upgrades_hk21",
-			image_slice = "upgrades_hk21_slice",
-			description_text_id = "recoil_multiplier",
-			depends_on = depends_on,
-			unlock_lvl = unlock_lvl,
-			prio = prio,
-			upgrade = {
-				category = "hk21",
-				upgrade = "recoil_multiplier",
-				value = i
-			}
-		}
-	end
-	for i, _ in ipairs(self.values.hk21.damage_multiplier) do
-		local depends_on = i - 1 > 0 and "hk21_damage" .. i - 1 or "hk21"
-		local unlock_lvl = 141
-		local prio = i == 1 and "high"
-		self.definitions["hk21_damage" .. i] = {
-			tree = 1,
-			step = self.steps.hk21.damage_multiplier[i],
-			category = "feature",
-			name_id = "debug_upgrade_hk21_damage" .. i,
-			title_id = "debug_hk21_short",
-			subtitle_id = "debug_upgrade_damage" .. i,
-			icon = "hk21",
-			image = "upgrades_hk21",
-			image_slice = "upgrades_hk21_slice",
-			description_text_id = "damage_multiplier",
-			depends_on = depends_on,
-			unlock_lvl = unlock_lvl,
-			prio = prio,
-			upgrade = {
-				category = "hk21",
-				upgrade = "damage_multiplier",
 				value = i
 			}
 		}

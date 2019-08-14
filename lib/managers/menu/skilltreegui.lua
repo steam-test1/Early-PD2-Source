@@ -216,7 +216,6 @@ function SkillTreeSkillItem:flash()
 		state_image:set_color(si_color)
 		box:set_color(b_color)
 	end
-	managers.menu_component:post_event("selection_next")
 	self:refresh(self._locked)
 	self._skill_panel:animate(flash_anim)
 end
@@ -243,7 +242,7 @@ function SkillTreeSkillItem:refresh(locked)
 			if step == 1 then
 				skill_text_string = managers.localization:text("st_menu_unlock_profession", {
 					profession = managers.localization:text(tweak_data.skilltree.trees[self._tree].name_id),
-					points = Application:digest_value(tweak_data.skilltree.skills[self._skill_id][1].cost, false)
+					points = managers.skilltree:get_skill_points(self._skill_id, 1)
 				})
 			else
 				skill_text_string = managers.localization:text("st_menu_profession_unlocked", {
@@ -253,7 +252,7 @@ function SkillTreeSkillItem:refresh(locked)
 		elseif completed then
 			skill_text_string = managers.localization:text("st_menu_skill_maxed")
 		elseif step == 2 then
-			local points = Application:digest_value(tweak_data.skilltree.skills[self._skill_id][2].cost, false)
+			local points = managers.skilltree:get_skill_points(self._skill_id, 2)
 			local cost = managers.money:get_skillpoint_cost(self._tree, self._tier, points)
 			skill_text_string = managers.localization:text("st_menu_buy_skill_pro" .. (points > 1 and "_plural" or ""), {
 				cost = managers.experience:cash_string(cost),
@@ -262,7 +261,7 @@ function SkillTreeSkillItem:refresh(locked)
 		elseif not unlocked then
 			skill_text_string = managers.localization:text("st_menu_skill_locked")
 		elseif step == 1 then
-			local points = Application:digest_value(tweak_data.skilltree.skills[self._skill_id][1].cost, false)
+			local points = managers.skilltree:get_skill_points(self._skill_id, 1)
 			local cost = managers.money:get_skillpoint_cost(self._tree, self._tier, points)
 			skill_text_string = managers.localization:text("st_menu_buy_skill_basic" .. (points > 1 and "_plural" or ""), {
 				cost = managers.experience:cash_string(cost),
@@ -441,7 +440,17 @@ function SkillTreePage:init(tree, data, parent_panel, fullscreen_panel, tree_tab
 		lock_image:set_rotation(360)
 		lock_image:set_world_position(debug_text:world_right(), debug_text:world_y() - 2)
 		lock_image:set_visible(false)
-		local cost_string = (Application:digest_value(tweak_data.skilltree.tier_unlocks[tier], false) < 10 and "0" or "") .. tostring(Application:digest_value(tweak_data.skilltree.tier_unlocks[tier], false))
+		local add_infamy_glow = false
+		if 0 < managers.experience:current_rank() then
+			local tree_name = tweak_data.skilltree.trees[tree].skill
+			for infamy, item in pairs(tweak_data.infamy.items) do
+				if managers.infamy:owned(infamy) and item.upgrades and item.upgrades.skilltree and item.upgrades.skilltree.tree == tree_name then
+					add_infamy_glow = true
+				else
+				end
+			end
+		end
+		local cost_string = (managers.skilltree:tier_cost(tree, tier) < 10 and "0" or "") .. tostring(managers.skilltree:tier_cost(tree, tier))
 		local cost_text = tier_panel:text({
 			name = "cost_text",
 			text = cost_string,
@@ -457,8 +466,34 @@ function SkillTreePage:init(tree, data, parent_panel, fullscreen_panel, tree_tab
 			blend_mode = "add",
 			rotation = 360
 		})
+		do
+			local x, y, w, h = cost_text:text_rect()
+			cost_text:set_size(w, h)
+		end
 		cost_text:set_world_bottom(tree_panel:child("rect" .. tostring(tier + 1)):world_top() + 2)
 		cost_text:set_x(debug_text:right() + tw * 3)
+		if add_infamy_glow then
+			local glow = tier_panel:bitmap({
+				name = "cost_glow",
+				w = 56,
+				h = 56,
+				texture = "guis/textures/pd2/crimenet_marker_glow",
+				blend_mode = "add",
+				color = tweak_data.screen_colors.button_stage_3,
+				rotation = 360
+			})
+			local anim_pulse_glow = function(o)
+				local t = 0
+				local dt = 0
+				while true do
+					dt = coroutine.yield()
+					t = (t + dt * 0.5) % 1
+					o:set_alpha((math.sin(t * 180) * 0.5 + 0.5) * 0.8)
+				end
+			end
+			glow:set_center(cost_text:center())
+			glow:animate(anim_pulse_glow)
+		end
 		local color = unlocked and tweak_data.screen_colors.item_stage_1 or tweak_data.screen_colors.item_stage_2
 		debug_text:set_color(color)
 		cost_text:set_color(color)
@@ -469,8 +504,8 @@ function SkillTreePage:init(tree, data, parent_panel, fullscreen_panel, tree_tab
 	local max_points = 1
 	for _, tier in ipairs(tweak_data.skilltree.trees[self._tree].tiers) do
 		for _, skill in ipairs(tier) do
-			for _, upgrade in ipairs(tweak_data.skilltree.skills[skill]) do
-				max_points = max_points + Application:digest_value(upgrade.cost, false)
+			for to_unlock, _ in ipairs(tweak_data.skilltree.skills[skill]) do
+				max_points = max_points + managers.skilltree:get_skill_points(skill, to_unlock)
 			end
 		end
 	end
@@ -478,7 +513,7 @@ function SkillTreePage:init(tree, data, parent_panel, fullscreen_panel, tree_tab
 	local next_tier_p = max_points
 	local ct = 0
 	for i = 1, 6 do
-		local tier_unlocks = Application:digest_value(tweak_data.skilltree.tier_unlocks[i], false)
+		local tier_unlocks = managers.skilltree:tier_cost(self._tree, i)
 		if ps < tier_unlocks then
 			next_tier_p = tier_unlocks
 			break
@@ -542,8 +577,8 @@ function SkillTreePage:on_points_spent()
 	local max_points = 1
 	for _, tier in ipairs(tweak_data.skilltree.trees[self._tree].tiers) do
 		for _, skill in ipairs(tier) do
-			for _, upgrade in ipairs(tweak_data.skilltree.skills[skill]) do
-				max_points = max_points + Application:digest_value(upgrade.cost, false)
+			for to_unlock, _ in ipairs(tweak_data.skilltree.skills[skill]) do
+				max_points = max_points + managers.skilltree:get_skill_points(skill, to_unlock)
 			end
 		end
 	end
@@ -551,7 +586,7 @@ function SkillTreePage:on_points_spent()
 	local next_tier_p = max_points
 	local ct = 0
 	for i = 1, 6 do
-		local tier_unlocks = Application:digest_value(tweak_data.skilltree.tier_unlocks[i], false)
+		local tier_unlocks = managers.skilltree:tier_cost(self._tree, i)
 		if ps < tier_unlocks then
 			next_tier_p = tier_unlocks
 			break
@@ -621,7 +656,6 @@ function SkillTreeGui:make_fine_text(text)
 	text:set_position(math.round(text:x()), math.round(text:y()))
 end
 function SkillTreeGui:_setup()
-	managers.menu_component:test_camera_shutter_tech()
 	if alive(self._panel) then
 		self._ws:panel():remove(self._panel)
 	end
@@ -1012,8 +1046,9 @@ function SkillTreeGui:set_selected_item(item, no_sound)
 	if self._selected_item and self._selected_item._skill_panel then
 		local skill_id = self._selected_item._skill_id
 		local tweak_data_skill = tweak_data.skilltree.skills[skill_id]
-		local basic_cost = tweak_data_skill[1] and tweak_data_skill[1].cost and Application:digest_value(tweak_data_skill[1].cost, false) or 0
-		local pro_cost = tweak_data_skill[2] and tweak_data_skill[2].cost and Application:digest_value(tweak_data_skill[2].cost, false) or 0
+		local points = managers.skilltree:points() or 0
+		local basic_cost = managers.skilltree:get_skill_points(skill_id, 1) or 0
+		local pro_cost = managers.skilltree:get_skill_points(skill_id, 2) or 0
 		local talent = tweak_data.skilltree.skills[skill_id]
 		local unlocked = managers.skilltree:skill_unlocked(nil, skill_id)
 		local step = managers.skilltree:next_skill_step(skill_id)
@@ -1029,7 +1064,7 @@ function SkillTreeGui:set_selected_item(item, no_sound)
 			basic_cost = utf8.to_upper(managers.localization:text("st_menu_skill_owned"))
 			color_replace_table[basic_color_index] = tweak_data.screen_colors.resource
 		else
-			local money_cost = managers.money:get_skillpoint_cost(self._selected_item._tree, self._selected_item._tier, tweak_data_skill[1] and tweak_data_skill[1].cost and Application:digest_value(tweak_data_skill[1].cost, false) or 0)
+			local money_cost = managers.money:get_skillpoint_cost(self._selected_item._tree, self._selected_item._tier, basic_cost)
 			local can_afford = points >= basic_cost and spending_money >= money_cost
 			color_replace_table[basic_color_index] = can_afford and tweak_data.screen_colors.resource or tweak_data.screen_colors.important_1
 			basic_cost = managers.localization:text(basic_cost == 1 and "st_menu_point" or "st_menu_point_plural", {points = basic_cost}) .. " / " .. managers.experience:cash_string(money_cost)
@@ -1038,7 +1073,7 @@ function SkillTreeGui:set_selected_item(item, no_sound)
 			pro_cost = utf8.to_upper(managers.localization:text("st_menu_skill_owned"))
 			color_replace_table[pro_color_index] = tweak_data.screen_colors.resource
 		else
-			local money_cost = managers.money:get_skillpoint_cost(self._selected_item._tree, self._selected_item._tier, tweak_data_skill[2] and tweak_data_skill[2].cost and Application:digest_value(tweak_data_skill[2].cost, false) or 0)
+			local money_cost = managers.money:get_skillpoint_cost(self._selected_item._tree, self._selected_item._tier, pro_cost)
 			local can_afford = points >= pro_cost and spending_money >= money_cost
 			color_replace_table[pro_color_index] = can_afford and tweak_data.screen_colors.resource or tweak_data.screen_colors.important_1
 			pro_cost = managers.localization:text(pro_cost == 1 and "st_menu_point" or "st_menu_point_plural", {points = pro_cost}) .. " / " .. managers.experience:cash_string(money_cost)
@@ -1052,9 +1087,10 @@ function SkillTreeGui:set_selected_item(item, no_sound)
 		if self._selected_item._tier then
 			if not unlocked then
 				local point_spent = managers.skilltree:points_spent(self._selected_item._tree) or 0
-				local tier_unlocks = Application:digest_value(tweak_data.skilltree.tier_unlocks[self._selected_item._tier], false) or 0
-				prerequisite_text = prerequisite_text .. managers.localization:text("st_menu_points_to_unlock_tier", {
-					points = tier_unlocks - point_spent,
+				local tier_unlocks = managers.skilltree:tier_cost(self._selected_item._tree, self._selected_item._tier) or 0
+				local points_needed = tier_unlocks - point_spent
+				prerequisite_text = prerequisite_text .. managers.localization:text(points_needed == 1 and "st_menu_points_to_unlock_tier_singular" or "st_menu_points_to_unlock_tier", {
+					points = points_needed,
 					tier = self._selected_item._tier
 				}) .. "\n"
 			end
@@ -1167,21 +1203,25 @@ function SkillTreeGui:check_respec_button(x, y, force_text_update)
 		self._panel:child("respec_tree_button"):set_text(prefix .. managers.localization:to_upper_text(text_id, macroes))
 		self:make_fine_text(self._panel:child("respec_tree_button"))
 	end
+	return self._respec_highlight
 end
 function SkillTreeGui:mouse_moved(o, x, y)
-	self:check_respec_button(x, y)
+	if self:check_respec_button(x, y) then
+		return true, "link"
+	end
 	if self._active_page then
 		for _, item in ipairs(self._active_page._items) do
 			if item:inside(x, y) then
 				self:set_selected_item(item)
-				return true
+				return true, "link"
 			end
 		end
 	end
 	for _, tab_item in ipairs(self._tab_items) do
 		if tab_item:inside(x, y) then
+			local same_tab_item = self._active_tree == tab_item:tree()
 			self:set_selected_item(tab_item, true)
-			return true
+			return true, same_tab_item and "arrow" or "link"
 		end
 	end
 	if managers.menu:is_pc_controller() then
@@ -1191,14 +1231,16 @@ function SkillTreeGui:mouse_moved(o, x, y)
 				self._panel:child("back_button"):set_color(tweak_data.screen_colors.button_stage_2)
 				managers.menu_component:post_event("highlight")
 			end
+			return true, "link"
 		else
 			self._back_highlight = false
 			self._panel:child("back_button"):set_color(tweak_data.screen_colors.button_stage_3)
 		end
 	end
 	if self._panel:inside(x, y) then
-		return true
+		return true, "arrow"
 	end
+	return false, "arrow"
 end
 function SkillTreeGui:mouse_released(button, x, y)
 end
@@ -1291,6 +1333,7 @@ function SkillTreeGui:special_btn_pressed(button)
 end
 function SkillTreeGui:flash_item(item)
 	item:flash()
+	managers.menu_component:post_event("menu_error")
 end
 function SkillTreeGui:place_point(item)
 	local tree = item:tree()
@@ -1310,7 +1353,7 @@ function SkillTreeGui:place_point(item)
 	local to_unlock = managers.skilltree:next_skill_step(skill_id)
 	local talent = tweak_data.skilltree.skills[skill_id]
 	local skill = talent[to_unlock]
-	local points = Application:digest_value(skill.cost, false)
+	local points = managers.skilltree:get_skill_points(skill_id, to_unlock) or 0
 	local point_cost = managers.money:get_skillpoint_cost(tree, tier, points)
 	local prerequisites = talent.prerequisites or {}
 	for _, prerequisite in ipairs(prerequisites) do
@@ -1354,6 +1397,8 @@ end
 function SkillTreeGui:_dialog_confirm_yes(item)
 	if item then
 		local skill_refresh_skills = item:trigger() or {}
+		SimpleGUIEffectSpewer.skill_up(item._skill_panel:child("state_image"):center_x(), item._skill_panel:child("state_image"):center_y(), item._skill_panel)
+		managers.menu_component:post_event("menu_skill_investment")
 		for _, id in ipairs(skill_refresh_skills) do
 			for _, item in ipairs(self._active_page._items) do
 				if item._skill_id == id then

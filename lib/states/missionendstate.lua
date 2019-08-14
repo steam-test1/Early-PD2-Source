@@ -98,41 +98,60 @@ function MissionEndState:at_enter(old_state, params)
 	self._sound_listener = SoundDevice:create_listener("lobby_menu")
 	self._sound_listener:set_position(Vector3(0, -50000, 0))
 	self._sound_listener:activate(true)
-	if self._success and Global.game_settings.difficulty == "overkill_145" and managers.job:current_contact_id() == "vlad" and managers.blackmarket:equipped_mask().mask_id == tweak_data.achievement.in_soviet_russia.mask then
-		managers.achievment:award_progress(tweak_data.achievement.in_soviet_russia.stat)
-	end
 	if self._success then
-		if params.personal_win then
-			if managers.achievment:get_script_data("last_man_standing") then
-				managers.challenges:set_flag("last_man_standing")
-			end
-			if not managers.statistics:is_dropin() then
-				if managers.achievment:get_script_data("dodge_this_active") and not managers.achievment:get_script_data("dodge_this_fail") and tweak_data:difficulty_to_index(Global.game_settings.difficulty) >= 2 then
-					managers.challenges:set_flag("dodge_this")
-				end
-				if not managers.achievment:get_script_data("pacifist_fail") and Global.level_data.level_id == "suburbia" and tweak_data:difficulty_to_index(Global.game_settings.difficulty) >= 3 then
-					managers.challenges:set_flag("pacifist")
-				end
-				if not managers.achievment:get_script_data("blow_out_fail") and Global.level_data.level_id == "secret_stash" then
-					managers.challenges:set_flag("blow_out")
-				end
-				if tweak_data:difficulty_to_index(Global.game_settings.difficulty) >= 4 then
-					local noob_lubes = 0
-					for _, data in ipairs(Global.player_manager.synced_bonuses) do
-						if data.upgrade == "welcome_to_the_gang" then
-							noob_lubes = noob_lubes + 1
+		if not managers.statistics:is_dropin() then
+			local mask_pass, diff_pass, no_shots_pass, contract_pass, job_pass
+			for achievement, achievement_data in pairs(tweak_data.achievement.complete_heist_achievements) do
+				diff_pass = not achievement_data.difficulty or Global.game_settings.difficulty == achievement_data.difficulty
+				mask_pass = not achievement_data.mask or managers.blackmarket:equipped_mask().mask_id == achievement_data.mask
+				no_shots_pass = not achievement_data.no_shots or managers.statistics:session_total_shots(achievement_data.no_shots) == 0
+				job_pass = not achievement_data.jobs or false
+				if achievement_data.jobs then
+					for _, job_id in ipairs(achievement_data.jobs) do
+						if managers.job:current_job_id() == job_id then
+							job_pass = true
+						else
 						end
 					end
-					if noob_lubes >= 3 then
-						managers.challenges:set_flag("noob_herder")
+				end
+				contract_pass = not achievement_data.contracts or false
+				if achievement_data.contracts then
+					for _, contract_id in ipairs(achievement_data.contracts) do
+						if managers.job:current_contact_id() == contract_id then
+							contract_pass = true
+						else
+						end
 					end
 				end
-				if not managers.achievment:get_script_data("stand_together_fail") and tweak_data:difficulty_to_index(Global.game_settings.difficulty) >= 2 and Global.level_data.level_id == "heat_street" then
-					managers.challenges:set_flag("stand_together")
+				if job_pass and contract_pass and diff_pass and mask_pass and no_shots_pass then
+					if achievement_data.stat then
+						managers.achievment:award_progress(achievement_data.stat)
+					elseif achievement_data.award then
+						managers.achievment:award(achievement_data.award)
+					end
 				end
 			end
-		elseif params.num_winners == 3 and not alive(managers.player:player_unit()) then
-			managers.challenges:set_flag("left_for_dead")
+		end
+		for achievement, achievement_data in pairs(tweak_data.achievement.four_mask_achievements) do
+			if achievement_data.masks then
+				local available_masks = deep_clone(achievement_data.masks)
+				for id, member in pairs(managers.network:game():all_members()) do
+					local current_mask = member:peer():mask_id()
+					for id, mask_id in ipairs(available_masks) do
+						if current_mask == mask_id then
+							table.remove(available_masks, id)
+						else
+						end
+					end
+				end
+				if #available_masks == 0 then
+					if achievement_data.stat then
+						managers.achievment:award_progress(achievement_data.stat)
+					elseif achievement_data.award then
+						managers.achievment:award(achievement_data.award)
+					end
+				end
+			end
 		end
 	end
 	self._criminals_completed = self._success and params.num_winners or 0
@@ -266,14 +285,22 @@ function MissionEndState:_load_start_menu(next_state)
 end
 function MissionEndState:on_statistics_result(best_kills_peer_id, best_kills_score, best_special_kills_peer_id, best_special_kills_score, best_accuracy_peer_id, best_accuracy_score, most_downs_peer_id, most_downs_score, total_kills, total_specials_kills, total_head_shots, group_accuracy, group_downs)
 	print("on_statistics_result begin")
-	if managers.network and managers.network:session() and managers.network:session():peer(best_kills_peer_id) then
-		local best_kills = managers.network:session():peer(best_kills_peer_id):name()
-		local best_special_kills = managers.network:session():peer(best_special_kills_peer_id):name()
-		local best_accuracy = managers.network:session():peer(best_accuracy_peer_id):name()
-		local most_downs = managers.network:session():peer(most_downs_peer_id):name()
+	if managers.network and managers.network:session() then
+		local best_kills_peer = managers.network:session():peer(best_kills_peer_id)
+		local best_special_kills_peer = managers.network:session():peer(best_special_kills_peer_id)
+		local best_accuracy_peer = managers.network:session():peer(best_accuracy_peer_id)
+		local most_downs_peer = managers.network:session():peer(most_downs_peer_id)
+		local best_kills = best_kills_peer and best_kills_peer:name() or "N/A"
+		local best_special_kills = best_special_kills_peer and best_special_kills_peer:name() or "N/A"
+		local best_accuracy = best_accuracy_peer and best_accuracy_peer:name() or "N/A"
+		local most_downs = most_downs_peer and most_downs_peer:name() or "N/A"
 		local stage_cash_summary_string
 		if self._success and managers.job._global.next_interupt_stage then
-			stage_cash_summary_string = managers.localization:text("victory_cash_postponed")
+			local victory_cash_postponed_id = "victory_cash_postponed"
+			if tweak_data.levels[managers.job._global.next_interupt_stage].bonus_escape then
+				victory_cash_postponed_id = "victory_cash_postponed_bonus"
+			end
+			stage_cash_summary_string = managers.localization:text(victory_cash_postponed_id)
 		elseif self._success then
 			local stage_payout, job_payout, bag_payout, small_loot_payout, crew_payout = managers.money:get_payouts()
 			local bonus_bags = managers.loot:get_secured_bonus_bags_amount() + managers.loot:get_secured_mandatory_bags_amount()
