@@ -118,15 +118,19 @@ function RaycastWeaponBase:setup(setup_data)
 	end
 	self._bullet_slotmask = setup_data.hit_slotmask or self._bullet_slotmask
 	self._setup = setup_data
+	self._fire_mode = self._fire_mode or tweak_data.weapon[self._name_id].FIRE_MODE or "single"
 end
 function RaycastWeaponBase:fire_mode()
-	return tweak_data.weapon[self._name_id].auto and "auto" or "single"
+	if not self._fire_mode then
+		self._fire_mode = tweak_data.weapon[self._name_id].FIRE_MODE or "single"
+	end
+	return self._fire_mode
 end
 function RaycastWeaponBase:dryfire()
 	self:play_tweak_data_sound("dryfire")
 end
 function RaycastWeaponBase:recoil_wait()
-	return self:fire_mode() == "auto" and self:weapon_tweak_data().auto.fire_rate or nil
+	return self:fire_mode() == "auto" and self:weapon_tweak_data().fire_mode_data.fire_rate or nil
 end
 function RaycastWeaponBase:_fire_sound()
 	self:play_tweak_data_sound("fire")
@@ -148,7 +152,7 @@ function RaycastWeaponBase:trigger_pressed(...)
 	if self._next_fire_allowed <= Application:time() then
 		fired = self:fire(...)
 		if fired then
-			local next_fire = (tweak_data.weapon[self._name_id].single and tweak_data.weapon[self._name_id].single.fire_rate or 0) / self:fire_rate_multiplier()
+			local next_fire = (tweak_data.weapon[self._name_id].fire_mode_data and tweak_data.weapon[self._name_id].fire_mode_data.fire_rate or 0) / self:fire_rate_multiplier()
 			self._next_fire_allowed = self._next_fire_allowed + next_fire
 		end
 	end
@@ -159,7 +163,7 @@ function RaycastWeaponBase:trigger_held(...)
 	if self._next_fire_allowed <= Application:time() then
 		fired = self:fire(...)
 		if fired then
-			self._next_fire_allowed = self._next_fire_allowed + tweak_data.weapon[self._name_id].auto.fire_rate / self:fire_rate_multiplier()
+			self._next_fire_allowed = self._next_fire_allowed + (tweak_data.weapon[self._name_id].fire_mode_data and tweak_data.weapon[self._name_id].fire_mode_data.fire_rate or 0) / self:fire_rate_multiplier()
 		end
 	end
 	return fired

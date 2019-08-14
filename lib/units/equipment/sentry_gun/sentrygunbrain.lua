@@ -228,10 +228,12 @@ function SentryGunBrain:on_enemy_killed(killed_unit)
 		self._AI_data.detected_enemies[killed_unit_key].death_verify_t = TimerManager:game():time() + math.lerp(verif_data[1], verif_data[2], math.random())
 	end
 end
-function SentryGunBrain:synch_allow_fire(state)
+function SentryGunBrain:synch_allow_fire(state, instant)
 	if state and not self._firing then
 		self._unit:weapon():start_autofire()
-		self._unit:weapon():trigger_held(true, false)
+		if instant then
+			self._unit:weapon():trigger_held(true, false)
+		end
 	elseif not state then
 		if self._unit:weapon():out_of_ammo() then
 			self:switch_off()
@@ -286,7 +288,7 @@ function SentryGunBrain:load(save_data)
 	end
 	self._shaprness_mul = save_data.brain.shaprness_mul or 1
 	if save_data.brain.firing then
-		self:synch_allow_fire(true)
+		self:synch_allow_fire(true, false)
 	end
 end
 function SentryGunBrain:pre_destroy()

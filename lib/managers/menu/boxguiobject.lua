@@ -153,6 +153,12 @@ end
 function BoxGuiObject:size()
 	return self._panel:size()
 end
+function BoxGuiObject:set_aligns(halign, valign)
+	for i, d in pairs(self._panel:children()) do
+		d:set_valign(valign)
+		d:set_halign(halign)
+	end
+end
 function BoxGuiObject:set_clipping(clip, rec_panel)
 	if not rec_panel or not rec_panel:children() then
 	end

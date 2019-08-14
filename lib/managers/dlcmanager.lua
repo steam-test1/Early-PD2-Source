@@ -1,5 +1,6 @@
 DLCManager = DLCManager or class()
 DLCManager.PLATFORM_CLASS_MAP = {}
+DLCManager.BUNDLED_DLC_PACKAGES = {dlc1 = false, season_pass = false}
 function DLCManager:new(...)
 	local platform = SystemInfo:platform()
 	return self.PLATFORM_CLASS_MAP[platform:key()] or GenericDLCManager:new(...)
@@ -29,11 +30,12 @@ function GenericDLCManager:_load_done(...)
 end
 function GenericDLCManager:give_dlc_package()
 	for package_id, data in pairs(tweak_data.dlc) do
-		if data.free or self[data.dlc](self) then
+		if data.free or self[data.dlc](self, data) then
 			print("[DLC] Ownes dlc", data.free, data.dlc)
 			if not Global.dlc_save.packages[package_id] then
 				Global.dlc_save.packages[package_id] = true
 				for _, loot_drop in ipairs(data.content.loot_drops or {}) do
+					local loot_drop = #loot_drop > 0 and loot_drop[math.random(#loot_drop)] or loot_drop
 					for i = 1, loot_drop.amount do
 						local entry = tweak_data.blackmarket[loot_drop.type_items][loot_drop.item_entry]
 						local global_value = loot_drop.global_value or data.content.loot_global_value or package_id
@@ -65,9 +67,16 @@ function GenericDLCManager:on_reset_profile()
 	self:_set_dlc_save_table()
 	self:give_dlc_package()
 end
+function GenericDLCManager:on_achievement_award_loot()
+	Application:debug("GenericDLCManager:on_achievement_award_loot()")
+	self:give_dlc_package()
+end
 function GenericDLCManager:on_signin_complete()
 end
 function GenericDLCManager:has_dlc(dlc)
+	if dlc == "cce" then
+		dlc = "career_criminal_edition"
+	end
 	local dlc_data = Global.dlc_manager.all_dlc_data[dlc]
 	if not dlc_data then
 		Application:error("Didn't have dlc data for", dlc)
@@ -94,6 +103,13 @@ function GenericDLCManager:has_preorder()
 end
 function GenericDLCManager:has_cce()
 	return Global.dlc_manager.all_dlc_data.career_criminal_edition and Global.dlc_manager.all_dlc_data.career_criminal_edition.verified
+end
+function GenericDLCManager:has_pd2_clan()
+	return Global.dlc_manager.all_dlc_data.pd2_clan and Global.dlc_manager.all_dlc_data.pd2_clan.verified
+end
+function GenericDLCManager:has_achievement(data)
+	local achievement = managers.achievment and data and data.achievement_id and managers.achievment:get_info(data.achievement_id)
+	return achievement and achievement.awarded or false
 end
 PS3DLCManager = PS3DLCManager or class(GenericDLCManager)
 DLCManager.PLATFORM_CLASS_MAP[Idstring("PS3"):key()] = PS3DLCManager
@@ -300,7 +316,10 @@ function WINDLCManager:init()
 		Global.dlc_manager.all_dlc_data = {
 			full_game = {app_id = "218620", verified = true},
 			preorder = {app_id = "247450", no_install = true},
-			career_criminal_edition = {app_id = "218630", no_install = true}
+			career_criminal_edition = {app_id = "218630", no_install = true},
+			pd2_clan = {
+				source_id = "103582791433980119"
+			}
 		}
 		self:_verify_dlcs()
 	end
@@ -308,12 +327,21 @@ end
 function WINDLCManager:_verify_dlcs()
 	for dlc_name, dlc_data in pairs(Global.dlc_manager.all_dlc_data) do
 		if not dlc_data.verified then
-			if dlc_data.no_install then
-				if Steam:is_product_owned(dlc_data.app_id) then
+			if dlc_data.app_id then
+				if dlc_data.no_install then
+					if Steam:is_product_owned(dlc_data.app_id) then
+						dlc_data.verified = true
+					end
+				elseif Steam:is_product_installed(dlc_data.app_id) then
 					dlc_data.verified = true
 				end
-			elseif Steam:is_product_installed(dlc_data.app_id) then
-				dlc_data.verified = true
+			elseif dlc_data.source_id then
+				if not Steam.is_user_in_source then
+					Application:error("EXE OUT OF DATE!")
+				end
+				if Steam:is_user_in_source(Steam:userid(), dlc_data.source_id) then
+					dlc_data.verified = true
+				end
 			end
 		end
 	end

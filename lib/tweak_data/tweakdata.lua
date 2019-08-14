@@ -33,6 +33,7 @@ function TweakData:digest_tweak_data()
 	Application:debug("TweakData: Digesting tweak_data. <('O'<)")
 	self:digest_recursive(self.money_manager)
 	self:digest_recursive(self.experience_manager)
+	self:digest_recursive(self.casino)
 end
 function TweakData:digest_recursive(key, parent)
 	local value = parent and parent[key] or key
@@ -378,6 +379,9 @@ function TweakData:init()
 	self.screen_colors.friend_color = Color(255, 41, 204, 122) / 255
 	self.screen_colors.regular_color = Color(255, 41, 150, 240) / 255
 	self.screen_colors.pro_color = Color(255, 255, 51, 51) / 255
+	self.screen_colors.stats_positive = Color(255, 191, 221, 125) / 255
+	self.screen_colors.stats_negative = Color(255, 254, 93, 99) / 255
+	self.screen_colors.stats_mods = Color(255, 229, 229, 76) / 255
 	if Global.old_colors_purple then
 		self.screen_color_white = Color.purple
 		self.screen_color_red = Color.purple
@@ -492,9 +496,9 @@ function TweakData:init()
 	self.interaction.suburbia_door_crowbar.special_equipment = "crowbar"
 	self.interaction.suburbia_door_crowbar.timer = 5
 	self.interaction.suburbia_door_crowbar.start_active = false
-	self.interaction.suburbia_door_crowbar.sound_start = "crowbar_work_loop"
-	self.interaction.suburbia_door_crowbar.sound_interupt = "crowbar_cancel"
-	self.interaction.suburbia_door_crowbar.sound_done = "crowbar_work_finished"
+	self.interaction.suburbia_door_crowbar.sound_start = "bar_crowbar"
+	self.interaction.suburbia_door_crowbar.sound_interupt = "bar_crowbar_cancel"
+	self.interaction.suburbia_door_crowbar.sound_done = "bar_crowbar_end"
 	self.interaction.suburbia_door_crowbar.interact_distance = 130
 	self.interaction.secret_stash_trunk_crowbar = {}
 	self.interaction.secret_stash_trunk_crowbar.icon = "equipment_crowbar"
@@ -774,6 +778,9 @@ function TweakData:init()
 	self.interaction.pick_lock_hard_no_skill.sound_start = "bar_pick_lock"
 	self.interaction.pick_lock_hard_no_skill.sound_interupt = "bar_pick_lock_cancel"
 	self.interaction.pick_lock_hard_no_skill.sound_done = "bar_pick_lock_finished"
+	self.interaction.pick_lock_deposit_transport = deep_clone(self.interaction.pick_lock_hard_no_skill)
+	self.interaction.pick_lock_deposit_transport.timer = 15
+	self.interaction.pick_lock_deposit_transport.axis = "y"
 	self.interaction.cant_pick_lock = {}
 	self.interaction.cant_pick_lock.icon = "equipment_bank_manager_key"
 	self.interaction.cant_pick_lock.text_id = "hud_int_pick_lock"
@@ -824,6 +831,15 @@ function TweakData:init()
 	self.interaction.drill.sound_done = "bar_drill_apply_finished"
 	self.interaction.drill.axis = "y"
 	self.interaction.drill.action_text_id = "hud_action_placing_drill"
+	self.interaction.drill_upgrade = {}
+	self.interaction.drill_upgrade.icon = "equipment_drill"
+	self.interaction.drill_upgrade.contour = "upgradable"
+	self.interaction.drill_upgrade.text_id = "hud_int_equipment_drill_upgrade"
+	self.interaction.drill_upgrade.timer = 10
+	self.interaction.drill_upgrade.sound_start = "bar_drill_apply"
+	self.interaction.drill_upgrade.sound_interupt = "bar_drill_apply_cancel"
+	self.interaction.drill_upgrade.sound_done = "bar_drill_apply_finished"
+	self.interaction.drill_upgrade.action_text_id = "hud_action_upgrading_drill"
 	self.interaction.drill_jammed = {}
 	self.interaction.drill_jammed.icon = "equipment_drill"
 	self.interaction.drill_jammed.text_id = "hud_int_equipment_drill_jammed"
@@ -859,6 +875,15 @@ function TweakData:init()
 		upgrade = "drill_fix_interaction_speed_multiplier"
 	}
 	self.interaction.lance_jammed.action_text_id = "hud_action_fixing_lance"
+	self.interaction.lance_upgrade = {}
+	self.interaction.lance_upgrade.icon = "equipment_drill"
+	self.interaction.lance_upgrade.contour = "upgradable"
+	self.interaction.lance_upgrade.text_id = "hud_int_equipment_lance_upgrade"
+	self.interaction.lance_upgrade.timer = 10
+	self.interaction.lance_upgrade.sound_start = "bar_drill_apply"
+	self.interaction.lance_upgrade.sound_interupt = "bar_drill_apply_cancel"
+	self.interaction.lance_upgrade.sound_done = "bar_drill_apply_finished"
+	self.interaction.lance_upgrade.action_text_id = "hud_action_upgrading_lance"
 	self.interaction.glass_cutter = {}
 	self.interaction.glass_cutter.icon = "equipment_cutter"
 	self.interaction.glass_cutter.text_id = "debug_interact_glass_cutter"
@@ -1143,6 +1168,10 @@ function TweakData:init()
 	self.interaction.ecm_jammer.requires_upgrade = {
 		category = "ecm_jammer",
 		upgrade = "can_activate_feedback"
+	}
+	self.interaction.ecm_jammer.upgrade_timer_multiplier = {
+		category = "ecm_jammer",
+		upgrade = "interaction_speed_multiplier"
 	}
 	self.interaction.ecm_jammer.timer = 2
 	self.interaction.laptop_objective = {}
@@ -1758,6 +1787,16 @@ function TweakData:init()
 	self.interaction.button_infopad.text_id = "hud_int_press_for_info"
 	self.interaction.button_infopad.start_active = false
 	self.interaction.button_infopad.axis = "z"
+	self.interaction.crate_loot = {}
+	self.interaction.crate_loot.text_id = "hud_int_hold_crack_crate"
+	self.interaction.crate_loot.action_text_id = "hud_action_cracking_crate"
+	self.interaction.crate_loot.timer = 2
+	self.interaction.crate_loot.start_active = false
+	self.interaction.crate_loot.sound_start = "bar_crowbar"
+	self.interaction.crate_loot.sound_interupt = "bar_crowbar_cancel"
+	self.interaction.crate_loot.sound_done = "bar_crowbar_end"
+	self.interaction.halloween_trick = {}
+	self.interaction.halloween_trick.text_id = "hud_int_trick_treat"
 	self.gui = self.gui or {}
 	self.gui.BOOT_SCREEN_LAYER = 1
 	self.gui.TITLE_SCREEN_LAYER = 1
@@ -2017,11 +2056,11 @@ function TweakData:init()
 		3000,
 		4000
 	}
-	self.experience_manager.stage_failed_multiplier = 0.15
+	self.experience_manager.stage_failed_multiplier = 0.1
 	self.experience_manager.difficulty_multiplier = {
-		1.5,
-		4,
-		8
+		2,
+		5,
+		10
 	}
 	self.experience_manager.alive_humans_multiplier = {
 		1,
@@ -2029,6 +2068,7 @@ function TweakData:init()
 		1.2,
 		1.3
 	}
+	self.experience_manager.limited_bonus_multiplier = 1
 	self.experience_manager.level_limit = {}
 	self.experience_manager.level_limit.low_cap_level = -1
 	self.experience_manager.level_limit.low_cap_multiplier = 0.75
@@ -2057,7 +2097,7 @@ function TweakData:init()
 	self.experience_manager.pro_day_multiplier = {
 		1,
 		2.5,
-		4,
+		5,
 		5.5,
 		7,
 		8.5,
@@ -2127,6 +2167,32 @@ function TweakData:init()
 	self.achievement.fully_loaded = 9
 	self.achievement.weapon_collector = 18
 	self.achievement.how_do_you_like_me_now = "level_1"
+	self.achievement.like_an_angry_bear = "bear"
+	self.achievement.witch_doctor = {
+		mask = "witch",
+		stat = "halloween_4_stats"
+	}
+	self.achievement.its_alive_its_alive = {
+		mask = "frank",
+		stat = "halloween_5_stats"
+	}
+	self.achievement.pump_action = {
+		mask = "pumpkin_king",
+		stat = "halloween_6_stats"
+	}
+	self.achievement.cant_hear_you_scream = {
+		mask = "venomorph",
+		stat = "halloween_7_stats"
+	}
+	self.achievement.in_soviet_russia = {
+		mask = "bear",
+		stat = "halloween_10_stats"
+	}
+	self.achievement.unique_selling_point = "usp"
+	self.achievement.try_out_your_usp = {
+		weapon = "usp",
+		stat = "halloween_8_stats"
+	}
 	self.pickups = {}
 	self.pickups.ammo = {
 		unit = Idstring("units/pickups/ammo/ammo_pickup")
@@ -2167,6 +2233,9 @@ function TweakData:init()
 	self.contour.deployable = {}
 	self.contour.deployable.standard_color = Vector3(0.1, 1, 0.5)
 	self.contour.deployable.selected_color = Vector3(1, 1, 1)
+	self.contour.upgradable = {}
+	self.contour.upgradable.standard_color = Vector3(0.1, 0.5, 1)
+	self.contour.upgradable.selected_color = Vector3(1, 1, 1)
 	self.contour.pickup = {}
 	self.contour.pickup.standard_color = Vector3(0.1, 1, 0.5)
 	self.contour.pickup.selected_color = Vector3(1, 1, 1)
@@ -2279,6 +2348,44 @@ function TweakData:init()
 	self.blame.civ_alarm = "hint_alarm_civ"
 	self.blame.cop_alarm = "hint_alarm_cop"
 	self.blame.gan_alarm = "hint_alarm_cop"
+	self.blame.cam_crate_open = "hint_cam_crate_open"
+	self.blame.civ_crate_open = "hint_civ_crate_open"
+	self.blame.cop_crate_open = "hint_cop_crate_open"
+	self.blame.gan_crate_open = "hint_cop_crate_open"
+	self.casino = {}
+	self.casino.unlock_level = 10
+	self.casino.entrance_level = {
+		14,
+		28,
+		42,
+		56,
+		70,
+		84,
+		100
+	}
+	self.casino.entrance_fee = {
+		1000000,
+		3000000,
+		9000000,
+		15000000,
+		20000000,
+		25000000,
+		30000000
+	}
+	self.casino.prefer_cost = 1500000
+	self.casino.prefer_chance = 0.1
+	self.casino.secure_card_cost = {
+		10000000,
+		33000000,
+		65000000
+	}
+	self.casino.secure_card_level = {
+		10,
+		40,
+		60
+	}
+	self.casino.infamous_cost = 30000000
+	self.casino.infamous_chance = 3
 	self:set_difficulty()
 	self:set_mode()
 	self:digest_tweak_data()

@@ -487,6 +487,9 @@ function CopLogicTravel._upd_enemy_detection(data)
 		data.unit:sound():say("entrance", true, nil)
 		data.entrance = true
 	end
+	if data.cool then
+		CopLogicTravel.upd_suspicion_decay(data)
+	end
 	return delay
 end
 function CopLogicTravel._upd_pathing(data, my_data)

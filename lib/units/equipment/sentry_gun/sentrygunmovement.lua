@@ -233,7 +233,7 @@ function SentryGunMovement:on_death()
 	self._unit:set_extension_update_enabled(Idstring("movement"), false)
 end
 function SentryGunMovement:synch_allow_fire(...)
-	self._unit:brain():synch_allow_fire(...)
+	self._unit:brain():synch_allow_fire((...), true)
 end
 function SentryGunMovement:warming_up(t)
 	return t < self._warmup_t

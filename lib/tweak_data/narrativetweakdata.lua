@@ -275,6 +275,12 @@ function NarrativeTweakData:init()
 		20000,
 		30000
 	}
+	self.jobs.alex.contract_cost = {
+		121000,
+		170000,
+		250000,
+		500000
+	}
 	self.jobs.alex_prof = deep_clone(self.jobs.alex)
 	self.jobs.alex_prof.jc = 70
 	self.jobs.alex_prof.professional = true
@@ -284,6 +290,12 @@ function NarrativeTweakData:init()
 		15000,
 		30000,
 		40000
+	}
+	self.jobs.alex_prof.contract_cost = {
+		131000,
+		188000,
+		263000,
+		530000
 	}
 	self.jobs.welcome_to_the_jungle = {}
 	self.jobs.welcome_to_the_jungle.name_id = "heist_welcome_to_the_jungle"
@@ -322,6 +334,12 @@ function NarrativeTweakData:init()
 		400000,
 		500000
 	}
+	self.jobs.welcome_to_the_jungle.contract_cost = {
+		20000,
+		36000,
+		50000,
+		90000
+	}
 	self.jobs.welcome_to_the_jungle_prof = deep_clone(self.jobs.welcome_to_the_jungle)
 	self.jobs.welcome_to_the_jungle_prof.jc = 70
 	self.jobs.welcome_to_the_jungle_prof.professional = true
@@ -331,6 +349,12 @@ function NarrativeTweakData:init()
 		300000,
 		450000,
 		550000
+	}
+	self.jobs.welcome_to_the_jungle_prof.contract_cost = {
+		-100000,
+		-300000,
+		-550000,
+		-850000
 	}
 	self.jobs.framing_frame = {}
 	self.jobs.framing_frame.name_id = "heist_framing_frame"
@@ -1139,6 +1163,42 @@ function NarrativeTweakData:init()
 		62000,
 		70000
 	}
+	self.jobs.haunted = {}
+	self.jobs.haunted.name_id = "heist_haunted"
+	self.jobs.haunted.briefing_id = "heist_haunted_crimenet"
+	self.jobs.haunted.contact = "bain"
+	self.jobs.haunted.region = "street"
+	self.jobs.haunted.jc = 10
+	self.jobs.haunted.chain = {
+		{
+			level_id = "haunted",
+			type_id = "heist_type_assault",
+			type = "d"
+		}
+	}
+	self.jobs.haunted.briefing_event = nil
+	self.jobs.haunted.debrief_event = nil
+	self.jobs.haunted.crimenet_videos = {
+		"cn_branchbank1",
+		"cn_branchbank2",
+		"cn_branchbank3"
+	}
+	self.jobs.haunted.payout = {
+		10000,
+		20000,
+		30000,
+		40000
+	}
+	self.jobs.haunted_prof = deep_clone(self.jobs.haunted)
+	self.jobs.haunted_prof.jc = 40
+	self.jobs.haunted_prof.professional = true
+	self.jobs.haunted_prof.region = "professional"
+	self.jobs.haunted_prof.payout = {
+		10000,
+		20000,
+		30000,
+		40000
+	}
 	self.jobs.escape_chain_test = {}
 	self.jobs.escape_chain_test.name_id = "heist_escape_chain_test"
 	self.jobs.escape_chain_test.briefing_id = "heist_escape_chain_test_briefing"
@@ -1181,7 +1241,8 @@ function NarrativeTweakData:init()
 		"branchbank_cash",
 		"branchbank_gold_prof",
 		"branchbank_prof",
-		"family"
+		"family",
+		"haunted"
 	}
 end
 function NarrativeTweakData:set_job_wrappers()

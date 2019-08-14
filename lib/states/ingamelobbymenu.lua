@@ -74,4 +74,106 @@ function IngameLobbyMenuState:set_controller_enabled(enabled)
 end
 function IngameLobbyMenuState:update(t, dt)
 end
-function IngameLobbyMenuState:can_drop_weapon_mods()
+function IngameLobbyMenuState:at_enter()
+	managers.music:stop()
+	managers.platform:set_presence("Mission_end")
+	managers.platform:set_rich_presence(Global.game_settings.single_player and "SPEnd" or "MPEnd")
+	managers.hud:remove_updator("point_of_no_return")
+	print("[IngameLobbyMenuState:at_enter()]")
+	if managers.network:session() then
+		if Network:is_server() then
+			managers.network.matchmake:set_server_state("in_lobby")
+			managers.network:session():set_state("in_lobby")
+		else
+			managers.network:session():send_to_peers_loaded("set_peer_entered_lobby")
+		end
+	end
+	managers.mission:pre_destroy()
+	self._continue_block_timer = Application:time() + 0.5
+	managers.menu:close_menu()
+	if managers.job:stage_success() then
+		managers.job:next_stage()
+	end
+	if managers.job:is_job_finished() then
+		if not self._setup then
+			self._setup = true
+			managers.hud:load_hud(self.GUI_LOOTSCREEN, false, true, false, {}, nil, nil, true)
+		end
+		managers.hud:show(self.GUI_LOOTSCREEN)
+		managers.menu:open_menu("loot_menu")
+		self._loot_menu = managers.menu:get_menu("loot_menu")
+		managers.menu_component:set_max_lines_game_chat(6)
+		managers.menu_component:pre_set_game_chat_leftbottom(0, 0)
+		self._lootdrop_data = {}
+		managers.lootdrop:new_make_drop(self._lootdrop_data)
+		local disable_weapon_mods = not managers.lootdrop:can_drop_weapon_mods() and true or nil
+		local global_values = tweak_data.lootdrop.global_value_list_map
+		local peer = managers.network:session() and managers.network:session():local_peer() or false
+		local global_value = global_values[self._lootdrop_data.global_value] or 1
+		local item_category = self._lootdrop_data.type_items
+		local item_id = self._lootdrop_data.item_entry
+		local max_pc = self._lootdrop_data.total_stars
+		local item_pc = self._lootdrop_data.joker and 0 or math.ceil(self._lootdrop_data.item_payclass / 10)
+		local card_left_pc = managers.lootdrop:new_fake_loot_pc(nil, {weapon_mods = disable_weapon_mods})
+		local card_right_pc = managers.lootdrop:new_fake_loot_pc(nil, {weapon_mods = disable_weapon_mods})
+		local lootdrop_data = {
+			peer,
+			self._lootdrop_data.global_value,
+			item_category,
+			item_id,
+			max_pc,
+			item_pc,
+			card_left_pc,
+			card_right_pc
+		}
+		managers.hud:feed_lootdrop_hud(lootdrop_data)
+		if not Global.game_settings.single_player and managers.network:session() then
+			managers.network:session():send_to_peers("feed_lootdrop", global_value, item_category, item_id, max_pc, item_pc, card_left_pc, card_right_pc)
+		end
+	elseif Network:is_client() then
+		if not self._setup then
+			self._setup = true
+			managers.hud:load_hud(self.GUI_LOOTSCREEN, false, true, false, {}, nil, nil, true)
+		end
+		managers.hud:hide(self.GUI_LOOTSCREEN)
+		managers.menu:open_menu("loot_menu")
+		self._loot_menu = managers.menu:get_menu("loot_menu")
+		managers.menu_component:set_max_lines_game_chat(6)
+		managers.menu_component:pre_set_game_chat_leftbottom(0, 0)
+	end
+	if (Network:is_server() or managers.dlc:is_trial()) and not managers.job:is_job_finished() then
+		if managers.network:session() and Network:is_server() then
+			managers.network.matchmake:set_server_joinable(true)
+		end
+		if not managers.job:stage_success() then
+			if managers.job:is_current_job_professional() then
+				MenuCallbackHandler:load_start_menu_lobby()
+			else
+				MenuCallbackHandler:retry_job_stage()
+			end
+		else
+			MenuCallbackHandler:on_stage_success()
+			MenuCallbackHandler:lobby_start_the_game()
+		end
+	end
+end
+function IngameLobbyMenuState:at_exit()
+	print("[IngameLobbyMenuState:at_exit()]")
+	if managers.job:is_job_finished() then
+		managers.menu:close_menu("loot_menu")
+		managers.hud:hide(self.GUI_LOOTSCREEN)
+	end
+	managers.menu_component:hide_game_chat_gui()
+end
+function IngameLobbyMenuState:on_server_left()
+	Application:debug("IngameLobbyMenuState:on_server_left()")
+	managers.menu_component:set_lootdrop_state("on_server_left")
+end
+function IngameLobbyMenuState:on_kicked()
+	Application:debug("IngameLobbyMenuState:on_kicked()")
+	managers.menu_component:set_lootdrop_state("on_kicked")
+end
+function IngameLobbyMenuState:on_disconnected()
+	Application:debug("IngameLobbyMenuState:on_disconnected()")
+	managers.menu_component:set_lootdrop_state("on_disconnected")
+end

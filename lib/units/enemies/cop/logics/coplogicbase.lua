@@ -321,6 +321,9 @@ function CopLogicBase._upd_attention_obj_detection(data, min_reaction, max_react
 			if settings.notice_requires_FOV then
 				my_head_fwd = my_head_fwd or data.unit:movement():m_head_rot():z()
 				local angle = mvector3.angle(my_head_fwd, tmp_vec1)
+				if angle < 55 and not my_data.detection.use_uncover_range and settings.uncover_range and dis < settings.uncover_range then
+					return -1, 0
+				end
 				local angle_max = math.lerp(180, my_data.detection.angle_max, math.clamp((dis - 150) / 700, 0, 1))
 				angle_multiplier = angle / angle_max
 				if angle_multiplier < 1 then
@@ -418,7 +421,7 @@ function CopLogicBase._upd_attention_obj_detection(data, min_reaction, max_react
 						if attention_info.settings.detection and attention_info.settings.detection.delay_mul then
 							notice_delay_mul = notice_delay_mul * attention_info.settings.detection.delay_mul
 						end
-						local notice_delay_modified = math.lerp(min_delay, max_delay, dis_mul_mod + angle_mul_mod) * notice_delay_mul
+						local notice_delay_modified = math.lerp(min_delay * notice_delay_mul, max_delay, dis_mul_mod + angle_mul_mod)
 						delta_prog = notice_delay_modified > 0 and dt / notice_delay_modified or 1
 					end
 				else
@@ -453,23 +456,26 @@ function CopLogicBase._upd_attention_obj_detection(data, min_reaction, max_react
 				local verified, vis_ray
 				local attention_pos = attention_info.handler:get_detection_m_pos()
 				local dis = mvector3.distance(data.m_pos, attention_info.m_pos)
-				if dis < my_data.detection.dis_max * 1.2 and (not attention_info.settings.max_range or dis < attention_info.settings.max_range * 1.2) then
-					local detect_pos
-					if attention_info.is_husk_player and attention_info.unit:anim_data().crouch then
-						detect_pos = tmp_vec1
-						mvector3.set(detect_pos, attention_info.m_pos)
-						mvector3.add(detect_pos, tweak_data.player.stances.default.crouched.head.translation)
-					else
-						detect_pos = attention_pos
-					end
-					local in_FOV = not attention_info.settings.notice_requires_FOV or data.enemy_slotmask and attention_info.unit:in_slot(data.enemy_slotmask) or _angle_chk(attention_pos, dis, 0.8)
-					if in_FOV then
-						vis_ray = World:raycast("ray", my_pos, detect_pos, "slot_mask", data.visibility_slotmask, "ray_type", "ai_vision")
-						if not vis_ray or vis_ray.unit:key() == u_key then
-							verified = true
+				if dis < my_data.detection.dis_max * 1.2 then
+					if attention_info.settings.max_range then
+					elseif dis < attention_info.settings.max_range * (attention_info.settings.detection and attention_info.settings.detection.range_mul or 1) * 1.2 then
+						local detect_pos
+						if attention_info.is_husk_player and attention_info.unit:anim_data().crouch then
+							detect_pos = tmp_vec1
+							mvector3.set(detect_pos, attention_info.m_pos)
+							mvector3.add(detect_pos, tweak_data.player.stances.default.crouched.head.translation)
+						else
+							detect_pos = attention_pos
 						end
+						local in_FOV = not attention_info.settings.notice_requires_FOV or data.enemy_slotmask and attention_info.unit:in_slot(data.enemy_slotmask) or _angle_chk(attention_pos, dis, 0.8)
+						if in_FOV then
+							vis_ray = World:raycast("ray", my_pos, detect_pos, "slot_mask", data.visibility_slotmask, "ray_type", "ai_vision")
+							if not vis_ray or vis_ray.unit:key() == u_key then
+								verified = true
+							end
+						end
+						attention_info.verified = verified
 					end
-					attention_info.verified = verified
 				end
 				attention_info.dis = dis
 				if verified then
@@ -764,12 +770,6 @@ function CopLogicBase.is_obstructed(data, objective, strictness, attention)
 	return false, false
 end
 function CopLogicBase._upd_suspicion(data, my_data, attention_obj)
-	if not attention_obj.verified then
-		if my_data.last_suspicion_t then
-			my_data.last_suspicion_t = data.t
-		end
-		return
-	end
 	local function _exit_func()
 		attention_obj.unit:movement():on_uncovered(data.unit)
 		local reaction, state_name
@@ -795,17 +795,14 @@ function CopLogicBase._upd_suspicion(data, my_data, attention_obj)
 	end
 	local dis = attention_obj.dis
 	local susp_settings = attention_obj.unit:base():suspicion_settings()
-	if attention_obj.settings.uncover_range and dis < math.min(attention_obj.settings.max_range, attention_obj.settings.uncover_range * susp_settings.range_mul) then
+	if attention_obj.settings.uncover_range and dis < math.min(attention_obj.settings.max_range, attention_obj.settings.uncover_range) * susp_settings.range_mul then
 		attention_obj.unit:movement():on_suspicion(data.unit, true)
 		managers.groupai:state():on_criminal_suspicion_progress(attention_obj.unit, data.unit, true)
 		managers.groupai:state():criminal_spotted(attention_obj.unit)
 		return _exit_func()
-	elseif attention_obj.settings.suspicion_range and dis < math.min(attention_obj.settings.max_range, attention_obj.settings.suspicion_range * susp_settings.range_mul) then
-		if my_data.last_suspicion_t and my_data.last_suspicion_u_key ~= attention_obj.u_key then
-			my_data.last_suspicion_t = nil
-		end
-		if my_data.last_suspicion_t then
-			local dt = data.t - my_data.last_suspicion_t
+	elseif attention_obj.verified and attention_obj.settings.suspicion_range and dis < math.min(attention_obj.settings.max_range, attention_obj.settings.suspicion_range) * susp_settings.range_mul then
+		if attention_obj.last_suspicion_t then
+			local dt = data.t - attention_obj.last_suspicion_t
 			local range_max = (attention_obj.settings.suspicion_range - (attention_obj.settings.uncover_range or 0)) * susp_settings.range_mul
 			local range_min = (attention_obj.settings.uncover_range or 0) * susp_settings.range_mul
 			local mul = 1 - (dis - range_min) / range_max
@@ -821,23 +818,39 @@ function CopLogicBase._upd_suspicion(data, my_data, attention_obj)
 				return _exit_func()
 			end
 		else
-			my_data.last_suspicion_u_key = attention_obj.u_key
 			attention_obj.uncover_progress = 0
 		end
-		my_data.last_suspicion_t = data.t
+		attention_obj.last_suspicion_t = data.t
 	elseif attention_obj.uncover_progress then
-		if my_data.last_suspicion_t then
-			local dt = data.t - my_data.last_suspicion_t
+		if attention_obj.last_suspicion_t then
+			local dt = data.t - attention_obj.last_suspicion_t
 			attention_obj.uncover_progress = attention_obj.uncover_progress - dt
 			if 0 >= attention_obj.uncover_progress then
 				attention_obj.uncover_progress = nil
-				my_data.last_suspicion_t = nil
+				attention_obj.last_suspicion_t = nil
 				attention_obj.unit:movement():on_suspicion(data.unit, false)
 			else
 				attention_obj.unit:movement():on_suspicion(data.unit, attention_obj.uncover_progress)
 			end
 		else
-			my_data.last_suspicion_t = data.t
+			attention_obj.last_suspicion_t = data.t
+		end
+	end
+end
+function CopLogicBase.upd_suspicion_decay(data)
+	local my_data = data.internal_data
+	for u_key, u_data in pairs(data.detected_attention_objects) do
+		if u_data.uncover_progress and u_data.last_suspicion_t ~= data.t then
+			local dt = data.t - u_data.last_suspicion_t
+			u_data.uncover_progress = u_data.uncover_progress - dt
+			if u_data.uncover_progress <= 0 then
+				u_data.uncover_progress = nil
+				u_data.last_suspicion_t = nil
+				u_data.unit:movement():on_suspicion(data.unit, false)
+			else
+				u_data.unit:movement():on_suspicion(data.unit, u_data.uncover_progress)
+				u_data.last_suspicion_t = data.t
+			end
 		end
 	end
 end

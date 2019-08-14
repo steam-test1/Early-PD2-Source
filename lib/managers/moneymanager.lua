@@ -226,6 +226,17 @@ function MoneyManager:get_money_by_params(params)
 		else
 			total_payout = small_value
 		end
+		local limited_bonus = tweak_data:get_value("money_manager", "limited_bonus_multiplier") or 1
+		if limited_bonus > 1 then
+			stage_value = stage_value * limited_bonus
+			stage_risk = stage_risk * limited_bonus
+			bag_value = bag_value * limited_bonus
+			bag_risk = bag_risk * limited_bonus
+			small_value = small_value * limited_bonus
+			small_risk = small_risk * limited_bonus
+			crew_value = crew_value * limited_bonus
+			total_payout = total_payout * limited_bonus
+		end
 	else
 		stage_value = self:get_stage_payout_by_stars(total_stars) or 0
 		local mandatory_bag_value = 0
@@ -316,7 +327,7 @@ function MoneyManager:get_real_job_money_values(num_winners, potential_payout)
 end
 function MoneyManager:get_secured_bonus_bags_money()
 	local job_id = managers.job:current_job_id()
-	local stars = managers.job:has_active_job() and managers.job:current_difficulty_stars()
+	local stars = managers.job:has_active_job() and managers.job:current_difficulty_stars() or 0
 	local money_multiplier = self:get_contract_difficulty_multiplier(stars)
 	local total_stages = job_id and #tweak_data.narrative.jobs[job_id].chain or 1
 	local bonus_bags = managers.loot:get_secured_bonus_bags_value()
@@ -331,7 +342,7 @@ function MoneyManager:get_secured_bonus_bag_value(value)
 	local bag_value = 0
 	if managers.loot:is_bonus_bag() then
 		local job_id = managers.job:current_job_id()
-		local stars = managers.job:has_active_job() and managers.job:current_difficulty_stars()
+		local stars = managers.job:has_active_job() and managers.job:current_difficulty_stars() or 0
 		local money_multiplier = self:get_contract_difficulty_multiplier(stars)
 		local total_stages = job_id and #tweak_data.narrative.jobs[job_id].chain or 1
 		bag_value = value * money_multiplier * total_stages
@@ -412,15 +423,8 @@ function MoneyManager:get_weapon_sell_value(weapon_id)
 	return math.round(self:get_weapon_price(weapon_id) * tweak_data:get_value("money_manager", "sell_weapon_multiplier") * managers.player:upgrade_value("player", "sell_cost_multiplier", 1))
 end
 function MoneyManager:_get_weapon_pc(weapon_id)
-	local weapon_level
-	for level, level_data in pairs(tweak_data.upgrades.level_tree) do
-		for _, upgrade in ipairs(level_data.upgrades) do
-			if upgrade == weapon_id then
-				weapon_level = level
-			else
-			end
-		end
-	end
+	local weapon_data = managers.blackmarket:get_weapon_data(weapon_id) or {}
+	local weapon_level = weapon_data.level
 	if not weapon_level then
 		Application:error("DIDN'T FIND LEVEL FOR", weapon_id)
 		weapon_level = 1
@@ -528,6 +532,19 @@ function MoneyManager:_get_pc_entry(entry)
 	end
 	return pc_value
 end
+function MoneyManager:get_buy_mask_slot_price()
+	local multiplier = 1
+	multiplier = multiplier * managers.player:upgrade_value("player", "buy_cost_multiplier", 1)
+	multiplier = multiplier * managers.player:upgrade_value("player", "crime_net_deal", 1)
+	return tweak_data:get_value("money_manager", "unlock_new_mask_slot_value")
+end
+function MoneyManager:can_afford_buy_mask_slot()
+	return self:total() >= self:get_buy_mask_slot_price()
+end
+function MoneyManager:on_buy_mask_slot(slot)
+	local amount = self:get_buy_mask_slot_price()
+	self:_deduct_from_total(amount)
+end
 function MoneyManager:get_mask_part_price_modified(category, id, global_value)
 	local mask_part_price = self:get_mask_part_price(category, id, global_value)
 	local crafting_multiplier = managers.player:upgrade_value("player", "passive_crafting_mask_multiplier", 1)
@@ -566,7 +583,7 @@ function MoneyManager:get_mask_crafting_price(mask_id, global_value, blueprint)
 		exceptional = 0,
 		infamous = 0
 	}
-	local pc_value = tweak_data.blackmarket.masks[mask_id].value or 1
+	local pc_value = tweak_data.blackmarket.masks[mask_id] and tweak_data.blackmarket.masks[mask_id].value or 1
 	local star_value = pc_value and math.ceil(pc_value) or 1
 	local base_value = tweak_data:get_value("money_manager", "masks", "mask_value", star_value) * tweak_data:get_value("money_manager", "global_value_multipliers", global_value)
 	local parts_value = 0
@@ -676,7 +693,10 @@ function MoneyManager:get_cost_of_premium_contract(job_id, difficulty_id)
 	}
 	local value = total_payout * tweak_data:get_value("money_manager", "buy_premium_multiplier", diffs[difficulty_id]) + tweak_data:get_value("money_manager", "buy_premium_static_fee", diffs[difficulty_id])
 	value = value + (tweak_data.narrative.jobs[job_id].payout and tweak_data.narrative.jobs[job_id].payout[difficulty_id - 1] / tweak_data:get_value("money_manager", "offshore_rate") or 0)
-	return value
+	local multiplier = 1 * managers.player:upgrade_value("player", "buy_cost_multiplier", 1) * managers.player:upgrade_value("player", "crime_net_deal", 1)
+	local total_value = math.round(value * multiplier)
+	total_value = total_value + (tweak_data.narrative.jobs[job_id].contract_cost and tweak_data.narrative.jobs[job_id].contract_cost[difficulty_id - 1] / tweak_data:get_value("money_manager", "offshore_rate") or 0)
+	return total_value
 end
 function MoneyManager:can_afford_buy_premium_contract(job_id, difficulty_id)
 	local amount = self:get_cost_of_premium_contract(job_id, difficulty_id)
@@ -684,6 +704,37 @@ function MoneyManager:can_afford_buy_premium_contract(job_id, difficulty_id)
 end
 function MoneyManager:on_buy_premium_contract(job_id, difficulty_id)
 	local amount = self:get_cost_of_premium_contract(job_id, difficulty_id)
+	self:deduct_from_offshore(amount)
+end
+function MoneyManager:get_cost_of_casino_entrance()
+	local current_level = managers.experience:current_level()
+	local level = 1
+	for i = 1, #tweak_data.casino.entrance_level do
+		level = i
+		if current_level < tweak_data:get_value("casino", "entrance_level", i) then
+			break
+		end
+	end
+	return tweak_data:get_value("casino", "entrance_fee", level)
+end
+function MoneyManager:get_cost_of_casino_fee(secured_cards, increase_infamous, preferred_card)
+	local fee = self:get_cost_of_casino_entrance()
+	for i = 1, secured_cards do
+		fee = fee + tweak_data:get_value("casino", "secure_card_cost", i)
+	end
+	if increase_infamous then
+		fee = fee + tweak_data:get_value("casino", "infamous_cost")
+	end
+	if preferred_card and preferred_card ~= "none" then
+		fee = fee + tweak_data:get_value("casino", "prefer_cost")
+	end
+	return fee
+end
+function MoneyManager:can_afford_casino_fee(secured_cards, increase_infamous, preferred_card)
+	return self:offshore() >= self:get_cost_of_casino_fee(secured_cards, increase_infamous, preferred_card)
+end
+function MoneyManager:on_buy_casino_fee(secured_cards, increase_infamous, preferred_card)
+	local amount = self:get_cost_of_casino_fee(secured_cards, increase_infamous, preferred_card)
 	self:deduct_from_offshore(amount)
 end
 function MoneyManager:total()

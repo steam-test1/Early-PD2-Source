@@ -15,6 +15,7 @@ function GuiTweakData:init()
 	self.mouse_pointer.controller.acceleration_speed = 4
 	self.mouse_pointer.controller.max_acceleration = 3
 	self.mouse_pointer.controller.mouse_pointer_speed = 125
+	self.MAX_MASK_ROWS = math.round(12)
 	self.crime_net = {}
 	self.crime_net.controller = {}
 	self.crime_net.controller.snap_distance = 50
@@ -32,6 +33,7 @@ function GuiTweakData:init()
 	self.crime_net.debug_options.mass_spawn = false
 	self.crime_net.debug_options.mass_spawn_limit = 100
 	self.crime_net.debug_options.mass_spawn_timer = 0.04
+	self.stats_present_multiplier = 10
 	self.crime_net.regions = {
 		{
 			closed = true,
@@ -975,9 +977,22 @@ function GuiTweakData:init()
 			id = "premium_buy",
 			name_id = "menu_cn_premium_buy",
 			desc_id = "menu_cn_premium_buy_desc",
+			menu_node = "crimenet_contract_special",
+			x = 420,
+			y = 846,
+			icon = "guis/textures/pd2/crimenet_marker_buy"
+		},
+		{
+			id = "casino",
+			name_id = "menu_cn_casino",
+			desc_id = "menu_cn_casino_desc",
+			menu_node = "crimenet_contract_casino",
 			x = 347,
 			y = 716,
-			icon = "guis/textures/pd2/crimenet_marker_buy"
+			icon = "guis/textures/pd2/crimenet_casino",
+			unlock = "unlock_level",
+			pulse = true,
+			pulse_color = Color(204, 255, 209, 32) / 255
 		}
 	}
 	self.crime_net.locations = {}

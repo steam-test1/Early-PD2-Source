@@ -115,6 +115,9 @@ function LootDropScreenGui:close_network()
 		managers.job:deactivate_current_job()
 	end
 end
+function LootDropScreenGui:choose_card(id, selected)
+	self._lootscreen_hud:begin_choose_card(id, selected or 2)
+end
 function LootDropScreenGui:hide()
 	self._enabled = false
 	self._panel:set_alpha(0.5)
@@ -198,7 +201,7 @@ function LootDropScreenGui:update(t, dt)
 				self._time_left_text:set_alpha(0)
 				if not self._card_chosen then
 					self._card_chosen = true
-					self._lootscreen_hud:begin_choose_card(self._id, self._selected or 2)
+					self:choose_card(self._id, self._selected)
 					if not Global.game_settings.single_player and managers.network:session() then
 						managers.network:session():send_to_peers("choose_lootcard", self._selected or 2)
 					end
@@ -234,7 +237,7 @@ function LootDropScreenGui:mouse_pressed(button, x, y)
 	if inside == self._selected then
 		self._card_chosen = true
 		managers.menu_component:post_event("menu_enter")
-		self._lootscreen_hud:begin_choose_card(self._id, self._selected)
+		self:choose_card(self._id, self._selected)
 		if not Global.game_settings.single_player and managers.network:session() then
 			managers.network:session():send_to_peers("choose_lootcard", self._selected)
 		end
@@ -361,7 +364,7 @@ function LootDropScreenGui:confirm_pressed()
 	end
 	self._card_chosen = true
 	managers.menu_component:post_event("menu_enter")
-	self._lootscreen_hud:begin_choose_card(self._id, self._selected)
+	self:choose_card(self._id, self._selected)
 	if not Global.game_settings.single_player and managers.network:session() then
 		managers.network:session():send_to_peers("choose_lootcard", self._selected)
 	end
@@ -418,4 +421,28 @@ end
 function LootDropScreenGui:reload()
 	self:close()
 	LootDropScreenGui.init(self, self._safe_workspace, self._full_workspace, self._lootscreen_hud)
+end
+CasinoLootDropScreenGui = CasinoLootDropScreenGui or class(LootDropScreenGui)
+function CasinoLootDropScreenGui:init(saferect_ws, fullrect_ws, lootscreen_hud, saved_state)
+	CasinoLootDropScreenGui.super.init(self, saferect_ws, fullrect_ws, lootscreen_hud, saved_state)
+	self._no_loot_for_me = false
+	self:set_selected(2)
+	self._panel:show()
+	self._fullscreen_panel:show()
+	managers.music:stop()
+end
+function CasinoLootDropScreenGui:continue_to_lobby()
+	managers.menu:active_menu().logic:navigate_back(true)
+	managers.music:post_event("menu_music")
+end
+function CasinoLootDropScreenGui:card_chosen()
+	return not self._button_not_clickable
+end
+function CasinoLootDropScreenGui:choose_card(id, selected)
+	CasinoLootDropScreenGui.super.choose_card(self, id, selected)
+	managers.savefile:save_progress()
+end
+function CasinoLootDropScreenGui:set_layer(layer)
+	self._fullscreen_panel:set_layer(layer)
+	self._panel:set_layer(layer)
 end

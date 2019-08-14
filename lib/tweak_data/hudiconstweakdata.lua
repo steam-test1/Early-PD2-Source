@@ -18,6 +18,15 @@ function HudIconsTweakData:init()
 			18
 		}
 	}
+	self.scrollbar_arrow = {
+		texture = "guis/textures/pd2/scrollbar_arrows",
+		texture_rect = {
+			1,
+			1,
+			9,
+			10
+		}
+	}
 	self.scrollbar = {
 		texture = "guis/textures/scroll_items",
 		texture_rect = {
@@ -1685,6 +1694,33 @@ function HudIconsTweakData:init()
 		texture_rect = {
 			128,
 			0,
+			128,
+			180
+		}
+	}
+	self.upcard_material = {
+		texture = "guis/textures/pd2/lootscreen/loot_cards",
+		texture_rect = {
+			128,
+			180,
+			128,
+			180
+		}
+	}
+	self.upcard_color = {
+		texture = "guis/textures/pd2/lootscreen/loot_cards",
+		texture_rect = {
+			256,
+			180,
+			128,
+			180
+		}
+	}
+	self.upcard_pattern = {
+		texture = "guis/textures/pd2/lootscreen/loot_cards",
+		texture_rect = {
+			384,
+			180,
 			128,
 			180
 		}

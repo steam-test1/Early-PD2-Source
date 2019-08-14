@@ -12,11 +12,7 @@ function LootDropManager:_setup()
 end
 function LootDropManager:add_qlvl_to_weapon_mods(override_tweak_data)
 	local weapon_mods_tweak_data = override_tweak_data or tweak_data.blackmarket.weapon_mods
-	local weapon_level_data = {
-		wpn_fps_ass_amcar = 0,
-		wpn_fps_pis_g17 = 0,
-		wpn_fps_saw = 0
-	}
+	local weapon_level_data = {}
 	for level, data in pairs(tweak_data.upgrades.level_tree) do
 		if data.upgrades then
 			for _, upgrade in ipairs(data.upgrades) do
@@ -33,7 +29,7 @@ function LootDropManager:add_qlvl_to_weapon_mods(override_tweak_data)
 		local min_level = managers.experience:level_cap()
 		for _, factory_id in ipairs(weapon_uses_part) do
 			if not table.contains(tweak_data.weapon.factory[factory_id].default_blueprint, part_id) then
-				min_level = math.min(min_level, weapon_level_data[factory_id])
+				min_level = math.min(min_level, weapon_level_data[factory_id] or 0)
 			end
 		end
 		weapon_mods_tweak_data[part_id].qlvl = min_level
@@ -101,10 +97,4 @@ function LootDropManager:new_debug_drop(amount, add_to_inventory, stars)
 	end
 	Global.debug_drop_result = self._debug_drop_result
 end
-function LootDropManager:new_make_drop(return_data)
-	if type(return_data) ~= "table" or not return_data then
-		return_data = {}
-	end
-	self:_new_make_drop(false, true, nil, return_data)
-end
-function LootDropManager:_new_make_drop(debug, add_to_inventory, debug_stars, return_data)
+function LootDropManager:droppable_items(item_pc, infamous_success, skip_types)

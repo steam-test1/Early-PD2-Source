@@ -143,7 +143,9 @@ function SkillTreeManager:unlock(tree, skill_id)
 	self:_spend_points(tree, tier, points)
 	self:_aquire_skill(skill, skill_id)
 	self:_on_skill_unlocked(tree, skill_id)
-	managers.statistics:publish_skills_to_steam()
+	if SystemInfo:platform() == Idstring("WIN32") then
+		managers.statistics:publish_skills_to_steam()
+	end
 end
 function SkillTreeManager:_on_tier_unlocked(tree, tier)
 	local skill_id = tweak_data.skilltree.trees[tree].skill

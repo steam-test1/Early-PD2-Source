@@ -85,6 +85,12 @@ function NPCRaycastWeaponBase:start_autofire(nr_shots)
 	self._next_fire_allowed = math.max(self._next_fire_allowed, Application:time())
 	self._shooting = true
 end
+function NPCRaycastWeaponBase:fire_mode()
+	return tweak_data.weapon[self._name_id].auto and "auto" or "single"
+end
+function NPCRaycastWeaponBase:recoil_wait()
+	return self:fire_mode() == "auto" and self:weapon_tweak_data().auto.fire_rate or nil
+end
 function NPCRaycastWeaponBase:stop_autofire()
 	if not self._shooting then
 		return
