@@ -6,7 +6,9 @@ function PlayerIncapacitated:init(unit)
 end
 function PlayerIncapacitated:enter(state_data, enter_data)
 	PlayerIncapacitated.super.enter(self, state_data, enter_data)
+	self:_interupt_action_melee(managers.player:player_timer():time())
 	self:_interupt_action_ladder(managers.player:player_timer():time())
+	self:_interupt_action_throw_grenade(managers.player:player_timer():time())
 	self._revive_SO_data = {
 		unit = self._unit
 	}

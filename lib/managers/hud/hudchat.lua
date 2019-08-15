@@ -1,4 +1,5 @@
 HUDChat = HUDChat or class()
+HUDChat.line_height = 21
 function HUDChat:init(ws, hud)
 	self._ws = ws
 	self._hud_panel = hud.panel
@@ -143,16 +144,17 @@ end
 function HUDChat:_layout_output_panel()
 	local output_panel = self._panel:child("output_panel")
 	output_panel:set_w(self._output_width)
+	local line_height = HUDChat.line_height
 	local lines = 0
 	for i = #self._lines, 1, -1 do
 		local line = self._lines[i][1]
 		local icon = self._lines[i][2]
-		line:set_w(output_panel:w())
+		line:set_w(output_panel:w() - line:left())
 		local _, _, w, h = line:text_rect()
 		line:set_h(h)
 		lines = lines + line:number_of_lines()
 	end
-	output_panel:set_h(21 * math.min(10, lines))
+	output_panel:set_h(line_height * math.min(10, lines))
 	local y = 0
 	for i = #self._lines, 1, -1 do
 		local line = self._lines[i][1]
@@ -444,6 +446,7 @@ function HUDChat:receive_message(name, message, color, icon)
 	local _, _, w, h = line:text_rect()
 	line:set_h(h)
 	table.insert(self._lines, {line, icon_bitmap})
+	line:set_kern(line:kern())
 	self:_layout_output_panel()
 	if not self._focus then
 		local output_panel = self._panel:child("output_panel")

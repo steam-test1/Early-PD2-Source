@@ -123,7 +123,7 @@ function CarryData:_explode()
 	local normal = math.UP
 	local range = CarryData.EXPLOSION_SETTINGS.range
 	local effect = CarryData.EXPLOSION_SETTINGS.effect
-	local slot_mask = managers.slot:get_mask("bullet_impact_targets")
+	local slot_mask = managers.slot:get_mask("explosion_targets")
 	self:_local_player_explosion_damage()
 	managers.explosion:play_sound_and_effects(pos, normal, range, CarryData.EXPLOSION_CUSTOM_PARAMS)
 	local hit_units, splinters = managers.explosion:detect_and_give_dmg({
@@ -393,6 +393,9 @@ function CarryData:clbk_pickup_SO_verification(candidate_unit)
 	end
 	local nav_seg = candidate_unit:movement():nav_tracker():nav_segment()
 	if not self._steal_SO_data.pickup_area.nav_segs[nav_seg] then
+		return
+	end
+	if not candidate_unit:base():char_tweak().steal_loot then
 		return
 	end
 	return true

@@ -4,7 +4,12 @@ function ElementSpawnCivilian:init(...)
 	ElementSpawnCivilian.super.init(self, ...)
 	self._enemy_name = self._values.enemy and Idstring(self._values.enemy) or Idstring("units/characters/civilians/dummy_civilian_1/dummy_civilian_1")
 	self._units = {}
-	self._events = {}
+	self:_finalize_values()
+end
+function ElementSpawnCivilian:_finalize_values()
+	local state_index = table.index_of(CopActionAct._act_redirects.civilian_spawn, self._values.state)
+	self._values.state = state_index ~= -1 and state_index or nil
+	self._values.force_pickup = self._values.force_pickup ~= "none" and self._values.force_pickup or nil
 end
 function ElementSpawnCivilian:enemy_name()
 	return self._enemy_name
@@ -19,11 +24,12 @@ function ElementSpawnCivilian:produce()
 	local unit = safe_spawn_unit(self._enemy_name, self:get_orientation())
 	unit:unit_data().mission_element = self
 	table.insert(self._units, unit)
-	if self._values.state ~= "none" then
+	if self._values.state then
+		local state = CopActionAct._act_redirects.civilian_spawn[self._values.state]
 		if unit:brain() then
 			local action_data = {
 				type = "act",
-				variant = self._values.state,
+				variant = state,
 				body_part = 1,
 				align_sync = true
 			}
@@ -38,10 +44,10 @@ function ElementSpawnCivilian:produce()
 			}
 			unit:brain():set_spawn_ai(spawn_ai)
 		else
-			unit:base():play_state(self._values.state)
+			unit:base():play_state(state)
 		end
 	end
-	if self._values.force_pickup and self._values.force_pickup ~= "none" then
+	if self._values.force_pickup then
 		unit:character_damage():set_pickup(self._values.force_pickup)
 	end
 	if unit:unit_data().secret_assignment_id then
@@ -53,13 +59,14 @@ function ElementSpawnCivilian:produce()
 	return unit
 end
 function ElementSpawnCivilian:event(name, unit)
-	if self._events[name] then
+	if self._events and self._events[name] then
 		for _, callback in ipairs(self._events[name]) do
 			callback(unit)
 		end
 	end
 end
 function ElementSpawnCivilian:add_event_callback(name, callback)
+	self._events = self._events or {}
 	self._events[name] = self._events[name] or {}
 	table.insert(self._events[name], callback)
 end

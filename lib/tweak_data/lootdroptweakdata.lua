@@ -105,9 +105,9 @@ function LootDropTweakData:init(tweak_data)
 	self.got_item_weight_mod = 0.5
 	self.type_weight_mod_funcs = {}
 	function self.type_weight_mod_funcs.weapon_mods(global_value, category, id)
-		local weapons = managers.weapon_factory:get_weapons_uses_part(id)
-		local primaries = managers.blackmarket:get_crafted_category("primaries")
-		local secondaries = managers.blackmarket:get_crafted_category("secondaries")
+		local weapons = managers.weapon_factory:get_weapons_uses_part(id) or {}
+		local primaries = managers.blackmarket:get_crafted_category("primaries") or {}
+		local secondaries = managers.blackmarket:get_crafted_category("secondaries") or {}
 		local crafted_weapons = {}
 		for _, weapon in pairs(primaries) do
 			table.insert(crafted_weapons, weapon.factory_id)
@@ -198,7 +198,7 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.preorder = {}
 	self.global_values.preorder.name_id = "bm_global_value_preorder"
 	self.global_values.preorder.desc_id = "menu_l_global_value_preorder"
-	self.global_values.preorder.color = Color(255, 255, 140, 0) / 255
+	self.global_values.preorder.color = Color(255, 255, 212, 0) / 255
 	self.global_values.preorder.dlc = true
 	self.global_values.preorder.chance = 1
 	self.global_values.preorder.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "preorder")
@@ -221,7 +221,7 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.pd2_clan.track = true
 	self.global_values.pd2_clan.sort_number = -100
 	self.global_values.pd2_clan.unique_lock_icon = "guis/textures/pd2/lock_community"
-	self.global_values.pd2_clan.category = "pd2_clan"
+	self.global_values.pd2_clan.category = nil
 	self.global_values.halloween = {}
 	self.global_values.halloween.name_id = "bm_global_value_halloween"
 	self.global_values.halloween.desc_id = "menu_l_global_value_halloween"
@@ -252,7 +252,7 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.xmas_soundtrack.name_id = "bm_global_value_xmas_soundtrack"
 	self.global_values.xmas_soundtrack.desc_id = "menu_l_global_value_xmas_soundtrack"
 	self.global_values.xmas_soundtrack.unlock_id = "bm_global_value_xmas_soundtrack_unlock"
-	self.global_values.xmas_soundtrack.color = Color(255, 247, 86, 105) / 255
+	self.global_values.xmas_soundtrack.color = Color(255, 255, 212, 0) / 255
 	self.global_values.xmas_soundtrack.dlc = true
 	self.global_values.xmas_soundtrack.chance = 1
 	self.global_values.xmas_soundtrack.value_multiplier = tweak_data:get_value("money_manager", "global_value_multipliers", "xmas_soundtrack")
@@ -289,8 +289,8 @@ function LootDropTweakData:init(tweak_data)
 	self.global_values.gage_pack.sort_number = 80
 	self.global_values.gage_pack.category = "dlc"
 	self.global_values.gage_pack_lmg = {}
-	self.global_values.gage_pack_lmg.name_id = "bm_global_value_gage_pack"
-	self.global_values.gage_pack_lmg.desc_id = "menu_l_global_value_gage_pack"
+	self.global_values.gage_pack_lmg.name_id = "bm_global_value_gage_pack_lmg"
+	self.global_values.gage_pack_lmg.desc_id = "menu_l_global_value_gage_pack_lmg"
 	self.global_values.gage_pack_lmg.unlock_id = "bm_global_value_gage_pack_lmg_unlock"
 	self.global_values.gage_pack_lmg.color = Color(255, 255, 212, 0) / 255
 	self.global_values.gage_pack_lmg.dlc = true
@@ -334,7 +334,8 @@ function LootDropTweakData:init(tweak_data)
 		"halloween",
 		"xmas",
 		"armored_transport",
-		"gage_pack"
+		"gage_pack",
+		"gage_pack_lmg"
 	}
 	self.global_value_list_map = {}
 	for i, d in ipairs(self.global_value_list_index) do

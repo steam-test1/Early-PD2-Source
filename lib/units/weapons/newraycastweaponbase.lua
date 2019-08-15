@@ -21,6 +21,9 @@ end
 function NewRaycastWeaponBase:skip_queue()
 	return false
 end
+function NewRaycastWeaponBase:set_texture_switches(texture_switches)
+	self._texture_switches = texture_switches
+end
 function NewRaycastWeaponBase:set_factory_data(factory_id)
 	self._factory_id = factory_id
 end
@@ -52,8 +55,64 @@ function NewRaycastWeaponBase:_assemble_completed(parts, blueprint)
 	self._blueprint = blueprint
 	self:_update_fire_object()
 	self:_update_stats_values()
+	local magazine = managers.weapon_factory:get_part_from_weapon_by_type("magazine", self._parts)
+	if magazine then
+		local bullet_objects = managers.weapon_factory:get_part_data_type_from_weapon_by_type("magazine", "bullet_objects", self._parts)
+		if bullet_objects then
+			self._bullet_objects = {}
+			local prefix = bullet_objects.prefix
+			for i = 1, bullet_objects.amount do
+				local object = magazine.unit:get_object(Idstring(prefix .. i))
+				if object then
+					self._bullet_objects[i] = self._bullet_objects[i] or {}
+					table.insert(self._bullet_objects[i], object)
+				end
+			end
+		end
+	end
+	self:apply_texture_switches()
 	self:check_npc()
 	self:_set_parts_enabled(self._enabled)
+end
+function NewRaycastWeaponBase:apply_texture_switches()
+	local parts_tweak = tweak_data.weapon.factory.parts
+	self._parts_texture_switches = self._parts_texture_switches or {}
+	if self._texture_switches then
+		local texture_switch, part_data, unit, material_ids, material_config, switch_material
+		for part_id, texture_data in pairs(self._texture_switches) do
+			if self._parts_texture_switches[part_id] ~= texture_data then
+				switch_material = nil
+				texture_switch = parts_tweak[part_id] and parts_tweak[part_id].texture_switch
+				part_data = self._parts and self._parts[part_id]
+				if texture_switch and part_data then
+					unit = part_data.unit
+					material_ids = Idstring(texture_switch.material)
+					material_config = unit:get_objects_by_type(Idstring("material"))
+					for _, material in ipairs(material_config) do
+						print(material:name())
+						if material:name() == material_ids then
+							switch_material = material
+						else
+						end
+					end
+					Application:debug(switch_material)
+					if switch_material then
+						local texture_id = managers.blackmarket:get_texture_switch_from_data(texture_data, part_id)
+						if texture_id and DB:has(Idstring("texture"), texture_id) then
+							local retrieved_texture = TextureCache:retrieve(texture_id, "normal")
+							switch_material:set_texture(texture_switch.channel, retrieved_texture)
+							if self._parts_texture_switches[part_id] then
+								TextureCache:unretrieve(Idstring(self._parts_texture_switches[part_id]))
+							end
+							self._parts_texture_switches[part_id] = Idstring(texture_id)
+						else
+							Application:error("[NewRaycastWeaponBase:apply_texture_switches] Switch texture do not exists", texture_id)
+						end
+					end
+				end
+			end
+		end
+	end
 end
 function NewRaycastWeaponBase:check_npc()
 end
@@ -184,15 +243,15 @@ function NewRaycastWeaponBase:stance_mod()
 	if not self._parts then
 		return nil
 	end
+	local translation = Vector3()
 	local factory = tweak_data.weapon.factory
 	for part_id, data in pairs(self._parts) do
 		if factory.parts[part_id].stance_mod and factory.parts[part_id].stance_mod[self._factory_id] then
-			return {
-				translation = factory.parts[part_id].stance_mod[self._factory_id].translation
-			}
+			local part_translation = factory.parts[part_id].stance_mod[self._factory_id].translation
+			mvector3.add(translation, part_translation)
 		end
 	end
-	return nil
+	return {translation = translation}
 end
 function NewRaycastWeaponBase:tweak_data_anim_play(anim, speed_multiplier)
 	local data = tweak_data.weapon.factory[self._factory_id]
@@ -227,6 +286,7 @@ function NewRaycastWeaponBase:tweak_data_anim_stop(anim)
 			data.unit:anim_stop(Idstring(anim_name))
 		end
 	end
+	NewRaycastWeaponBase.super.tweak_data_anim_stop(self, anim)
 end
 function NewRaycastWeaponBase:_set_parts_enabled(enabled)
 	if self._parts then
@@ -276,9 +336,33 @@ function NewRaycastWeaponBase:toggle_firemode()
 	end
 	return false
 end
+function NewRaycastWeaponBase:set_ammo_remaining_in_clip(...)
+	NewRaycastWeaponBase.super.set_ammo_remaining_in_clip(self, ...)
+	self:check_bullet_objects()
+end
+function NewRaycastWeaponBase:check_bullet_objects()
+	if self._bullet_objects then
+		self:_update_bullet_objects(self:get_ammo_remaining_in_clip())
+	end
+end
+function NewRaycastWeaponBase:predict_bullet_objects()
+	self:_update_bullet_objects(self:get_ammo_total())
+end
+function NewRaycastWeaponBase:_update_bullet_objects(ammo)
+	if self._bullet_objects then
+		for i, objects in pairs(self._bullet_objects) do
+			for _, object in ipairs(objects) do
+				object:set_visibility(i <= ammo)
+			end
+		end
+	end
+end
 function NewRaycastWeaponBase:has_gadget()
 	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
 	return #gadgets > 0 and true or false
+end
+function NewRaycastWeaponBase:is_gadget_on()
+	return self._gadget_on
 end
 function NewRaycastWeaponBase:gadget_on()
 	self._gadget_on = true
@@ -299,6 +383,9 @@ function NewRaycastWeaponBase:gadget_off()
 	end
 end
 function NewRaycastWeaponBase:toggle_gadget()
+	if not self._enabled then
+		return
+	end
 	self._gadget_on = not self._gadget_on
 	local gadgets = managers.weapon_factory:get_parts_from_weapon_by_type_or_perk("gadget", self._parts)
 	if gadgets then
@@ -403,5 +490,11 @@ function NewRaycastWeaponBase:reload_speed_multiplier()
 end
 function NewRaycastWeaponBase:destroy(unit)
 	NewRaycastWeaponBase.super.destroy(self, unit)
+	if self._parts_texture_switches then
+		for part_id, texture_ids in pairs(self._parts_texture_switches) do
+			print("BYE BYE ")
+			TextureCache:unretrieve(texture_ids)
+		end
+	end
 	managers.weapon_factory:disassemble(self._parts)
 end

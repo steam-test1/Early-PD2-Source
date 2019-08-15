@@ -167,11 +167,13 @@ end
 function MenuCallbackHandler:got_new_content_update()
 	return false
 end
+function MenuCallbackHandler:got_new_fav_videos()
+	return false
+end
 function MenuCallbackHandler:not_got_new_content_update()
 	return not self:got_new_content_update()
 end
 function MenuCallbackHandler:do_content_lootdrop(node)
-	managers.menu:back(true)
 	managers.menu:open_node("crimenet_contract_casino_lootdrop", {
 		secure_cards = 0,
 		preferred_item = nil,
@@ -298,7 +300,8 @@ function MenuCallbackHandler:_update_outfit_information()
 	end
 	if managers.network:session() then
 		local local_peer = managers.network:session():local_peer()
-		if managers.menu_scene then
+		local in_lobby = local_peer:in_lobby() and game_state_machine:current_state_name() ~= "ingame_lobby_menu"
+		if managers.menu_scene and in_lobby then
 			local id = local_peer:id()
 			managers.menu_scene:set_lobby_character_out_fit(id, outfit_string, managers.experience:current_rank())
 		end

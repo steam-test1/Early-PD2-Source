@@ -104,9 +104,9 @@ action_variants.sniper = security_variant
 action_variants.gangster = security_variant
 action_variants.dealer = security_variant
 action_variants.biker_escape = security_variant
+action_variants.city_swat = security_variant
 action_variants.shield = clone(security_variant)
 action_variants.shield.hurt = ShieldActionHurt
-action_variants.murky = security_variant
 action_variants.tank = clone(security_variant)
 action_variants.tank.walk = TankCopActionWalk
 action_variants.spooc = security_variant
@@ -346,10 +346,10 @@ function CopMovement:_upd_actions(t)
 			end
 		end
 	end
-	if has_no_action and not self._queued_actions then
+	if has_no_action and (not self._queued_actions or not next(self._queued_actions)) then
 		self:action_request({type = "idle", body_part = 1})
 	end
-	if not a_actions[1] and not a_actions[3] and not self._queued_actions and not self:chk_action_forbidden("action") then
+	if not a_actions[1] and not a_actions[3] and (not self._queued_actions or not next(self._queued_actions)) and not self:chk_action_forbidden("action") then
 		self:action_request({type = "idle", body_part = 3})
 	end
 	self:_upd_stance(t)
@@ -733,6 +733,7 @@ function CopMovement:set_cool(state, giveaway)
 	end
 	local old_state = self._cool
 	self._cool = state
+	self._action_common_data.is_cool = state
 	if not state and old_state then
 		self._not_cool_t = TimerManager:game():time()
 	end
@@ -1187,6 +1188,28 @@ function CopMovement:_destroy_gadgets()
 	end
 	self._equipped_gadgets = nil
 	self._droppable_gadgets = nil
+end
+function CopMovement:anim_clbk_enemy_spawn_melee_item()
+	if alive(self._melee_item_unit) then
+		return
+	end
+	local align_obj_l_name = CopMovement._gadgets.aligns.hand_l
+	local align_obj_r_name = CopMovement._gadgets.aligns.hand_r
+	local align_obj_l = self._unit:get_object(align_obj_l_name)
+	local align_obj_r = self._unit:get_object(align_obj_r_name)
+	local melee_weapon = self._unit:base():char_tweak().melee_weapon
+	local unit_name = melee_weapon and tweak_data.weapon.npc_melee[melee_weapon].unit_name or nil
+	if unit_name then
+		self._melee_item_unit = World:spawn_unit(unit_name, align_obj_l:position(), align_obj_l:rotation())
+		self._unit:link(align_obj_l:name(), self._melee_item_unit, self._melee_item_unit:orientation_object():name())
+	end
+end
+function CopMovement:anim_clbk_enemy_unspawn_melee_item()
+	if alive(self._melee_item_unit) then
+		self._melee_item_unit:unlink()
+		World:delete_unit(self._melee_item_unit)
+		self._melee_item_unit = nil
+	end
 end
 function CopMovement:clbk_inventory(unit, event)
 	local weapon = self._ext_inventory:equipped_unit()
@@ -1690,8 +1713,12 @@ function CopMovement:clbk_sync_attention(attention)
 		return
 	end
 	if attention.handler then
-		self._ext_network:send("set_attention", attention.handler:unit(), attention.reaction)
-	elseif self._attention.unit then
+		if attention.handler:unit():id() ~= -1 then
+			self._ext_network:send("set_attention", attention.handler:unit(), attention.reaction)
+		else
+			self._ext_network:send("cop_set_attention_pos", mvector3.copy(attention.handler:get_attention_m_pos()))
+		end
+	elseif self._attention.unit and attention.unit:id() ~= -1 then
 		self._ext_network:send("cop_set_attention_unit", self._attention.unit)
 	end
 end

@@ -65,7 +65,7 @@ function UnitNetworkHandler:action_walk_start(unit, first_nav_point, nav_link_ya
 		unit:position()
 	}
 	if nav_link_act_index ~= 0 then
-		local nav_link_rot = Rotation(360 * nav_link_yaw / 255, 0, 0)
+		local nav_link_rot = 360 * nav_link_yaw / 255
 		local nav_link = unit:movement()._actions.walk.synthesize_nav_link(first_nav_point, nav_link_rot, unit:movement()._actions.act:_get_act_name_from_index(nav_link_act_index), from_idle)
 		function nav_link.element.value(element, name)
 			return element[name]
@@ -112,7 +112,7 @@ function UnitNetworkHandler:action_walk_nav_link(unit, pos, yaw, anim_index, fro
 	if not self._verify_character(unit) or not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		return
 	end
-	local rot = Rotation(360 * yaw / 255, 0, 0)
+	local rot = 360 * yaw / 255
 	unit:movement():sync_action_walk_nav_link(pos, rot, anim_index, from_idle)
 end
 function UnitNetworkHandler:action_spooc_start(unit, target_u_pos, flying_strike, action_id)
@@ -263,7 +263,9 @@ function UnitNetworkHandler:run_mission_element(id, unit, orientation_element_in
 	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
 		if self._verify_gamestate(self._gamestate_filter.any_end_game) then
 			managers.mission:client_run_mission_element_end_screen(id, unit, orientation_element_index)
+			return
 		end
+		print("UnitNetworkHandler:run_mission_element discarded id:", id)
 		return
 	end
 	managers.mission:client_run_mission_element(id, unit, orientation_element_index)
@@ -937,11 +939,14 @@ function UnitNetworkHandler:place_sentry_gun(pos, rot, ammo_multiplier, armor_mu
 		unit:base():set_server_information(peer:id())
 	end
 	if alive(user_unit) and user_unit:id() ~= -1 then
-		managers.network:session():send_to_peers_synched("from_server_sentry_gun_place_result", peer:id(), unit and equipment_selection_index or 0, unit, unit:movement()._rot_speed_mul, unit:weapon()._setup.spread_mul, unit:base():has_shield() and true or false)
+		managers.network:session():send_to_peers_synched("from_server_sentry_gun_place_result", peer:id(), unit and equipment_selection_index or 0, unit or user_unit, unit and unit:movement()._rot_speed_mul, unit and unit:weapon()._setup.spread_mul, unit and unit:base():has_shield() and true or false)
 	end
 end
 function UnitNetworkHandler:from_server_sentry_gun_place_result(owner_peer_id, equipment_selection_index, sentry_gun_unit, rot_speed_mul, spread_mul, shield, rpc)
-	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(rpc) or not alive(sentry_gun_unit) or not managers.network:session():peer(owner_peer_id) then
+	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(rpc) or not alive(sentry_gun_unit) or not managers.network:session():peer(owner_peer_id) or alive(Global.local_member:unit()) and Global.local_member:unit():key() == sentry_gun_unit:key() then
+		if alive(Global.local_member:unit()) then
+			Global.local_member:unit():equipment():from_server_sentry_gun_place_result()
+		end
 		return
 	end
 	if owner_peer_id == managers.network:session():local_peer():id() and alive(Global.local_member:unit()) then
@@ -1831,4 +1836,25 @@ function UnitNetworkHandler:sync_proximity_activation(unit, proximity_name, rang
 		return
 	end
 	unit:damage():sync_proximity_activation(proximity_name, range_data_string)
+end
+function UnitNetworkHandler:sync_inflict_body_damage(body, unit, normal, position, direction, damage, velocity, sender)
+	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
+		return
+	end
+	if not alive(body) then
+		return
+	end
+	if not body:extension() then
+		print("[UnitNetworkHandler:sync_inflict_body_damage] body has no extension", body:name(), body:unit():name())
+		return
+	end
+	if not body:extension().damage then
+		print("[UnitNetworkHandler:sync_inflict_body_damage] body has no damage extension", body:name(), body:unit():name())
+		return
+	end
+	if not body:extension().damage.damage_fire then
+		print("[UnitNetworkHandler:sync_inflict_body_damage] body has no damage damage_bullet function", body:name(), body:unit():name())
+		return
+	end
+	body:extension().damage:damage_fire(unit, normal, position, direction, damage, velocity)
 end

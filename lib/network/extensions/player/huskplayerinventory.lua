@@ -8,10 +8,15 @@ HuskPlayerInventory._index_to_weapon_list = {
 	Idstring("units/payday2/weapons/wpn_npc_r870/wpn_npc_r870"),
 	Idstring("units/payday2/weapons/wpn_npc_sawnoff_shotgun/wpn_npc_sawnoff_shotgun"),
 	Idstring("units/payday2/weapons/wpn_npc_mp5/wpn_npc_mp5"),
+	Idstring("units/payday2/weapons/wpn_npc_mp5_tactical/wpn_npc_mp5_tactical"),
 	Idstring("units/payday2/weapons/wpn_npc_smg_mp9/wpn_npc_smg_mp9"),
 	Idstring("units/payday2/weapons/wpn_npc_mac11/wpn_npc_mac11"),
 	Idstring("units/payday2/weapons/wpn_npc_sniper/wpn_npc_sniper"),
 	Idstring("units/payday2/weapons/wpn_npc_saiga/wpn_npc_saiga"),
+	Idstring("units/payday2/weapons/wpn_npc_lmg_m249/wpn_npc_lmg_m249"),
+	Idstring("units/payday2/weapons/wpn_npc_benelli/wpn_npc_benelli"),
+	Idstring("units/payday2/weapons/wpn_npc_g36/wpn_npc_g36"),
+	Idstring("units/payday2/weapons/wpn_npc_ump/wpn_npc_ump"),
 	"wpn_fps_pis_g18c_npc",
 	"wpn_fps_ass_m4_npc",
 	"wpn_fps_ass_amcar_npc",
@@ -132,6 +137,12 @@ function HuskPlayerInventory:check_peer_weapon_spawn()
 		table.remove(self._peer_weapons, 1)
 	else
 		return true
+	end
+end
+function HuskPlayerInventory:set_melee_weapon_by_peer(peer)
+	local blackmarket_outfit = peer and peer:blackmarket_outfit()
+	if blackmarket_outfit then
+		self:set_melee_weapon(blackmarket_outfit.melee_weapon, true)
 	end
 end
 function HuskPlayerInventory:add_unit_by_name(new_unit_name, equip, instant)

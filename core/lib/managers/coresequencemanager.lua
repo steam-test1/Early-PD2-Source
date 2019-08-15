@@ -2143,8 +2143,9 @@ SequenceContainerElement = SequenceContainerElement or class(BaseElement)
 function SequenceContainerElement:init(node, unit_element)
 	BaseElement.init(self, node, unit_element)
 	self._sequence_list = {}
-	for child_node in node:children() do
-		if child_node:name() == "run_sequence" then
+	for _, child_node in ipairs(node) do
+		local name = child_node._meta
+		if name == "run_sequence" then
 			local element = managers.sequence:parse_event(child_node, unit_element)
 			if element then
 				table.insert(self._sequence_list, element)
@@ -2254,8 +2255,8 @@ function RootInflictElement:init(node, unit_element)
 	BaseElement.init(self, node, unit_element)
 	self._element_list = {}
 	local inflict_element_class_map = managers.sequence:get_inflict_element_class_map()
-	for child_node in node:children() do
-		local element_class = inflict_element_class_map[child_node:name()]
+	for _, child_node in ipairs(node) do
+		local element_class = inflict_element_class_map[child_node._meta]
 		if element_class then
 			local element = element_class:new(child_node, unit_element)
 			self._element_list[element._element_name] = element
@@ -2279,7 +2280,8 @@ end
 InflictElement = InflictElement or class(BaseElement)
 function InflictElement:init(node, unit_element)
 	BaseElement.init(self, node, unit_element)
-	self._damage = self:get("damage")
+	self._element_name = node._meta
+	self._damage = self:get("give_damage")
 	self._damage = self._damage and self._damage(SequenceEnvironment)
 	self._interval = self:get("interval")
 	self._interval = self._interval and self._interval(SequenceEnvironment)
@@ -2299,8 +2301,8 @@ function InflictElement:init(node, unit_element)
 	self._enter_sequence_list = {}
 	self._sequence_list = {}
 	self._exit_sequence_list = {}
-	for child_node in node:children() do
-		local child_name = child_node:name()
+	for _, child_node in ipairs(node) do
+		local child_name = child_node._meta
 		if child_name == "enter" then
 			self._enter_element = EnterInflictElement:new(child_node, unit_element)
 		elseif child_name == "damage" then

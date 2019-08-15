@@ -78,13 +78,16 @@ CopActionAct._act_redirects.enemy_spawn = {
 	"e_sp_car_exit_ntrl_front_r",
 	"e_sp_car_exit_ntrl_front_l",
 	"e_sp_down_5_5m",
+	"e_sp_dwn_10_25m",
+	"e_sp_dwn_11m",
 	"e_sp_up_ledge",
 	"e_sp_clk_3m_dwn_vent",
 	"e_sp_clk_3_5m_dwn_vent",
 	"e_sp_clk_up_manhole",
 	"e_sp_clk_up_water",
 	"e_sp_clk_over_2_5m",
-	"e_sp_clk_jump_dwn_5m_heli_l"
+	"e_sp_clk_jump_dwn_5m_heli_l",
+	"e_sp_clk_4_5m_dwn_vent"
 }
 CopActionAct._act_redirects.civilian_spawn = {
 	"cm_sp_dj_loop",
@@ -224,7 +227,10 @@ CopActionAct._act_redirects.SO = {
 	"e_nl_down_3_35m",
 	"e_nl_down_8m_var2",
 	"e_nl_up_5m",
+	"e_nl_jump_4m_long",
 	"e_nl_up_1_down_7_1m",
+	"e_nl_up_1_down_6m",
+	"e_nl_up_1_down_6m_v2",
 	"e_nl_down_5m_var2",
 	"e_nl_down_5m_var3",
 	"e_nl_down_4m_var2",
@@ -241,6 +247,7 @@ CopActionAct._act_redirects.SO = {
 	"e_nl_cs_up_sewer_ladder",
 	"e_nl_cs_dwn_sewer",
 	"e_nl_cs_up_8m_ladder",
+	"e_nl_clk_over_1_8m",
 	"e_so_ntl_idle_tired",
 	"e_so_ntl_idle_kickpebble",
 	"e_so_ntl_idle_look",
@@ -355,6 +362,12 @@ function CopActionAct:on_exit()
 		self._ext_movement:set_m_host_stop_pos(self._ext_movement:m_pos())
 	elseif not self._expired then
 		self._common_data.ext_network:send("action_act_end")
+	end
+	if Network:is_server() and not self._unit:character_damage():dead() then
+		self._unit:brain():add_pos_rsrv("stand", {
+			position = mvector3.copy(self._common_data.pos),
+			radius = 30
+		})
 	end
 end
 function CopActionAct:_init_ik()
@@ -602,6 +615,9 @@ function CopActionAct:_get_act_name_from_index(index)
 	debug_pause("[CopActionAct:_get_act_name_from_index] index", index, "is out of limits.")
 end
 function CopActionAct:_play_anim()
+	if self._ext_anim.upper_body_active and not self._ext_anim.upper_body_empty then
+		self._ext_movement:play_redirect("up_idle")
+	end
 	local redir_name, redir_res
 	if type(self._action_desc.variant) == "number" then
 		redir_name = self._machine:index_to_state_name(self._action_desc.variant)

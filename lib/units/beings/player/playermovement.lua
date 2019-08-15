@@ -288,12 +288,14 @@ function PlayerMovement:on_uncovered(enemy_unit)
 	managers.player:set_player_state("standard")
 	self._state_data.uncovered = nil
 end
-function PlayerMovement:on_SPOOCed()
+function PlayerMovement:on_SPOOCed(enemy_unit)
 	if self._unit:character_damage()._god_mode then
 		return
 	end
-	if self._current_state_name == "standard" or self._current_state_name == "bleed_out" then
+	if self._current_state_name == "standard" or self._current_state_name == "carry" or self._current_state_name == "bleed_out" or self._current_state_name == "tased" then
 		managers.player:set_player_state("incapacitated")
+		managers.achievment:award(tweak_data.achievement.finally.award)
+		return true
 	end
 end
 function PlayerMovement:on_non_lethal_electrocution()

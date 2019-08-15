@@ -170,6 +170,28 @@ function TeamAIDamage:damage_explosion(attack_data)
 	self:_send_explosion_attack_result(attack_data)
 	return result
 end
+function TeamAIDamage:damage_mission(attack_data)
+	if self._dead or self._invulnerable then
+		return
+	end
+	local result
+	local damage_percent = self._HEALTH_GRANULARITY
+	attack_data.damage = self._health
+	attack_data.variant = "explosion"
+	local result = {
+		variant = attack_data.variant
+	}
+	local damage_percent, health_subtracted = self:_apply_damage(attack_data, result)
+	if health_subtracted > 0 then
+		self:_send_damage_drama(attack_data, health_subtracted)
+	end
+	if self._dead then
+		self:_unregister_unit()
+	end
+	self:_call_listeners(attack_data)
+	self:_send_explosion_attack_result(attack_data)
+	return result
+end
 function TeamAIDamage:damage_tase()
 	if self:_cannot_take_damage() then
 		return
@@ -366,6 +388,9 @@ function TeamAIDamage:bleed_out()
 end
 function TeamAIDamage:fatal()
 	return self._fatal
+end
+function TeamAIDamage:is_downed()
+	return self._bleed_out or self._fatal
 end
 function TeamAIDamage:_regenerated()
 	self._health = self._HEALTH_INIT
@@ -636,10 +661,15 @@ function TeamAIDamage:on_tase_ended()
 	end
 end
 function TeamAIDamage:clbk_exit_to_incapacitated()
+	self._to_incapacitated_clbk_id = nil
+	self:on_incapacitated()
+end
+function TeamAIDamage:on_incapacitated()
 	if self._tase_effect then
 		World:effect_manager():fade_kill(self._tase_effect)
+		self._tase_effect = nil
 	end
-	self._to_incapacitated_clbk_id = nil
+	self._regenerate_t = nil
 	local dmg_info = {
 		variant = "bleeding",
 		result = {type = "fatal"}

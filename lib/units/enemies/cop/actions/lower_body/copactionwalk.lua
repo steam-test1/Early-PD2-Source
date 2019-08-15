@@ -455,7 +455,7 @@ function CopActionWalk:_init()
 			nav_link_act_yaw = 1
 		else
 			nav_link_act_index = CopActionAct._get_act_index(CopActionAct, next_nav_point.element:value("so_action"))
-			nav_link_act_yaw = next_nav_point.element:value("rotation"):yaw()
+			nav_link_act_yaw = next_nav_point.element:value("rotation")
 			if nav_link_act_yaw < 0 then
 				nav_link_act_yaw = 360 + nav_link_act_yaw
 			end
@@ -467,6 +467,12 @@ function CopActionWalk:_init()
 			self._nav_link_synched_with_start = true
 		end
 		self._ext_network:send("action_walk_start", self._nav_point_pos(next_nav_point), nav_link_act_yaw, nav_link_act_index, nav_link_from_idle, sync_haste, sync_yaw, self._no_walk and true or false, self._no_strafe and true or false)
+	end
+	if Network:is_server() then
+		self._unit:brain():add_pos_rsrv("move_dest", {
+			position = mvector3.copy(self._simplified_path[#self._simplified_path]),
+			radius = 30
+		})
 	end
 	return true
 end
@@ -707,8 +713,8 @@ function CopActionWalk:_calculate_curved_path(path, index, curvature_factor, ent
 	return curved_path
 end
 function CopActionWalk:on_exit()
-	if tostring(self._unit:key()) == "userdata: 000018B1" then
-		debug_pause_unit(self._unit, "[CopActionWalk:on_exit] unit", self._common_data.unit, "rot", self._common_data.rot, "end_rot", self._end_rot)
+	if self._expired and self._end_rot then
+		self._ext_movement:set_rotation(self._end_rot)
 	end
 	if self._root_blend_disabled then
 		self._ext_movement:set_root_blend(true)
@@ -733,6 +739,15 @@ function CopActionWalk:on_exit()
 	if self._ext_anim.act and not self._unit:character_damage():dead() and self._unit:movement():chk_action_forbidden("walk") then
 		debug_pause("[CopActionWalk:on_exit] possible illegal exit!", self._unit, self._machine:segment_state(idstr_base))
 		Application:draw_cylinder(self._common_data.pos, self._common_data.pos + math.UP * 5000, 30, 1, 0, 0)
+	end
+	if Network:is_server() then
+		self._unit:brain():rem_pos_rsrv("move_dest")
+		if not self._unit:character_damage():dead() then
+			self._unit:brain():add_pos_rsrv("stand", {
+				position = mvector3.copy(self._common_data.pos),
+				radius = 30
+			})
+		end
 	end
 end
 function CopActionWalk:_upd_wait_for_full_blend(t)
@@ -1223,7 +1238,7 @@ function CopActionWalk:_nav_chk_walk(t, dt, vis_state)
 				break
 			elseif self._next_is_nav_link then
 				self._end_of_curved_path = true
-				self._nav_link_rot = self._next_is_nav_link.element:value("rotation")
+				self._nav_link_rot = Rotation(self._next_is_nav_link.element:value("rotation"), 0, 0)
 				self._curve_path_end_rot = Rotation(mrotation.yaw(self._common_data.rot), 0, 0)
 				break
 			else
@@ -1786,7 +1801,7 @@ function CopActionWalk:_play_nav_link_anim(t)
 	end
 	local nav_link = self._next_is_nav_link
 	local anim = nav_link.element:value("so_action")
-	self._ext_movement:set_rotation(nav_link.element:value("rotation"))
+	self._ext_movement:set_rotation(Rotation(self._next_is_nav_link.element:value("rotation"), 0, 0))
 	self._last_pos = mvec3_cpy(nav_link.element:value("position"))
 	self:_set_new_pos(TimerManager:game():delta_time())
 	self._nav_link = self._next_is_nav_link
@@ -1966,7 +1981,7 @@ function CopActionWalk:_send_nav_point(nav_point)
 	else
 		local element = nav_point.element
 		local anim_index = CopActionAct._get_act_index(CopActionAct, element:value("so_action"))
-		local sync_yaw = element:value("rotation"):yaw()
+		local sync_yaw = element:value("rotation")
 		if sync_yaw < 0 then
 			sync_yaw = 360 + sync_yaw
 		end
@@ -2044,6 +2059,9 @@ function CopActionWalk:_chk_correct_pose()
 		self._ext_movement:action_request({type = "stand", body_part = 4})
 	elseif pose == "stand" and not allowed_poses.stand then
 		self._ext_movement:action_request({type = "crouch", body_part = 4})
+	end
+	if pose == "crouch" and self._common_data.is_cool then
+		self._ext_movement:action_request({type = "stand", body_part = 4})
 	end
 end
 function CopActionWalk:haste()

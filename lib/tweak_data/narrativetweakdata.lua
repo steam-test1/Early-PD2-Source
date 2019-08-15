@@ -145,6 +145,20 @@ function NarrativeTweakData:init()
 	self.JC_CHANCE = 0.01
 	self.JC_PICKS = 35
 	self.CONTRACT_COOLDOWN_TIME = 300
+	self.HEAT_OTHER_JOBS_RATIO = 0.4
+	self.ABSOLUTE_ZERO_JOBS_HEATS_OTHERS = false
+	self.HEATED_MAX_XP_MUL = 1.5
+	self.FREEZING_MAX_XP_MUL = 0
+	self.DEFAULT_HEAT = {this_job = -25, other_jobs = 10}
+	self.MAX_JOBS_IN_CONTAINERS = {
+		6,
+		18,
+		24,
+		false,
+		12,
+		4,
+		1
+	}
 	self.contacts = {}
 	self.contacts.dallas = {}
 	self.contacts.dallas.name_id = "heist_contact_dallas"
@@ -223,8 +237,10 @@ function NarrativeTweakData:init()
 		70000,
 		95000,
 		125000,
-		200000
+		200000,
+		250000
 	}
+	self.jobs.firestarter.heat = {this_job = -25, other_jobs = 25}
 	self.jobs.firestarter_prof = deep_clone(self.jobs.firestarter)
 	self.jobs.firestarter_prof.jc = 70
 	self.jobs.firestarter_prof.professional = true
@@ -233,8 +249,10 @@ function NarrativeTweakData:init()
 		80000,
 		110000,
 		160000,
-		250000
+		250000,
+		300000
 	}
+	self.jobs.firestarter_prof.heat = {this_job = -25, other_jobs = 30}
 	self.jobs.alex = {}
 	self.jobs.alex.name_id = "heist_alex"
 	self.jobs.alex.briefing_id = "heist_alex_crimenet"
@@ -273,14 +291,17 @@ function NarrativeTweakData:init()
 		10000,
 		15000,
 		20000,
-		30000
+		30000,
+		50000
 	}
 	self.jobs.alex.contract_cost = {
 		121000,
 		170000,
 		250000,
-		500000
+		500000,
+		600000
 	}
+	self.jobs.alex.heat = {this_job = -35, other_jobs = 10}
 	self.jobs.alex_prof = deep_clone(self.jobs.alex)
 	self.jobs.alex_prof.jc = 70
 	self.jobs.alex_prof.professional = true
@@ -289,14 +310,17 @@ function NarrativeTweakData:init()
 		10000,
 		15000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.alex_prof.contract_cost = {
 		131000,
 		188000,
-		263000,
-		530000
+		264000,
+		530000,
+		700000
 	}
+	self.jobs.alex_prof.heat = {this_job = -35, other_jobs = 10}
 	self.jobs.welcome_to_the_jungle = {}
 	self.jobs.welcome_to_the_jungle.name_id = "heist_welcome_to_the_jungle"
 	self.jobs.welcome_to_the_jungle.briefing_id = "heist_welcome_to_the_jungle_crimenet"
@@ -332,14 +356,17 @@ function NarrativeTweakData:init()
 		200000,
 		275000,
 		400000,
-		500000
+		500000,
+		800000
 	}
 	self.jobs.welcome_to_the_jungle.contract_cost = {
 		20000,
 		36000,
 		50000,
-		90000
+		90000,
+		150000
 	}
+	self.jobs.welcome_to_the_jungle.heat = {this_job = -25, other_jobs = 30}
 	self.jobs.welcome_to_the_jungle_prof = deep_clone(self.jobs.welcome_to_the_jungle)
 	self.jobs.welcome_to_the_jungle_prof.jc = 70
 	self.jobs.welcome_to_the_jungle_prof.professional = true
@@ -348,14 +375,17 @@ function NarrativeTweakData:init()
 		250000,
 		300000,
 		450000,
-		550000
+		550000,
+		850000
 	}
 	self.jobs.welcome_to_the_jungle_prof.contract_cost = {
 		-100000,
 		-300000,
 		-550000,
-		-850000
+		-850000,
+		-1200000
 	}
+	self.jobs.welcome_to_the_jungle_prof.heat = {this_job = -25, other_jobs = 30}
 	self.jobs.framing_frame = {}
 	self.jobs.framing_frame.name_id = "heist_framing_frame"
 	self.jobs.framing_frame.briefing_id = "heist_framing_frame_crimenet"
@@ -397,8 +427,10 @@ function NarrativeTweakData:init()
 		60000,
 		75000,
 		125000,
-		185000
+		185000,
+		270000
 	}
+	self.jobs.framing_frame.heat = {this_job = -25, other_jobs = 25}
 	self.jobs.framing_frame_prof = deep_clone(self.jobs.framing_frame)
 	self.jobs.framing_frame_prof.jc = 60
 	self.jobs.framing_frame_prof.professional = true
@@ -407,8 +439,10 @@ function NarrativeTweakData:init()
 		80000,
 		100000,
 		150000,
-		200000
+		200000,
+		300000
 	}
+	self.jobs.framing_frame_prof.heat = {this_job = -25, other_jobs = 30}
 	self.jobs.watchdogs = {}
 	self.jobs.watchdogs.name_id = "heist_watchdogs"
 	self.jobs.watchdogs.briefing_id = "heist_watchdogs_crimenet"
@@ -443,8 +477,10 @@ function NarrativeTweakData:init()
 		60000,
 		74000,
 		125000,
-		185000
+		185000,
+		260000
 	}
+	self.jobs.watchdogs.heat = {this_job = -25, other_jobs = 15}
 	self.jobs.watchdogs_prof = deep_clone(self.jobs.watchdogs)
 	self.jobs.watchdogs_prof.jc = 60
 	self.jobs.watchdogs_prof.professional = true
@@ -452,8 +488,10 @@ function NarrativeTweakData:init()
 		75000,
 		85000,
 		150000,
-		200000
+		200000,
+		290000
 	}
+	self.jobs.watchdogs_prof.heat = {this_job = -25, other_jobs = 20}
 	self.jobs.nightclub = {}
 	self.jobs.nightclub.name_id = "heist_nightclub"
 	self.jobs.nightclub.briefing_id = "heist_nightclub_crimenet"
@@ -483,7 +521,8 @@ function NarrativeTweakData:init()
 		20000,
 		22500,
 		40000,
-		60000
+		60000,
+		80000
 	}
 	self.jobs.nightclub_prof = deep_clone(self.jobs.nightclub)
 	self.jobs.nightclub_prof.jc = 40
@@ -493,7 +532,8 @@ function NarrativeTweakData:init()
 		20000,
 		40000,
 		60000,
-		80000
+		80000,
+		95000
 	}
 	self.jobs.ukrainian_job = {}
 	self.jobs.ukrainian_job.name_id = "heist_ukrainian_job"
@@ -525,8 +565,10 @@ function NarrativeTweakData:init()
 		20000,
 		21000,
 		23000,
-		25000
+		25000,
+		30000
 	}
+	self.jobs.ukrainian_job.heat = {this_job = -30, other_jobs = 10}
 	self.jobs.ukrainian_job_prof = deep_clone(self.jobs.ukrainian_job)
 	self.jobs.ukrainian_job_prof.jc = 30
 	self.jobs.ukrainian_job_prof.professional = true
@@ -535,8 +577,10 @@ function NarrativeTweakData:init()
 		21000,
 		24000,
 		26000,
-		30000
+		30000,
+		40000
 	}
+	self.jobs.ukrainian_job_prof.heat = {this_job = -30, other_jobs = 10}
 	self.jobs.jewelry_store = {}
 	self.jobs.jewelry_store.name_id = "heist_jewelry_store"
 	self.jobs.jewelry_store.briefing_id = "heist_jewelry_store_crimenet"
@@ -566,7 +610,8 @@ function NarrativeTweakData:init()
 		6000,
 		12000,
 		30000,
-		50000
+		50000,
+		60000
 	}
 	self.jobs.jewelry_store_prof = deep_clone(self.jobs.jewelry_store)
 	self.jobs.jewelry_store_prof.jc = 20
@@ -576,7 +621,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		38000,
-		50000
+		50000,
+		70000
 	}
 	self.jobs.four_stores = {}
 	self.jobs.four_stores.name_id = "heist_four_stores"
@@ -607,7 +653,8 @@ function NarrativeTweakData:init()
 		15000,
 		25000,
 		40000,
-		60000
+		60000,
+		72000
 	}
 	self.jobs.four_stores_prof = deep_clone(self.jobs.four_stores)
 	self.jobs.four_stores_prof.jc = 20
@@ -617,7 +664,8 @@ function NarrativeTweakData:init()
 		24000,
 		38000,
 		46000,
-		70000
+		70000,
+		80000
 	}
 	self.jobs.mallcrasher = {}
 	self.jobs.mallcrasher.name_id = "heist_mallcrasher"
@@ -648,7 +696,8 @@ function NarrativeTweakData:init()
 		35000,
 		40000,
 		50000,
-		60000
+		60000,
+		70000
 	}
 	self.jobs.mallcrasher_prof = deep_clone(self.jobs.mallcrasher)
 	self.jobs.mallcrasher_prof.jc = 30
@@ -658,7 +707,8 @@ function NarrativeTweakData:init()
 		40000,
 		46000,
 		56000,
-		68000
+		68000,
+		79000
 	}
 	self.jobs.branchbank = {}
 	self.jobs.branchbank.name_id = "heist_branchbank"
@@ -695,7 +745,8 @@ function NarrativeTweakData:init()
 		20000,
 		30000,
 		40000,
-		70000
+		70000,
+		80000
 	}
 	self.jobs.branchbank_prof = deep_clone(self.jobs.branchbank)
 	self.jobs.branchbank_prof.jc = 50
@@ -705,7 +756,8 @@ function NarrativeTweakData:init()
 		26000,
 		40000,
 		48000,
-		70000
+		70000,
+		85000
 	}
 	self.jobs.branchbank_deposit = {}
 	self.jobs.branchbank_deposit.name_id = "heist_branchbank_deposit"
@@ -743,7 +795,8 @@ function NarrativeTweakData:init()
 		30000,
 		35000,
 		44000,
-		68000
+		68000,
+		76000
 	}
 	self.jobs.branchbank_deposit_prof = deep_clone(self.jobs.branchbank_deposit)
 	self.jobs.branchbank_deposit_prof.jc = 40
@@ -753,7 +806,8 @@ function NarrativeTweakData:init()
 		36000,
 		40000,
 		54000,
-		76000
+		76000,
+		86000
 	}
 	self.jobs.branchbank_cash = {}
 	self.jobs.branchbank_cash.name_id = "heist_branchbank_cash"
@@ -792,7 +846,8 @@ function NarrativeTweakData:init()
 		10000,
 		15000,
 		40000,
-		60000
+		60000,
+		75000
 	}
 	self.jobs.branchbank_cash_prof = deep_clone(self.jobs.branchbank_cash)
 	self.jobs.branchbank_cash_prof.jc = 40
@@ -802,7 +857,8 @@ function NarrativeTweakData:init()
 		26000,
 		40000,
 		44000,
-		68000
+		68000,
+		80000
 	}
 	self.jobs.branchbank_gold = {}
 	self.jobs.branchbank_gold.name_id = "heist_branchbank_gold"
@@ -841,7 +897,8 @@ function NarrativeTweakData:init()
 		20000,
 		25000,
 		50000,
-		75000
+		75000,
+		85000
 	}
 	self.jobs.branchbank_gold_prof = deep_clone(self.jobs.branchbank_gold)
 	self.jobs.branchbank_gold_prof.jc = 30
@@ -851,7 +908,8 @@ function NarrativeTweakData:init()
 		26000,
 		40000,
 		54000,
-		76000
+		76000,
+		90000
 	}
 	self.jobs.election_day = {}
 	self.jobs.election_day.name_id = "heist_election_day"
@@ -908,7 +966,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		50000
 	}
 	self.jobs.election_day_prof = deep_clone(self.jobs.election_day)
 	self.jobs.election_day_prof.jc = 60
@@ -918,7 +977,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		50000
 	}
 	self.jobs.safehouse = {}
 	self.jobs.safehouse.name_id = "heist_safehouse"
@@ -964,7 +1024,8 @@ function NarrativeTweakData:init()
 		8500,
 		11000,
 		30000,
-		32000
+		32000,
+		44000
 	}
 	self.jobs.arm_cro = {}
 	self.jobs.arm_cro.name_id = "heist_arm_cro"
@@ -994,7 +1055,8 @@ function NarrativeTweakData:init()
 		30500,
 		34000,
 		50000,
-		62000
+		62000,
+		74000
 	}
 	self.jobs.arm_cro.dlc = "armored_transport"
 	self.jobs.arm_cro.spawn_chance_multiplier = 0.5
@@ -1030,7 +1092,8 @@ function NarrativeTweakData:init()
 		27500,
 		31000,
 		48000,
-		53000
+		53000,
+		66600
 	}
 	self.jobs.arm_und.dlc = "armored_transport"
 	self.jobs.arm_und.spawn_chance_multiplier = 0.5
@@ -1068,7 +1131,8 @@ function NarrativeTweakData:init()
 		28500,
 		33000,
 		54000,
-		60000
+		60000,
+		70000
 	}
 	self.jobs.arm_bri.dlc = "armored_transport"
 	self.jobs.arm_bri.spawn_chance_multiplier = 0.5
@@ -1104,7 +1168,8 @@ function NarrativeTweakData:init()
 		26500,
 		31000,
 		50000,
-		52000
+		52000,
+		64000
 	}
 	self.jobs.arm_hcm.dlc = "armored_transport"
 	self.jobs.arm_hcm.spawn_chance_multiplier = 0.5
@@ -1140,7 +1205,8 @@ function NarrativeTweakData:init()
 		28500,
 		31000,
 		40000,
-		43000
+		43000,
+		56000
 	}
 	self.jobs.arm_par.dlc = "armored_transport"
 	self.jobs.arm_par.spawn_chance_multiplier = 0.5
@@ -1176,7 +1242,8 @@ function NarrativeTweakData:init()
 		22500,
 		29000,
 		40000,
-		42000
+		42000,
+		54000
 	}
 	self.jobs.arm_fac.dlc = "armored_transport"
 	self.jobs.arm_fac.spawn_chance_multiplier = 0.5
@@ -1215,13 +1282,16 @@ function NarrativeTweakData:init()
 		40,
 		56,
 		80,
-		100
+		100,
+		200
 	}
 	self.jobs.arm_for.dlc = "armored_transport"
+	self.jobs.arm_for.heat = {this_job = -20, other_jobs = 30}
 	self.jobs.arm_for_prof = deep_clone(self.jobs.arm_for)
 	self.jobs.arm_for_prof.jc = 40
 	self.jobs.arm_for_prof.professional = true
 	self.jobs.arm_for_prof.region = "professional"
+	self.jobs.arm_for_prof.heat = {this_job = -20, other_jobs = 40}
 	self.jobs.family = {}
 	self.jobs.family.name_id = "heist_family"
 	self.jobs.family.briefing_id = "heist_family_crimenet"
@@ -1251,7 +1321,8 @@ function NarrativeTweakData:init()
 		37000,
 		43000,
 		60000,
-		70000
+		70000,
+		81000
 	}
 	self.jobs.family_prof = deep_clone(self.jobs.family)
 	self.jobs.family_prof.jc = 40
@@ -1261,7 +1332,8 @@ function NarrativeTweakData:init()
 		40000,
 		44000,
 		62000,
-		70000
+		70000,
+		85000
 	}
 	self.jobs.on_time = {}
 	self.jobs.on_time.name_id = "heist_on_time"
@@ -1297,7 +1369,8 @@ function NarrativeTweakData:init()
 		20000,
 		24000,
 		35000,
-		50000
+		50000,
+		100000
 	}
 	self.jobs.on_time_prof = deep_clone(self.jobs.on_time)
 	self.jobs.on_time_prof.jc = 60
@@ -1306,7 +1379,8 @@ function NarrativeTweakData:init()
 		30000,
 		35000,
 		40000,
-		65000
+		65000,
+		130000
 	}
 	self.jobs.big = {}
 	self.jobs.big.name_id = "heist_big"
@@ -1337,7 +1411,8 @@ function NarrativeTweakData:init()
 		37000,
 		43000,
 		60000,
-		70000
+		70000,
+		140000
 	}
 	self.jobs.big_prof = deep_clone(self.jobs.big)
 	self.jobs.big_prof.jc = 40
@@ -1347,7 +1422,8 @@ function NarrativeTweakData:init()
 		40000,
 		44000,
 		62000,
-		70000
+		70000,
+		140000
 	}
 	self.jobs.roberts = {}
 	self.jobs.roberts.name_id = "heist_roberts"
@@ -1378,7 +1454,8 @@ function NarrativeTweakData:init()
 		26000,
 		37000,
 		81000,
-		101000
+		101000,
+		202000
 	}
 	self.jobs.roberts_prof = deep_clone(self.jobs.roberts)
 	self.jobs.roberts_prof.jc = 40
@@ -1388,7 +1465,8 @@ function NarrativeTweakData:init()
 		40000,
 		44000,
 		62000,
-		70000
+		70000,
+		140000
 	}
 	self.jobs.haunted = {}
 	self.jobs.haunted.name_id = "heist_haunted"
@@ -1414,7 +1492,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.haunted_prof = deep_clone(self.jobs.haunted)
 	self.jobs.haunted_prof.jc = 40
@@ -1424,7 +1503,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.heat = {}
 	self.jobs.heat.name_id = "heist_heat"
@@ -1450,7 +1530,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.haunted_prof = deep_clone(self.jobs.haunted)
 	self.jobs.haunted_prof.jc = 40
@@ -1460,7 +1541,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.monolithic = {}
 	self.jobs.monolithic.name_id = "heist_monolithic_1"
@@ -1486,7 +1568,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.monolithic_prof = deep_clone(self.jobs.monolithic)
 	self.jobs.monolithic_prof.jc = 40
@@ -1496,7 +1579,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.blueharvest = {}
 	self.jobs.blueharvest.name_id = "heist_blueharvest"
@@ -1505,6 +1589,11 @@ function NarrativeTweakData:init()
 	self.jobs.blueharvest.region = "street"
 	self.jobs.blueharvest.jc = 10
 	self.jobs.blueharvest.chain = {
+		{
+			level_id = "blueharvest_1",
+			type_id = "heist_type_assault",
+			type = "d"
+		},
 		{
 			level_id = "blueharvest_2",
 			type_id = "heist_type_assault",
@@ -1522,7 +1611,8 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
 	}
 	self.jobs.blueharvest_prof = deep_clone(self.jobs.blueharvest)
 	self.jobs.blueharvest_prof.jc = 40
@@ -1532,7 +1622,40 @@ function NarrativeTweakData:init()
 		10000,
 		20000,
 		30000,
-		40000
+		40000,
+		80000
+	}
+	self.jobs.escape_hell = {}
+	self.jobs.escape_hell.name_id = "heist_escape_hell"
+	self.jobs.escape_hell.briefing_id = "heist_escape_hell_crimenet"
+	self.jobs.escape_hell.contact = "bain"
+	self.jobs.escape_hell.region = "street"
+	self.jobs.escape_hell.jc = 40
+	self.jobs.escape_hell.chain = {
+		{
+			level_id = "escape_hell",
+			type_id = "heist_type_assault",
+			type = "d"
+		}
+	}
+	self.jobs.escape_hell.briefing_event = "pln_fj1_cbf_01"
+	self.jobs.escape_hell.debrief_event = nil
+	self.jobs.escape_hell.crimenet_callouts = {
+		"pln_fj1_cnc_01_01",
+		"pln_fj1_cnc_01_02",
+		"pln_fj1_cnc_01_03"
+	}
+	self.jobs.escape_hell.crimenet_videos = {
+		"cn_jewel1",
+		"cn_jewel2",
+		"cn_jewel3"
+	}
+	self.jobs.escape_hell.payout = {
+		37000,
+		43000,
+		60000,
+		70000,
+		80000
 	}
 	self.jobs.branchbank_cloaker = {}
 	self.jobs.branchbank_cloaker.name_id = "heist_cloak"
@@ -1571,7 +1694,8 @@ function NarrativeTweakData:init()
 		10000,
 		15000,
 		40000,
-		60000
+		60000,
+		120000
 	}
 	self.jobs.escape_chain_test = {}
 	self.jobs.escape_chain_test.name_id = "heist_escape_chain_test"

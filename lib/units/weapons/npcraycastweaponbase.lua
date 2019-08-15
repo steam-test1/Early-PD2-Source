@@ -67,6 +67,9 @@ function NPCRaycastWeaponBase:init(unit)
 		self._flashlight_data.light:set_spot_angle_end(25)
 		self._flashlight_data.light:set_multiplier(2)
 	end
+	if tweak_data.weapon[self._name_id].has_suppressor then
+		self._sound_fire:set_switch("suppressed", tweak_data.weapon[self._name_id].has_suppressor)
+	end
 end
 function NPCRaycastWeaponBase:setup(setup_data)
 	self._autoaim = setup_data.autoaim

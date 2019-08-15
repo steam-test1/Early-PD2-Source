@@ -238,10 +238,10 @@ function SkillTreeManager:_unlock(tree, skill_id)
 	local skill = tweak_data.skills.definitions[skill_id]
 	self:_aquire_skill(skill, skill_id)
 end
-function SkillTreeManager:_aquire_skill(skill, skill_id)
+function SkillTreeManager:_aquire_skill(skill, skill_id, loading)
 	if skill.upgrades then
 		for _, upgrade in ipairs(skill.upgrades) do
-			managers.upgrades:aquire(upgrade)
+			managers.upgrades:aquire(upgrade, loading)
 		end
 	end
 end
@@ -396,7 +396,7 @@ function SkillTreeManager:load(data, version)
 		self._global.VERSION = state.VERSION
 		self._global.reset_message = state.reset_message
 		self._global.times_respeced = state.times_respeced
-		if not self._global.VERSION or self._global.VERSION < SkillTreeManager.VERSION then
+		if not self._global.VERSION or self._global.VERSION ~= SkillTreeManager.VERSION then
 			managers.savefile:add_load_done_callback(callback(self, self, "reset_skilltrees"))
 		end
 	end
@@ -407,6 +407,11 @@ function SkillTreeManager:_verify_loaded_data(points_aquired_during_load)
 	local points = self:points()
 	for tree_id, data in pairs(clone(self._global.trees)) do
 		points = points + Application:digest_value(data.points_spent, false)
+	end
+	local unlocked = self:trees_unlocked()
+	while unlocked > 0 do
+		points = points + Application:digest_value(tweak_data.skilltree.unlock_tree_cost[unlocked], false)
+		unlocked = unlocked - 1
 	end
 	if assumed_points > points then
 		self:_set_points(self:points() + (assumed_points - points))
@@ -423,14 +428,14 @@ function SkillTreeManager:_verify_loaded_data(points_aquired_during_load)
 			local skill = tweak_data.skilltree.skills[skill_id]
 			local skill_data = self._global.skills[skill_id]
 			for i = 1, skill_data.unlocked do
-				self:_aquire_skill(skill[i], skill_id)
+				self:_aquire_skill(skill[i], skill_id, true)
 			end
 			for tier, skills in pairs(tweak_data.skilltree.trees[tree_id].tiers) do
 				for _, skill_id in ipairs(skills) do
 					local skill = tweak_data.skilltree.skills[skill_id]
 					local skill_data = self._global.skills[skill_id]
 					for i = 1, skill_data.unlocked do
-						self:_aquire_skill(skill[i], skill_id)
+						self:_aquire_skill(skill[i], skill_id, true)
 					end
 				end
 			end

@@ -25,10 +25,8 @@ function CopLogicIdle.enter(data, new_logic_name, enter_params)
 	else
 		my_data.detection = data.char_tweak.detection.idle
 	end
-	my_data.rsrv_pos = {}
 	local old_internal_data = data.internal_data
 	if old_internal_data then
-		my_data.rsrv_pos = old_internal_data.rsrv_pos or my_data.rsrv_pos
 		my_data.turning = old_internal_data.turning
 		if old_internal_data.firing then
 			data.unit:movement():set_allow_fire(false)
@@ -48,15 +46,6 @@ function CopLogicIdle.enter(data, new_logic_name, enter_params)
 		end
 	end
 	data.internal_data = my_data
-	if not my_data.rsrv_pos.stand then
-		local pos_rsrv = {
-			position = mvector3.copy(data.m_pos),
-			radius = 30,
-			filter = data.pos_rsrv_id
-		}
-		my_data.rsrv_pos.stand = pos_rsrv
-		managers.navigation:add_pos_reservation(pos_rsrv)
-	end
 	local key_str = tostring(data.unit:key())
 	my_data.detection_task_key = "CopLogicIdle.update" .. key_str
 	CopLogicBase.queue_task(my_data, my_data.detection_task_key, CopLogicIdle.queued_update, data, data.t)
@@ -89,6 +78,10 @@ function CopLogicIdle.enter(data, new_logic_name, enter_params)
 	end
 	my_data.weapon_range = data.char_tweak.weapon[data.unit:inventory():equipped_unit():base():weapon_tweak_data().usage].range
 	data.unit:brain():set_update_enabled_state(false)
+	CopLogicIdle._perform_objective_action(data, my_data, objective)
+	if my_data ~= data.internal_data then
+		return
+	end
 end
 function CopLogicIdle.exit(data, new_logic_name, enter_params)
 	CopLogicBase.exit(data, new_logic_name, enter_params)
@@ -102,15 +95,7 @@ function CopLogicIdle.exit(data, new_logic_name, enter_params)
 	if my_data.nearest_cover then
 		managers.navigation:release_cover(my_data.nearest_cover[1])
 	end
-	local rsrv_pos = my_data.rsrv_pos
-	if rsrv_pos.path then
-		managers.navigation:unreserve_pos(rsrv_pos.path)
-		rsrv_pos.path = nil
-	end
-	if rsrv_pos.move_dest then
-		managers.navigation:unreserve_pos(rsrv_pos.move_dest)
-		rsrv_pos.move_dest = nil
-	end
+	data.brain:rem_pos_rsrv("path")
 end
 function CopLogicIdle.queued_update(data)
 	local my_data = data.internal_data
@@ -1068,8 +1053,12 @@ function CopLogicIdle._upd_stance_and_pose(data, my_data, objective)
 	end
 end
 function CopLogicIdle._perform_objective_action(data, my_data, objective)
-	if objective and objective.action and not my_data.action_started and (data.unit:anim_data().act_idle or not data.unit:movement():chk_action_forbidden("action")) then
-		my_data.action_started = data.unit:brain():action_request(objective.action)
+	if objective and not my_data.action_started and (data.unit:anim_data().act_idle or not data.unit:movement():chk_action_forbidden("action")) then
+		if objective.action then
+			my_data.action_started = data.unit:brain():action_request(objective.action)
+		else
+			my_data.action_started = true
+		end
 		if my_data.action_started then
 			if objective.action_duration then
 				my_data.action_timeout_clbk_id = "CopLogicIdle_action_timeout" .. tostring(data.key)
@@ -1094,7 +1083,7 @@ function CopLogicIdle._upd_stop_old_action(data, my_data, objective)
 			end
 		elseif not data.unit:movement():chk_action_forbidden("idle") and data.unit:anim_data().needs_idle then
 			CopLogicIdle._start_idle_action_from_act(data)
-		elseif data.unit:anim_data().idle then
+		elseif data.unit:anim_data().act_idle then
 			data.unit:brain():action_request({
 				type = "idle",
 				body_part = 2,
@@ -1106,11 +1095,9 @@ function CopLogicIdle._upd_stop_old_action(data, my_data, objective)
 end
 function CopLogicIdle._chk_has_old_action(data, my_data)
 	local anim_data = data.unit:anim_data()
-	my_data.has_old_action = not anim_data.to_idle and anim_data.act and not anim_data.act_idle
-	if not my_data.has_old_action then
-		local lower_body_action = data.unit:movement()._active_actions[2]
-		my_data.advancing = lower_body_action and lower_body_action:type() == "walk" and lower_body_action
-	end
+	my_data.has_old_action = anim_data.to_idle or anim_data.act
+	local lower_body_action = data.unit:movement()._active_actions[2]
+	my_data.advancing = lower_body_action and lower_body_action:type() == "walk" and lower_body_action
 end
 function CopLogicIdle._start_idle_action_from_act(data)
 	data.unit:brain():action_request({

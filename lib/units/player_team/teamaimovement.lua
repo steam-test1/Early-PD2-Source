@@ -21,7 +21,10 @@ function TeamAIMovement:set_character_anim_variables()
 	if char_name and self._unit:damage() then
 		local ai_character_id = managers.criminals:character_static_data_by_name(char_name).ai_character_id
 		local sequence = tweak_data.blackmarket.characters[ai_character_id].sequence
-		self._unit:damage():run_sequence_simple(sequence)
+		if sequence ~= self._current_sequence then
+			self._unit:damage():run_sequence_simple(sequence)
+			self._current_sequence = sequence
+		end
 		self._unit:contour():update_materials()
 	end
 	HuskPlayerMovement.set_character_anim_variables(self)
@@ -57,10 +60,8 @@ function TeamAIMovement:on_cuffed()
 	self._unit:network():send("arrested")
 	self._unit:character_damage():on_arrested()
 end
-function TeamAIMovement:on_SPOOCed()
-	self._unit:brain():set_logic("surrender")
-	self._unit:network():send("arrested")
-	self._unit:character_damage():on_arrested()
+function TeamAIMovement:on_SPOOCed(enemy_unit)
+	self._unit:character_damage():on_incapacitated()
 end
 function TeamAIMovement:on_discovered()
 	if self._cool then

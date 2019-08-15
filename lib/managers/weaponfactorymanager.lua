@@ -76,7 +76,7 @@ function WeaponFactoryManager:get_factory_id_by_weapon_id(weapon_id)
 	return upgrade.factory_id
 end
 function WeaponFactoryManager:get_default_blueprint_by_factory_id(factory_id)
-	return tweak_data.weapon.factory[factory_id].default_blueprint
+	return tweak_data.weapon.factory[factory_id] and tweak_data.weapon.factory[factory_id].default_blueprint or {}
 end
 function WeaponFactoryManager:create_limited_blueprints(factory_id)
 	local i_table = self:_indexed_parts(factory_id)
@@ -189,6 +189,7 @@ function WeaponFactoryManager:_preload_part(factory_id, part_id, forbidden, over
 	end
 	local factory = tweak_data.weapon.factory
 	local part = self:_part_data(part_id, factory_id, override)
+	local original_part = factory.parts[part_id] or part
 	if factory[factory_id].adds and factory[factory_id].adds[part_id] then
 		for _, add_id in ipairs(factory[factory_id].adds[part_id]) do
 			self:_preload_part(factory_id, add_id, forbidden, override, parts, third_person, need_parent, only_record)
@@ -214,8 +215,10 @@ function WeaponFactoryManager:_preload_part(factory_id, part_id, forbidden, over
 	end
 	local unit_name = third_person and part.third_unit or part.unit
 	local ids_unit_name = Idstring(unit_name)
+	local original_unit_name = third_person and original_part.third_unit or original_part.unit
+	local ids_orig_unit_name = Idstring(original_unit_name)
 	local package
-	if not third_person then
+	if not third_person and ids_unit_name == ids_orig_unit_name then
 		package = "packages/fps_weapon_parts/" .. part_id
 		if DB:has(Idstring("package"), Idstring(package)) then
 			parts[part_id] = {package = package}
@@ -226,6 +229,7 @@ function WeaponFactoryManager:_preload_part(factory_id, part_id, forbidden, over
 			Application:error("Expected weapon part packages for", part_id)
 			package = nil
 		end
+	else
 	end
 	if not package then
 		parts[part_id] = {
@@ -259,11 +263,18 @@ end
 function WeaponFactoryManager:_get_forbidden_parts(factory_id, blueprint)
 	local factory = tweak_data.weapon.factory
 	local forbidden = {}
+	local override = self:_get_override_parts(factory_id, blueprint)
 	for _, part_id in ipairs(blueprint) do
-		local part = self:_part_data(part_id, factory_id)
+		local part = self:_part_data(part_id, factory_id, override)
 		if part.forbids then
 			for _, forbidden_id in ipairs(part.forbids) do
-				forbidden[forbidden_id] = true
+				forbidden[forbidden_id] = part_id
+			end
+		end
+		if part.adds then
+			local add_forbidden = self:_get_forbidden_parts(factory_id, part.adds)
+			for forbidden_id, part_id in pairs(add_forbidden) do
+				forbidden[forbidden_id] = part_id
 			end
 		end
 	end
@@ -395,6 +406,7 @@ function WeaponFactoryManager:_add_part(p_unit, factory_id, part_id, forbidden, 
 			package = nil
 		end
 	end
+	print(package, ids_unit, ids_unit_name)
 	if not package then
 		managers.dyn_resource:load(ids_unit, ids_unit_name, "packages/dyn_resources", false)
 	end
@@ -464,6 +476,15 @@ function WeaponFactoryManager:get_part_from_weapon_by_type(type, parts)
 	end
 	return false
 end
+function WeaponFactoryManager:get_part_data_type_from_weapon_by_type(type, data_type, parts)
+	local factory = tweak_data.weapon.factory
+	for id, data in pairs(parts) do
+		if factory.parts[id].type == type then
+			return factory.parts[id][data_type]
+		end
+	end
+	return false
+end
 function WeaponFactoryManager:has_weapon_more_than_default_parts(factory_id)
 	local weapon_tweak = tweak_data.weapon.factory[factory_id]
 	return #weapon_tweak.uses_parts > #weapon_tweak.default_blueprint
@@ -519,7 +540,7 @@ function WeaponFactoryManager:remove_part_from_blueprint(part_id, blueprint)
 	end
 	table.delete(blueprint, part_id)
 end
-function WeaponFactoryManager:change_part_blueprint_only(factory_id, part_id, blueprint)
+function WeaponFactoryManager:change_part_blueprint_only(factory_id, part_id, blueprint, remove_part)
 	local factory = tweak_data.weapon.factory
 	local part = factory.parts[part_id]
 	if not part then
@@ -535,7 +556,11 @@ function WeaponFactoryManager:change_part_blueprint_only(factory_id, part_id, bl
 				else
 				end
 			end
-			table.insert(blueprint, part_id)
+			if remove_part then
+				table.delete(blueprint, part_id)
+			else
+				table.insert(blueprint, part_id)
+			end
 			local forbidden = WeaponFactoryManager:_get_forbidden_parts(factory_id, blueprint) or {}
 			for _, rem_id in ipairs(blueprint) do
 				if forbidden[rem_id] then
@@ -551,7 +576,7 @@ function WeaponFactoryManager:change_part_blueprint_only(factory_id, part_id, bl
 	end
 	return false
 end
-function WeaponFactoryManager:get_replaces_parts(factory_id, part_id, blueprint)
+function WeaponFactoryManager:get_replaces_parts(factory_id, part_id, blueprint, remove_part)
 	local factory = tweak_data.weapon.factory
 	local part = factory.parts[part_id]
 	if not part then
@@ -576,7 +601,7 @@ function WeaponFactoryManager:get_replaces_parts(factory_id, part_id, blueprint)
 	end
 	return replaces
 end
-function WeaponFactoryManager:get_removes_parts(factory_id, part_id, blueprint)
+function WeaponFactoryManager:get_removes_parts(factory_id, part_id, blueprint, remove_part)
 	local factory = tweak_data.weapon.factory
 	local part = factory.parts[part_id]
 	if not part then
@@ -584,28 +609,26 @@ function WeaponFactoryManager:get_removes_parts(factory_id, part_id, blueprint)
 		return nil
 	end
 	local removes = {}
-	for _, b_id in ipairs(blueprint) do
-		if part.forbids and table.contains(part.forbids, b_id) then
-			table.insert(removes, b_id)
+	local new_blueprint = deep_clone(blueprint)
+	self:change_part_blueprint_only(factory_id, part_id, new_blueprint, remove_part)
+	for i, b_id in ipairs(blueprint) do
+		if not table.contains(new_blueprint, b_id) then
+			local b_part = factory.parts[b_id]
+			if b_part and part and b_part.type ~= part.type then
+				table.insert(removes, b_id)
+			end
 		end
 	end
 	return removes
 end
 function WeaponFactoryManager:can_add_part(factory_id, part_id, blueprint)
-	local factory = tweak_data.weapon.factory
-	local part = factory.parts[part_id]
-	if not part then
-		Application:error("WeaponFactoryManager:can_add_part Part", part_id, " doesn't exist!")
-		return nil
-	end
-	local forbids = {}
-	for _, b_id in ipairs(blueprint) do
-		local part = factory.parts[b_id]
-		if part.forbids and table.contains(part.forbids, part_id) then
-			table.insert(forbids, b_id)
+	local forbidden = self:_get_forbidden_parts(factory_id, blueprint)
+	for forbid_part_id, forbidder_part_id in pairs(forbidden) do
+		if forbid_part_id == part_id then
+			return forbidder_part_id
 		end
 	end
-	return forbids
+	return nil
 end
 function WeaponFactoryManager:remove_part(p_unit, factory_id, part_id, parts, blueprint)
 	local factory = tweak_data.weapon.factory

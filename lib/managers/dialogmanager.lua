@@ -1,11 +1,11 @@
 DialogManager = DialogManager or class()
 function DialogManager:init()
+	self._dialog_list = {}
 	self._current_dialog = nil
 	self._next_dialog = nil
 	self._bain_unit = World:spawn_unit(Idstring("units/payday2/characters/fps_mover/bain"), Vector3(), Rotation())
 end
 function DialogManager:init_finalize()
-	self._dialog_list = {}
 	self:_load_dialogs()
 end
 function DialogManager:queue_dialog(id, params)

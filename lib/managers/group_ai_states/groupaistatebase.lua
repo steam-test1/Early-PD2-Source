@@ -88,7 +88,8 @@ GroupAIStateBase.BLAME_SYNC = {
 }
 GroupAIStateBase.EVENT_SYNC = {
 	"police_called",
-	"enemy_weapons_hot"
+	"enemy_weapons_hot",
+	"cloaker_spawned"
 }
 function GroupAIStateBase:init()
 	self:_init_misc_data()
@@ -180,6 +181,14 @@ function GroupAIStateBase:set_AI_enabled(state)
 		end
 		self._editor_sim_rem_units = nil
 	end
+	if not state then
+		local all_deployed_equipment = World:find_units_quick("all", 14)
+		for _, unit in ipairs(all_deployed_equipment) do
+			if alive(unit) then
+				World:delete_unit(unit)
+			end
+		end
+	end
 end
 function GroupAIStateBase:_init_misc_data()
 	self._t = TimerManager:game():time()
@@ -246,10 +255,10 @@ function GroupAIStateBase:_init_misc_data()
 	self._hostage_keys = {}
 	self._enemy_chatter = {}
 	self._teamAI_last_combat_chatter_t = 0
+	self:set_difficulty(0)
 	self:_set_rescue_state(true)
 	self._criminal_AI_respawn_clbks = {}
 	self._listener_holder = EventListenerHolder:new()
-	self:set_difficulty(0)
 	self:set_drama_draw_state(Global.drama_draw_state)
 	self._alert_listeners = {}
 	self:_init_unit_type_filters()
@@ -736,7 +745,7 @@ function GroupAIStateBase:_get_spawn_unit_name(weights, wanted_access_type)
 		if suitable and cat_data.max_amount then
 			local special_type = cat_data.special_type
 			local nr_active = self._special_units[special_type] and table.size(self._special_units[special_type]) or 0
-			if nr_active >= cat_data.max_amount then
+			if nr_active >= tweak_data.group_ai.special_unit_spawn_limits[special_type] then
 				suitable = false
 			end
 		end
@@ -915,6 +924,7 @@ function GroupAIStateBase:on_simulation_started()
 	self._police = managers.enemy:all_enemies()
 	self._police_force = table.size(self._police)
 	self._converted_police = {}
+	self:set_difficulty(0)
 	self._criminals = {}
 	self._ai_criminals = {}
 	self._player_criminals = {}
@@ -960,8 +970,8 @@ function GroupAIStateBase:on_simulation_ended()
 	self._forbid_drop_in = nil
 	self._whisper_mode = false
 	if self._police_call_clbk_id then
-		self._police_call_clbk_id = nil
 		managers.enemy:remove_delayed_clbk(self._police_call_clbk_id)
+		self._police_call_clbk_id = nil
 	end
 	if self._gameover_clbk then
 		managers.enemy:remove_delayed_clbk("_gameover_clbk")
@@ -1294,6 +1304,9 @@ end
 function GroupAIStateBase:on_criminal_neutralized(unit)
 	local criminal_key = unit:key()
 	local record = self._criminals[criminal_key]
+	if not record then
+		return
+	end
 	record.status = "dead"
 	record.arrest_timeout = 0
 	if Network:is_server() then
@@ -1632,7 +1645,6 @@ function GroupAIStateBase:add_special_objective(id, objective_data)
 	if self._special_objectives[id] then
 		self:remove_special_objective(id)
 	end
-	local interval = objective_data.chance_inc >= 0 and 0 <= objective_data.interval and objective_data.interval
 	local chance = objective_data.base_chance
 	local so = {
 		data = objective_data,
@@ -1722,6 +1734,17 @@ function GroupAIStateBase:remove_special_objective(id)
 	end
 end
 function GroupAIStateBase:add_grp_SO(id, element)
+	if self._grp_SO_task_queue then
+		table.insert(self._grp_SO_task_queue, {
+			"add",
+			id,
+			element
+		})
+	else
+		self:remove_grp_SO(id)
+		self._grp_SO = self._grp_SO or {}
+		self._grp_SO[id] = element
+	end
 end
 function GroupAIStateBase:remove_grp_SO(id)
 	if self._grp_SO_task_queue then
@@ -1764,7 +1787,7 @@ function GroupAIStateBase:_process_grp_SO(grp_so_id, element)
 				elements = {},
 				delay_t = 0
 			}
-			self._recurring_grp_SO[mode].interval = tweak_data.group_ai.besiege.recurring_group_SO_intervals[mode]
+			self._recurring_grp_SO[mode].interval = tweak_data.group_ai.besiege.recurring_group_SO[mode].interval
 		end
 		table.insert(self._recurring_grp_SO[mode].elements, element)
 		return
@@ -1778,9 +1801,6 @@ function GroupAIStateBase:_process_grp_SO(grp_so_id, element)
 	end
 end
 function GroupAIStateBase:_process_recurring_grp_SO(recurring_id, data)
-	if self._t < data.delay_t then
-		return
-	end
 	if data.groups then
 		local junk_groups
 		for group_id, group in pairs(data.groups) do
@@ -1800,7 +1820,7 @@ function GroupAIStateBase:_process_recurring_grp_SO(recurring_id, data)
 					end
 					if is_junk then
 						if group.objective.fail_t then
-							if self._t - group.objective.fail_t < 30 then
+							if self._t - group.objective.fail_t < tweak_data.group_ai.besiege.recurring_group_SO[recurring_id].retire_delay then
 								is_junk = nil
 							end
 						else
@@ -1826,9 +1846,12 @@ function GroupAIStateBase:_process_recurring_grp_SO(recurring_id, data)
 			if not next(data.groups) then
 				data.groups = nil
 			end
-			data.delay_t = self._t + math.lerp(data.interval[1], data.interval[2], math.random())
+			data.delay_t = math.max(data.delay_t, self._t + math.lerp(data.interval[1], data.interval[2], math.random()))
 			return
 		end
+	end
+	if self._t < data.delay_t then
+		return
 	end
 	local total_w = 0
 	for i, element in ipairs(data.elements) do
@@ -1852,6 +1875,7 @@ function GroupAIStateBase:_process_recurring_grp_SO(recurring_id, data)
 	if new_group then
 		data.groups = data.groups or {}
 		data.groups[new_group.id] = new_group
+		managers.network:session():send_to_peers_synched("group_ai_event", self:get_sync_event_id("cloaker_spawned"), 0)
 	end
 	data.delay_t = self._t + 5
 	return new_group and true
@@ -2752,7 +2776,7 @@ function GroupAIStateBase:_map_spawn_points_to_respective_areas(id, spawn_points
 		local amount = new_spawn_point:value("amount")
 		local nav_seg = nav_manager:get_nav_seg_from_pos(pos, true)
 		local area = self:get_area_from_nav_seg_id(nav_seg)
-		local accessibility = new_spawn_point:value("accessibility")
+		local accessibility = new_spawn_point:accessibility()
 		local new_spawn_point_data = {
 			id = id,
 			pos = pos,
@@ -2805,7 +2829,7 @@ function GroupAIStateBase:_map_spawn_groups_to_respective_areas(id, spawn_groups
 				if amount <= 0 then
 					amount = nil
 				end
-				local accessibility = spawn_pt_element:value("accessibility")
+				local accessibility = spawn_pt_element:accessibility()
 				local sp_data = {
 					pos = spawn_pt_element:value("position"),
 					interval = interval,
@@ -3506,6 +3530,8 @@ function GroupAIStateBase:sync_event(event_id, blame_id)
 		self:_call_listeners("enemy_weapons_hot")
 		managers.enemy:add_delayed_clbk("notify_bain_weapons_hot", callback(self, self, "notify_bain_weapons_hot", blame_name), Application:time() + 0)
 		managers.enemy:set_corpse_disposal_enabled(true)
+	elseif event_name == "cloaker_spawned" then
+		managers.hud:post_event("cloaker_spawn")
 	end
 end
 function GroupAIStateBase:notify_bain_weapons_hot(called_reason)
@@ -4041,4 +4067,13 @@ function GroupAIStateBase:is_enemy_converted_to_criminal(unit)
 end
 function GroupAIStateBase:get_amount_enemies_converted_to_criminals()
 	return self._converted_police and table.size(self._converted_police)
+end
+function GroupAIStateBase._get_group_acces_mask(group)
+	local quadfield = managers.navigation._quad_field
+	local union_mask = quadfield:convert_access_filter_to_number("0")
+	for u_key, u_data in pairs(group.units) do
+		local access_num = u_data.so_access
+		union_mask = quadfield:access_filter_union(access_num, union_mask)
+	end
+	return union_mask
 end

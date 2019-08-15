@@ -1,70 +1,124 @@
 GuiTweakData = GuiTweakData or class()
 function GuiTweakData:init()
 	self.content_updates = {
-		{
-			id = "birthday",
-			name_id = "menu_content_birthday",
-			desc_id = "menu_content_birthday_desc",
-			date_id = "menu_content_birthday_date",
-			webpage = "http://www.overkillsoftware.com/birthday/",
-			image = "guis/textures/pd2/content_updates/birthday"
-		},
-		{
-			id = "halloween",
-			name_id = "menu_content_halloween",
-			desc_id = "menu_content_halloween_desc",
-			date_id = "menu_content_halloween_date",
-			webpage = "http://www.overkillsoftware.com/halloween/",
-			image = "guis/textures/pd2/content_updates/halloween"
-		},
-		{
-			id = "armored_transport",
-			name_id = "menu_content_armored_transport",
-			desc_id = "menu_content_armored_transport_desc",
-			date_id = "menu_content_armored_transport_date",
-			store = 264610,
-			image = "guis/textures/pd2/content_updates/armored_transport"
-		},
-		{
-			id = "gage_pack",
-			name_id = "menu_content_gage_pack",
-			desc_id = "menu_content_gage_pack_desc",
-			date_id = "menu_content_gage_pack_date",
-			store = 267380,
-			image = "guis/textures/pd2/content_updates/gage_pack"
-		},
-		{
-			id = "charliesierra",
-			name_id = "menu_content_charliesierra",
-			desc_id = "menu_content_charliesierra_desc",
-			date_id = "menu_content_charliesierra_date",
-			webpage = "http://www.overkillsoftware.com/charliesanta/",
-			image = "guis/textures/pd2/content_updates/charliesierra"
-		},
-		{
-			id = "christmas",
-			name_id = "menu_content_christmas",
-			desc_id = "menu_content_christmas_desc",
-			date_id = "menu_content_christmas_date",
-			store = 267381,
-			image = "guis/textures/pd2/content_updates/christmas"
-		},
-		{
-			id = "infamy",
-			name_id = "menu_content_infamy",
-			desc_id = "menu_content_infamy_desc",
-			date_id = "menu_content_infamy_date",
-			webpage = "http://www.overkillsoftware.com/infamy",
-			image = "guis/textures/pd2/content_updates/infamy_introduction"
+		title_id = "menu_content_updates",
+		choice_id = "menu_content_updates_previous",
+		num_items = 6,
+		item_list = {
+			{
+				id = "birthday",
+				name_id = "menu_content_birthday",
+				desc_id = "menu_content_birthday_desc",
+				date_id = "menu_content_birthday_date",
+				webpage = "http://www.overkillsoftware.com/birthday/",
+				image = "guis/textures/pd2/content_updates/birthday"
+			},
+			{
+				id = "halloween",
+				name_id = "menu_content_halloween",
+				desc_id = "menu_content_halloween_desc",
+				date_id = "menu_content_halloween_date",
+				webpage = "http://www.overkillsoftware.com/halloween/",
+				image = "guis/textures/pd2/content_updates/halloween"
+			},
+			{
+				id = "armored_transport",
+				name_id = "menu_content_armored_transport",
+				desc_id = "menu_content_armored_transport_desc",
+				date_id = "menu_content_armored_transport_date",
+				store = 264610,
+				image = "guis/textures/pd2/content_updates/armored_transport"
+			},
+			{
+				id = "gage_pack",
+				name_id = "menu_content_gage_pack",
+				desc_id = "menu_content_gage_pack_desc",
+				date_id = "menu_content_gage_pack_date",
+				store = 267380,
+				image = "guis/textures/pd2/content_updates/gage_pack"
+			},
+			{
+				id = "charliesierra",
+				name_id = "menu_content_charliesierra",
+				desc_id = "menu_content_charliesierra_desc",
+				date_id = "menu_content_charliesierra_date",
+				store = 271110,
+				image = "guis/textures/pd2/content_updates/charliesierra"
+			},
+			{
+				id = "christmas",
+				name_id = "menu_content_christmas",
+				desc_id = "menu_content_christmas_desc",
+				date_id = "menu_content_christmas_date",
+				store = 267381,
+				image = "guis/textures/pd2/content_updates/christmas"
+			},
+			{
+				id = "infamy",
+				name_id = "menu_content_infamy",
+				desc_id = "menu_content_infamy_desc",
+				date_id = "menu_content_infamy_date",
+				store = 274161,
+				image = "guis/textures/pd2/content_updates/infamy_introduction"
+			},
+			{
+				id = "gage_pack_lmg",
+				name_id = "menu_content_gage_pack_lmg",
+				desc_id = "menu_content_gage_pack_lmg_desc",
+				date_id = "menu_content_gage_pack_lmg_date",
+				store = 275590,
+				image = "guis/textures/pd2/content_updates/gage_pack_lmg"
+			},
+			{
+				id = "deathwish",
+				name_id = "menu_content_deathwish",
+				desc_id = "menu_content_deathwish_desc",
+				date_id = "menu_content_deathwish_date",
+				webpage = "http://www.overkillsoftware.com/deathwish/",
+				image = "guis/textures/pd2/content_updates/deathwish"
+			}
 		}
 	}
-	self.num_previous_updates = 6
-	self.infamy_masks_sort_order = {
+	self.fav_videos = {
+		title_id = "menu_fav_videos",
+		choice_id = nil,
+		num_items = 3,
+		db_url = "http://www.overkillsoftware.com/?page_id=1263",
+		button = {
+			text_id = "menu_fav_video_homepage",
+			url = "http://www.overkillsoftware.com/?page_id=1263"
+		},
+		item_list = {
+			{
+				id = "fav3",
+				image = "guis/textures/pd2/fav_video3",
+				use_db = true
+			},
+			{
+				id = "fav2",
+				image = "guis/textures/pd2/fav_video2",
+				use_db = true
+			},
+			{
+				id = "fav1",
+				image = "guis/textures/pd2/fav_video1",
+				use_db = true
+			}
+		}
+	}
+	self.masks_sort_order = {
 		"aviator",
 		"plague",
 		"welder",
 		"smoker",
-		"ghost"
+		"ghost",
+		"skullhard",
+		"skullveryhard",
+		"skulloverkill",
+		"skulloverkillplus"
+	}
+	self.blackscreen_risk_textures = {
+		overkill_290 = "guis/textures/pd2/risklevel_deathwish_blackscreen"
 	}
 	self.suspicion_to_visibility = {}
 	self.suspicion_to_visibility[1] = {}
@@ -1057,6 +1111,18 @@ function GuiTweakData:init()
 			x = 912,
 			y = 905,
 			icon = "guis/textures/pd2/crimenet_marker_codex"
+		},
+		{
+			id = "casino",
+			name_id = "menu_cn_casino",
+			desc_id = "menu_cn_casino_desc",
+			menu_node = "crimenet_contract_casino",
+			x = 347,
+			y = 716,
+			icon = "guis/textures/pd2/crimenet_casino",
+			unlock = "unlock_level",
+			pulse = true,
+			pulse_color = Color(204, 255, 209, 32) / 255
 		}
 	}
 	self.crime_net.codex = {
@@ -1245,7 +1311,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			}
@@ -1296,7 +1363,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1338,7 +1406,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1378,7 +1447,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1416,7 +1486,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1458,7 +1529,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1492,7 +1564,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1528,7 +1601,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1564,7 +1638,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1602,7 +1677,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1638,7 +1714,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1744,7 +1821,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1788,7 +1866,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1830,7 +1909,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1876,7 +1956,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1920,7 +2001,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1960,7 +2042,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -1995,7 +2078,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2047,7 +2131,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2083,7 +2168,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2127,7 +2213,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2181,7 +2268,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2229,7 +2317,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2277,7 +2366,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2319,7 +2409,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2369,7 +2460,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2407,7 +2499,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2449,7 +2542,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2495,7 +2589,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2539,7 +2634,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2581,7 +2677,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2627,7 +2724,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2663,7 +2761,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2703,7 +2802,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2739,7 +2839,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2781,7 +2882,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2825,7 +2927,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2867,7 +2970,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2909,7 +3013,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -2957,7 +3062,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3003,7 +3109,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3049,7 +3156,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3095,7 +3203,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3135,7 +3244,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3179,7 +3289,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3217,7 +3328,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3269,7 +3381,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3315,7 +3428,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3361,7 +3475,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3401,7 +3516,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3441,7 +3557,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			},
@@ -3477,7 +3594,8 @@ function GuiTweakData:init()
 						"normal",
 						"hard",
 						"overkill",
-						"overkill_145"
+						"overkill_145",
+						"overkill_290"
 					}
 				}
 			}
@@ -3486,6 +3604,59 @@ function GuiTweakData:init()
 		self:_create_location_spawning_dots()
 		print("Generating new spawn points for crimenet")
 	end
+	local wts = {}
+	local dlc_1_folder = "units/pd2_dlc1/weapons/wpn_effects_textures/"
+	wts.color_indexes = {
+		"red",
+		"blue",
+		"green",
+		"yellow"
+	}
+	wts.types = {}
+	wts.types.sight = {
+		suffix = "_il",
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_1_il",
+			name_id = "menu_reticle_1"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_2_il",
+			name_id = "menu_reticle_2"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_3_il",
+			name_id = "menu_reticle_3"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_4_il",
+			name_id = "menu_reticle_4"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_5_il",
+			name_id = "menu_reticle_5"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_6_il",
+			name_id = "menu_reticle_6"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_7_il",
+			name_id = "menu_reticle_7"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_8_il",
+			name_id = "menu_reticle_8"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_9_il",
+			name_id = "menu_reticle_9"
+		},
+		{
+			texture_path = dlc_1_folder .. "wpn_sight_reticle_10_il",
+			name_id = "menu_reticle_10"
+		}
+	}
+	self.weapon_texture_switches = wts
 end
 function GuiTweakData:_create_location_bounding_boxes()
 	for _, location in ipairs(self.crime_net.locations) do
