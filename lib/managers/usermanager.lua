@@ -83,6 +83,10 @@ function GenericUserManager:setup_setting_map()
 	self:setup_setting(39, "fps_cap", 135)
 	self:setup_setting(40, "use_headbob", true)
 	self:setup_setting(41, "max_streaming_chunk", 4096)
+	self:setup_setting(42, "net_packet_throttling", false)
+	self:setup_setting(43, "__unused", false)
+	self:setup_setting(44, "net_use_compression", true)
+	self:setup_setting(45, "net_forwarding", true)
 end
 function GenericUserManager:setup_setting(id, name, default_value)
 	assert(not Global.user_manager.setting_data_map[name], "[UserManager] Setting name \"" .. tostring(name) .. "\" already exists.")
@@ -475,7 +479,6 @@ function GenericUserManager:load(data, cache_version)
 	else
 		Global.debug_post_effects_enabled = true
 	end
-	managers.dyn_resource:set_max_streaming_chunk(self:get_setting("max_streaming_chunk"))
 end
 Xbox360UserManager = Xbox360UserManager or class(GenericUserManager)
 Xbox360UserManager.NOT_SIGNED_IN_STATE = "not_signed_in"

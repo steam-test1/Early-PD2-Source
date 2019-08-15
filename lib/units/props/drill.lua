@@ -161,6 +161,7 @@ function Drill:save(data)
 end
 function Drill:load(data)
 	local state = data.Drill
+	self:set_skill_upgrades(state.skill_upgrades)
 end
 function Drill:set_powered(powered)
 	if (self._powered or false) == (powered or false) then

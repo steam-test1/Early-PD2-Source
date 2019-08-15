@@ -650,6 +650,7 @@ function CoreEditor:run_simulation(with_mission)
 		managers.editor:has_editables()
 		self:_hide_dialogs()
 		self:project_prestart_up(with_mission)
+		self._layers.Instances:on_simulation_started()
 		local mission = self._layers[self._mission_layer_name]
 		mission:set_enabled(false)
 		self._saved_simulation_values.script = mission:current_script()
@@ -828,11 +829,13 @@ function CoreEditor:clear_layers()
 	self._layers.Statics:clear()
 	self._layers.Portals:clear()
 	self._layers.Ai:clear()
+	self._layers.Instances:clear()
 end
 function CoreEditor:recreate_layers()
 	self._layers.Portals:load(self._world_holder, Vector3(0, 0, 0))
 	self._layers.Statics:load(self._world_holder, Vector3(0, 0, 0))
 	self._layers.Ai:load(self._world_holder, Vector3(0, 0, 0))
+	self._layers.Instances:load(self._world_holder, Vector3(0, 0, 0))
 end
 function CoreEditor:reset_layers()
 	self._layers.Dynamics:load(self._world_holder, Vector3(0, 0, 0))
@@ -1356,6 +1359,15 @@ function CoreEditor:select_unit(unit)
 			end
 		end
 	end
+end
+function CoreEditor:select_unit_by_unit_id(unit_id)
+	for layer_name, layer in pairs(self._layers) do
+		if layer:created_units_pairs()[unit_id] then
+			self:select_unit(layer:created_units_pairs()[unit_id])
+			return
+		end
+	end
+	self:output_warning("No unit found with id " .. unit_id)
 end
 function CoreEditor:show_replace_unit()
 	if not self._replace_dialog then
@@ -1956,9 +1968,9 @@ end
 function CoreEditor:_update_mute_state(t, dt)
 	if self._mute_states.wanted ~= self._mute_states.current then
 		if self._mute_states.wanted then
-			self._mute_source:post_event("mute")
+			self._mute_source:post_event("mute_global")
 		else
-			self._mute_source:post_event("unmute")
+			self._mute_source:post_event("unmute_global")
 		end
 		self._mute_states.current = self._mute_states.wanted
 	end

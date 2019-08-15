@@ -28,7 +28,6 @@ function IngameArrestedState:at_enter()
 	managers.hud:show(PlayerBase.PLAYER_INFO_HUD)
 	managers.hud:show(PlayerBase.PLAYER_INFO_HUD_FULLSCREEN)
 	managers.hud:show(PlayerBase.PLAYER_DOWNED_HUD)
-	managers.challenges:count_up("arrested")
 end
 function IngameArrestedState:at_exit()
 	local player = managers.player:player_unit()

@@ -51,12 +51,16 @@ function ExplosionManager:detect_and_give_dmg(params)
 		})
 	end
 	local bodies = World:find_bodies("intersect", "sphere", hit_pos, range, slotmask)
+	local alert_unit = user_unit
+	if alert_unit and alert_unit:base() and alert_unit:base().thrower_unit then
+		alert_unit = alert_unit:base():thrower_unit()
+	end
 	managers.groupai:state():propagate_alert({
 		"explosion",
 		hit_pos,
 		10000,
 		alert_filter,
-		user_unit
+		alert_unit
 	})
 	local splinters = {
 		mvector3.copy(hit_pos)
@@ -91,9 +95,16 @@ function ExplosionManager:detect_and_give_dmg(params)
 			table.insert(splinters, mvector3.copy(pos))
 		end
 	end
+	local count_cops = 0
+	local count_gangsters = 0
+	local count_civilians = 0
+	local count_cop_kills = 0
+	local count_gangster_kills = 0
+	local count_civilian_kills = 0
 	local characters_hit = {}
 	local units_to_push = {}
 	local hit_units = {}
+	local type
 	for _, hit_body in ipairs(bodies) do
 		local character = hit_body:unit():character_damage() and hit_body:unit():character_damage().damage_explosion
 		local apply_dmg = hit_body:extension() and hit_body:extension().damage
@@ -114,6 +125,20 @@ function ExplosionManager:detect_and_give_dmg(params)
 					end
 				end
 			end
+			if ray_hit then
+				local hit_unit = hit_body:unit()
+				if hit_unit:base() and hit_unit:base()._tweak_table and not hit_unit:character_damage():dead() then
+					type = hit_unit:base()._tweak_table
+					if type == "civilian" or type == "civilian_female" or type == "bank_manager" then
+						count_civilians = count_civilians + 1
+					elseif type == "gangster" then
+						count_gangsters = count_gangsters + 1
+					elseif type == "russian" or type == "german" or type == "spanish" or type == "american" then
+					else
+						count_cops = count_cops + 1
+					end
+				end
+			end
 		elseif apply_dmg or hit_body:dynamic() then
 			ray_hit = true
 		end
@@ -128,6 +153,7 @@ function ExplosionManager:detect_and_give_dmg(params)
 			local hit_unit = hit_body:unit()
 			hit_units[hit_unit:key()] = hit_unit
 			if character then
+				local dead_before = hit_unit:character_damage():dead()
 				local action_data = {}
 				action_data.variant = "explosion"
 				action_data.damage = damage
@@ -138,25 +164,41 @@ function ExplosionManager:detect_and_give_dmg(params)
 					ray = dir
 				}
 				hit_unit:character_damage():damage_explosion(action_data)
+				if not dead_before and hit_unit:base() and hit_unit:base()._tweak_table and hit_unit:character_damage():dead() then
+					type = hit_unit:base()._tweak_table
+					if type == "civilian" or type == "civilian_female" or type == "bank_manager" then
+						count_civilian_kills = count_civilian_kills + 1
+					elseif type == "gangster" then
+						count_gangster_kills = count_gangster_kills + 1
+					elseif type == "russian" or type == "german" or type == "spanish" or type == "american" then
+					else
+						count_cop_kills = count_cop_kills + 1
+					end
+				end
 			end
 		end
 	end
 	managers.explosion:units_to_push(units_to_push, hit_pos, range)
 	if owner then
-		managers.challenges:reset_counter("m79_law_simultaneous_kills")
-		managers.challenges:reset_counter("m79_simultaneous_specials")
-		managers.statistics:shot_fired({
-			hit = next(characters_hit) and true or false,
-			weapon_unit = owner
-		})
-		local characters_hit = table.size(characters_hit)
-		local achievement_data = tweak_data.achievement.shock_awe
-		local weapon_type_pass = not achievement_data.weapon_type or owner:base() and owner:base().weapon_tweak_data and owner:base():weapon_tweak_data().category == achievement_data.weapon_type
-		local count_pass = not achievement_data.count or characters_hit >= achievement_data.count
-		local all_pass = weapon_type_pass and count_pass
-		if all_pass and achievement_data.award then
-			print(achievement_data.award)
-			managers.achievment:award(achievement_data.award)
+		managers.statistics:shot_fired({hit = false, weapon_unit = owner})
+		for i = 1, count_gangsters + count_cops do
+			managers.statistics:shot_fired({
+				hit = true,
+				weapon_unit = owner,
+				skip_bullet_count = true
+			})
+		end
+		local weapon_pass, weapon_type_pass, count_pass, all_pass
+		for achievement, achievement_data in pairs(tweak_data.achievement.explosion_achievements) do
+			weapon_pass = not achievement_data.weapon or true
+			weapon_type_pass = not achievement_data.weapon_type or owner:base() and owner:base().weapon_tweak_data and owner:base():weapon_tweak_data().category == achievement_data.weapon_type
+			if achievement_data.count then
+				count_pass = (achievement_data.kill and count_cop_kills + count_gangster_kills or count_cops + count_gangsters) >= achievement_data.count
+			end
+			all_pass = weapon_pass and weapon_type_pass and count_pass
+			if all_pass and achievement_data.award then
+				managers.achievment:award(achievement_data.award)
+			end
 		end
 	end
 	return hit_units, splinters

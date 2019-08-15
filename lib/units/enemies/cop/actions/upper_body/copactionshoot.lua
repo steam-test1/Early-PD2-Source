@@ -67,7 +67,6 @@ function CopActionShoot:init(action_desc, common_data)
 	self._automatic_weap = weap_tweak.auto and true
 	self._shoot_t = 0
 	self._melee_timeout_t = t + 1
-	local aim_delay = weapon_usage_tweak.aim_delay
 	local shoot_from_pos = self._ext_movement:m_head_pos()
 	self._shoot_from_pos = shoot_from_pos
 	self:on_attention(common_data.attention)
@@ -76,7 +75,7 @@ function CopActionShoot:init(action_desc, common_data)
 	end
 	CopActionAct._create_blocks_table(self, action_desc.blocks)
 	if Network:is_server() then
-		common_data.ext_network:send("action_aim_start")
+		common_data.ext_network:send("action_aim_state", true)
 	end
 	self._skipped_frames = 1
 	return true
@@ -205,7 +204,7 @@ function CopActionShoot:on_exit()
 		self._ext_movement:play_redirect("up_idle")
 	end
 	if Network:is_server() then
-		self._common_data.unit:network():send("action_aim_end")
+		self._common_data.unit:network():send("action_aim_state", false)
 	end
 	if self._shooting_player and alive(self._attention.unit) then
 		self._attention.unit:movement():on_targetted_for_attack(false, self._common_data.unit)
@@ -660,7 +659,7 @@ function CopActionShoot:_chk_start_melee(target_vec, target_dis, autotarget, tar
 			local anim_speed = self._w_usage_tweak.melee_speed
 			self._common_data.machine:set_speed(state, anim_speed)
 		end
-		self._melee_timeout_t = TimerManager:game():time() + math.lerp(self._w_usage_tweak.melee_retry_delay[1], self._w_usage_tweak.melee_retry_delay[2], math.random())
+		self._melee_timeout_t = TimerManager:game():time() + (self._w_usage_tweak.melee_retry_delay and math.lerp(self._w_usage_tweak.melee_retry_delay[1], self._w_usage_tweak.melee_retry_delay[2], math.random()) or 1)
 	else
 		debug_pause_unit(self._common_data.unit, "[CopActionShoot:_chk_start_melee] redirect failed in state", self._common_data.machine:segment_state(Idstring("base")), self._common_data.unit)
 	end

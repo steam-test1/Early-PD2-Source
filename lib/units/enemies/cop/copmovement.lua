@@ -552,6 +552,29 @@ function CopMovement:get_action(body_part)
 	return self._active_actions[body_part]
 end
 function CopMovement:set_attention(attention)
+	if not attention and not self._attention then
+		return
+	end
+	if attention and self._attention then
+		local different
+		for i, k in pairs(self._attention) do
+			if attention[i] ~= k then
+				different = true
+			else
+			end
+		end
+		if not different then
+			for i, k in pairs(attention) do
+				if self._attention[i] ~= k then
+					different = true
+				else
+				end
+			end
+		end
+		if not different then
+			return
+		end
+	end
 	if self._attention and self._attention.destroy_listener_key then
 		if alive(self._attention.unit) and self._attention.unit:base() then
 			self._attention.unit:base():remove_destroy_listener(self._attention.destroy_listener_key)
@@ -562,6 +585,7 @@ function CopMovement:set_attention(attention)
 	end
 	if attention then
 		if attention.unit then
+			local attention_unit
 			if attention.handler then
 				local attention_unit = attention.handler:unit()
 				if attention_unit:id() ~= -1 then
@@ -571,8 +595,8 @@ function CopMovement:set_attention(attention)
 				end
 			else
 				local attention_unit = attention.unit
-				if self._ext_network and attention_unit:id() ~= -1 then
-					self._ext_network:send("cop_set_attention_unit", attention_unit)
+				if attention_unit:id() ~= -1 then
+					self._ext_network:send("set_attention", attention_unit, AIAttentionObject.REACT_IDLE)
 				end
 			end
 			if attention.unit:base() and attention.unit:base().add_destroy_listener then
@@ -581,11 +605,11 @@ function CopMovement:set_attention(attention)
 				attention.destroy_listener_key = listener_key
 				attention_unit:base():add_destroy_listener(listener_key, callback(self, self, "attention_unit_destroy_clbk"))
 			end
-		elseif self._ext_network then
+		else
 			self._ext_network:send("cop_set_attention_pos", attention.pos)
 		end
-	elseif self._attention and Network:is_server() and self._unit:id() ~= -1 then
-		self._ext_network:send("cop_reset_attention")
+	elseif self._attention and self._unit:id() ~= -1 then
+		self._ext_network:send("set_attention", nil, AIAttentionObject.REACT_IDLE)
 	end
 	local old_attention = self._attention
 	self._attention = attention
@@ -817,8 +841,9 @@ end
 function CopMovement:set_allow_fire_on_client(state, unit)
 	if Network:is_server() then
 		unit:network():send_to_unit({
-			state and "cop_allow_fire" or "cop_forbid_fire",
-			self._unit
+			"set_allow_fire",
+			self._unit,
+			state
 		})
 	end
 end
@@ -828,7 +853,7 @@ function CopMovement:set_allow_fire(state)
 	end
 	self:synch_allow_fire(state)
 	if Network:is_server() then
-		self._ext_network:send(state and "cop_allow_fire" or "cop_forbid_fire")
+		self._ext_network:send("set_allow_fire", state)
 	end
 	self:enable_update()
 end
@@ -1294,10 +1319,15 @@ function CopMovement:sync_taser_fire()
 end
 function CopMovement:save(save_data)
 	local my_save_data = {}
+	if self._stance.code ~= 1 then
+		my_save_data.stance_code = self._stance.code
+	end
 	if self._stance.transition then
-		my_save_data.stance = self._stance.transition.end_values
-	elseif self._stance.values[1] ~= 1 then
-		my_save_data.stance = self._stance.values
+		if self._stance.transition.end_values[4] ~= 0 then
+			my_save_data.stance_wnd = true
+		end
+	elseif self._stance.values[4] ~= 0 then
+		my_save_data.stance_wnd = true
 	end
 	for _, action in ipairs(self._active_actions) do
 		if action and action.save then
@@ -1373,17 +1403,16 @@ function CopMovement:load(load_data)
 	end
 	self._allow_fire = my_load_data.allow_fire
 	self._attention = my_load_data.attention
-	if my_load_data.stance then
-		for i_stance, v in ipairs(my_load_data.stance) do
-			if v > 0 then
-				self:_change_stance(i_stance)
-				if i_stance == 1 then
-					self:set_cool(true)
-				else
-					self:set_cool(false)
-				end
-			end
+	if my_load_data.stance_code then
+		self:_change_stance(my_load_data.stance_code)
+		if my_load_data.stance_code == 1 then
+			self:set_cool(true)
+		else
+			self:set_cool(false)
 		end
+	end
+	if my_load_data.stance_wnd then
+		self:_change_stance(4)
 	end
 	if my_load_data.actions then
 		for _, action_load_data in ipairs(my_load_data.actions) do
@@ -1504,13 +1533,13 @@ function CopMovement:sync_action_walk_nav_link(pos, rot, anim_index, from_idle)
 		debug_pause_unit(self._unit, "[CopMovement:sync_action_walk_nav_link] no walk action!!!", self._unit, pos, rot, anim_index)
 	end
 end
-function CopMovement:sync_action_walk_stop(pos)
+function CopMovement:sync_action_walk_stop()
 	local walk_action, is_queued = self:_get_latest_walk_action()
 	if is_queued then
-		table.insert(walk_action.nav_path, pos)
+		table.insert(walk_action.nav_path, CopActionWalk._nav_point_pos(walk_action.nav_path[#walk_action.nav_path]))
 		walk_action.persistent = nil
 	elseif walk_action then
-		walk_action:stop(pos)
+		walk_action:stop()
 	else
 		debug_pause("[CopMovement:sync_action_walk_stop] no walk action!!!", self._unit, pos)
 	end
@@ -1769,6 +1798,6 @@ function CopMovement:clbk_sync_attention(attention)
 			self._ext_network:send("cop_set_attention_pos", mvector3.copy(attention.handler:get_attention_m_pos()))
 		end
 	elseif self._attention.unit and attention.unit:id() ~= -1 then
-		self._ext_network:send("cop_set_attention_unit", self._attention.unit)
+		self._ext_network:send("set_attention", self._attention.unit, AIAttentionObject.REACT_IDLE)
 	end
 end

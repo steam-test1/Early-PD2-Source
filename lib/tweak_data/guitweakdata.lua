@@ -136,6 +136,14 @@ function GuiTweakData:init()
 		store = 311050,
 		image = "guis/dlcs/gage_pack_shotgun/textures/pd2/content_updates/gage_pack_shotgun"
 	}
+	local gage_pack_assault = {
+		id = "gage_pack_assault",
+		name_id = "menu_content_gage_pack_assault",
+		desc_id = "menu_content_gage_pack_assault_desc",
+		date_id = "menu_content_gage_pack_assault_date",
+		store = 320030,
+		image = "guis/dlcs/gage_pack_assault/textures/pd2/content_updates/gage_pack_assault"
+	}
 	self.content_updates = {
 		title_id = "menu_content_updates",
 		choice_id = "menu_content_updates_previous",
@@ -159,7 +167,8 @@ function GuiTweakData:init()
 			gage_pack_snp,
 			kosugi,
 			big_bank,
-			gage_pack_shotgun
+			gage_pack_shotgun,
+			gage_pack_assault
 		}
 	elseif SystemInfo:platform() == Idstring("PS3") then
 		self.content_updates.item_list = {
@@ -249,6 +258,7 @@ function GuiTweakData:init()
 	self.mod_preview_min_fov = -20
 	self.mod_preview_max_fov = 3
 	self.stats_present_multiplier = 10
+	self.armor_damage_shake_base = 1.1
 	self.crime_net.regions = {
 		{
 			closed = true,

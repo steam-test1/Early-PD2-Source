@@ -3,3 +3,4 @@ function NewShotgunBase:init(...)
 	NewShotgunBase.super.init(self, ...)
 end
 SaigaShotgun = SaigaShotgun or class(NewShotgunBase)
+GrenadeLauncherBase = GrenadeLauncherBase or class(NewRaycastWeaponBase)

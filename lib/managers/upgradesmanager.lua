@@ -250,10 +250,18 @@ function UpgradesManager:_unaquire_equipment(equipment, id)
 	managers.player:unaquire_equipment(equipment, id)
 end
 function UpgradesManager:_aquire_equipment_upgrade(equipment_upgrade)
-	managers.player:aquire_upgrade(equipment_upgrade.upgrade)
+	if equipment_upgrade.incremental then
+		managers.player:aquire_incremental_upgrade(equipment_upgrade.upgrade)
+	else
+		managers.player:aquire_upgrade(equipment_upgrade.upgrade)
+	end
 end
 function UpgradesManager:_unaquire_equipment_upgrade(equipment_upgrade)
-	managers.player:unaquire_upgrade(equipment_upgrade.upgrade)
+	if equipment_upgrade.incremental then
+		managers.player:unaquire_incremental_upgrade(equipment_upgrade.upgrade)
+	else
+		managers.player:unaquire_upgrade(equipment_upgrade.upgrade)
+	end
 end
 function UpgradesManager:_aquire_temporary(temporary, id)
 	if temporary.incremental then
@@ -479,6 +487,26 @@ function UpgradesManager:aquired_features()
 end
 function UpgradesManager:aquired_weapons()
 	return self:aquired_by_category("weapon")
+end
+function UpgradesManager:list_level_rewards(dlcs)
+	local t = {}
+	local tree_data = tweak_data.upgrades.level_tree
+	local def
+	for level, data in pairs(tree_data) do
+		if data.upgrades then
+			for _, upgrade in ipairs(data.upgrades) do
+				def = tweak_data.upgrades.definitions[upgrade]
+				if def and (not dlcs or def.dlc) and (not dlcs or dlcs == true and def.dlc or dlcs[def.dlc] or table.contains(dlcs, def.dlc)) then
+					table.insert(t, {
+						upgrade,
+						level,
+						def.dlc
+					})
+				end
+			end
+		end
+	end
+	return t
 end
 function UpgradesManager:all_weapon_upgrades()
 	for id, data in pairs(tweak_data.upgrades.definitions) do

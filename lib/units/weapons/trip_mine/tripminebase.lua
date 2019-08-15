@@ -54,7 +54,7 @@ function TripMineBase:get_name_id()
 	return "trip_mine"
 end
 function TripMineBase:interaction_text_id()
-	return self._sensor_upgrade and "hud_int_equipment_sensor_trip_mine" or "debug_interact_trip_mine"
+	return self._sensor_upgrade and ((self._activate_timer or self._armed) and "hud_int_equipment_sensor_mode_trip_mine" or "hud_int_equipment_normal_mode_trip_mine") or "debug_interact_trip_mine"
 end
 function TripMineBase:sync_setup(sensor_upgrade)
 	if self._validate_clbk_id then
@@ -129,6 +129,7 @@ function TripMineBase:_set_armed(armed)
 		self._unit:sound_source():post_event("trip_mine_beep_armed")
 	end
 	self._unit:sound_source():post_event(self._armed and "trip_mine_arm" or "trip_mine_disarm")
+	self._unit:interaction():set_dirty(true)
 end
 function TripMineBase:set_armed(armed)
 	if not managers.network:session() then
@@ -320,15 +321,6 @@ function TripMineBase:_explode(col_ray)
 				amount = amount + 1
 			end
 		end
-	end
-	if amount >= 2 then
-		managers.challenges:count_up("dual_tripmine")
-	end
-	if amount >= 3 then
-		managers.challenges:count_up("tris_tripmine")
-	end
-	if amount >= 4 then
-		managers.challenges:count_up("quad_tripmine")
 	end
 	if managers.network:session() then
 		if player then

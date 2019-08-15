@@ -71,11 +71,14 @@ do
 		"civ_male_dj_1",
 		"civ_male_italian_robe_1",
 		"civ_male_janitor_1",
+		"civ_male_janitor_2",
+		"civ_male_janitor_3",
 		"civ_male_meth_cook_1",
 		"civ_male_party_1",
 		"civ_male_party_2",
 		"civ_male_party_3",
 		"civ_male_scientist_1",
+		"civ_male_miami_store_clerk_1",
 		"civ_male_trucker_1",
 		"civ_male_worker_1",
 		"civ_male_worker_2",
@@ -118,6 +121,11 @@ do
 		"ene_gang_russian_3",
 		"ene_gang_russian_4",
 		"ene_gang_russian_5",
+		"ene_gang_mobster_1",
+		"ene_gang_mobster_2",
+		"ene_gang_mobster_3",
+		"ene_gang_mobster_4",
+		"ene_gang_mobster_boss",
 		"ene_guard_national_1",
 		"ene_murkywater_1",
 		"ene_murkywater_2",
@@ -139,7 +147,8 @@ do
 		"ene_swat_2",
 		"ene_swat_heavy_1",
 		"ene_tazer_1",
-		"ene_veteran_cop_1"
+		"ene_veteran_cop_1",
+		"npc_old_hoxton_prisonsuit_1"
 	}
 	local path_string = "units/payday2/characters/"
 	local character_path = ""
@@ -325,9 +334,6 @@ function CopBase:char_tweak()
 	return self._char_tweak
 end
 function CopBase:pre_destroy(unit)
-	if unit:unit_data().secret_assignment_id and alive(unit) then
-		managers.secret_assignment:unregister_unit(unit)
-	end
 	unit:brain():pre_destroy(unit)
 	self._ext_movement:pre_destroy()
 	self._unit:inventory():pre_destroy()

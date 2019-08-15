@@ -136,6 +136,9 @@ function SpoocLogicAttack.action_complete_clbk(data, action)
 			data.dodge_timeout_t = TimerManager:game():time() + math.lerp(timeout[1], timeout[2], math.random())
 		end
 		CopLogicAttack._cancel_cover_pathing(data, my_data)
+		if action:expired() then
+			SpoocLogicAttack._upd_aim(data, my_data)
+		end
 	end
 end
 function SpoocLogicAttack._cancel_spooc_attempt(data, my_data)

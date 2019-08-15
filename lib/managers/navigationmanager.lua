@@ -979,8 +979,7 @@ function NavigationManager:register_anim_nav_link(element)
 	local end_nav_seg_id = nav_link:end_nav_segment()
 	if start_nav_seg_id ~= end_nav_seg_id then
 		local start_nav_seg = self._nav_segments[start_nav_seg_id]
-		if nav_link:is_obstructed() then
-			start_nav_seg.disabled_neighbours[end_nav_seg_id] = start_nav_seg.disabled_neighbours[end_nav_seg_id] or {}
+		if nav_link:is_obstructed() and start_nav_seg.disabled_neighbours and start_nav_seg.disabled_neighbours[end_nav_seg_id] then
 			table.insert(start_nav_seg.disabled_neighbours[end_nav_seg_id], nav_link)
 		else
 			local start_nav_seg_neighbours = start_nav_seg.neighbours
@@ -1005,17 +1004,19 @@ function NavigationManager:unregister_anim_nav_link(element)
 	local end_nav_seg_id = nav_link:end_nav_segment()
 	local start_nav_seg = self._nav_segments[start_nav_seg_id]
 	if element:nav_link():is_obstructed() then
-		for i_door, door_id in pairs(start_nav_seg.disabled_neighbours[end_nav_seg_id]) do
-			if door_id == nav_link then
-				table.remove(start_nav_seg.disabled_neighbours[end_nav_seg_id], i_door)
-				if not next(start_nav_seg.disabled_neighbours[end_nav_seg_id]) then
-					start_nav_seg.disabled_neighbours[end_nav_seg_id] = nil
-				end
-				if not next(start_nav_seg.disabled_neighbours) then
-					start_nav_seg.disabled_neighbours = nil
-					else
+		if start_nav_seg.disabled_neighbours and start_nav_seg.disabled_neighbours[end_nav_seg_id] then
+			for i_door, door_id in pairs(start_nav_seg.disabled_neighbours[end_nav_seg_id]) do
+				if door_id == nav_link then
+					table.remove(start_nav_seg.disabled_neighbours[end_nav_seg_id], i_door)
+					if not next(start_nav_seg.disabled_neighbours[end_nav_seg_id]) then
+						start_nav_seg.disabled_neighbours[end_nav_seg_id] = nil
 					end
-				end
+					if not next(start_nav_seg.disabled_neighbours) then
+						start_nav_seg.disabled_neighbours = nil
+						else
+						end
+					end
+			end
 		end
 	else
 		local start_nav_seg_neighbours = start_nav_seg.neighbours
@@ -1341,7 +1342,7 @@ function NavigationManager:_sort_nav_segs_after_pos(to_pos, i_seg, ignore_seg, v
 					end
 				elseif not alive(i_door) then
 					debug_pause("[NavigationManager:_sort_nav_segs_after_pos] dead nav_link! between NavSegments", i_seg, "-", neighbour_seg_id)
-				elseif TimerManager:game():time() > i_door:delay_time() and i_door:check_access(access_pos, access_neg) then
+				elseif not i_door:is_obstructed() and TimerManager:game():time() > i_door:delay_time() and i_door:check_access(access_pos, access_neg) then
 					local end_pos = i_door:script_data().element:nav_link_end_pos()
 					local my_weight = mvec3_dis(end_pos, to_pos)
 					if found_segs then
@@ -1928,6 +1929,14 @@ function NavigationManager:_set_nav_seg_metadata(nav_seg_id, param_name, param_v
 	self._builder:set_nav_seg_metadata(nav_seg_id, param_name, param_value)
 end
 function NavigationManager:add_obstacle(obstacle_unit, obstacle_obj_name)
+	if self._debug then
+		for i, obs_data in ipairs(self._obstacles) do
+			if obstacle_unit == obs_data.unit and obstacle_obj_name == obs_data.obstacle_obj_name then
+				debug_pause_unit(obstacle_unit, "[NavigationManager:remove_obstacle] obstacle added twice", obstacle_unit, obstacle_obj_name)
+				return
+			end
+		end
+	end
 	local obstacle_obj = obstacle_unit:get_object(obstacle_obj_name)
 	local id = self._quad_field:add_obstacle(obstacle_obj)
 	table.insert(self._obstacles, {
@@ -1941,7 +1950,7 @@ function NavigationManager:remove_obstacle(obstacle_unit, obstacle_obj_name)
 	self._quad_field:remove_obstacle(obstacle_obj)
 	for i, obs_data in ipairs(self._obstacles) do
 		if not alive(obs_data.unit) then
-			debug_pause("[NavigationManager:remove_obstacle] obstacle destroyed before being removed")
+			debug_pause("[NavigationManager:remove_obstacle] obstacle destroyed before being removed", obstacle_obj_name)
 		elseif obs_data.unit:key() == obstacle_unit:key() and obs_data.obstacle_obj_name == obstacle_obj_name then
 			self._obstacles[i] = self._obstacles[#self._obstacles]
 			table.remove(self._obstacles)
@@ -1985,7 +1994,7 @@ function NavigationManager:clbk_navfield(event_name, args, args2, args3)
 				nav_seg.disabled_neighbours[other_nav_seg_id] = nav_seg.disabled_neighbours[other_nav_seg_id] or {}
 				local i_door = 1
 				while i_door <= #nav_seg.neighbours[other_nav_seg_id] do
-					if type(nav_seg.neighbours[other_nav_seg_id][i_door]) ~= "table" then
+					if type(nav_seg.neighbours[other_nav_seg_id][i_door]) == "number" then
 						local door_id = table.remove(nav_seg.neighbours[other_nav_seg_id], i_door)
 						table.insert(nav_seg.disabled_neighbours[other_nav_seg_id], door_id)
 					else

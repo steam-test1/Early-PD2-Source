@@ -45,6 +45,9 @@ end
 function Layer:created_units()
 	return self._created_units
 end
+function Layer:created_units_pairs()
+	return self._created_units_pairs
+end
 function Layer:selected_units()
 	return self._selected_units
 end

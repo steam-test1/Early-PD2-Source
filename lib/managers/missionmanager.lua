@@ -29,7 +29,6 @@ require("lib/managers/mission/ElementScenarioEvent")
 require("lib/managers/mission/ElementSpecialObjective")
 require("lib/managers/mission/ElementSpecialObjectiveTrigger")
 require("lib/managers/mission/ElementSpecialObjectiveGroup")
-require("lib/managers/mission/ElementSecretAssignment")
 require("lib/managers/mission/ElementDifficulty")
 require("lib/managers/mission/ElementBlurZone")
 require("lib/managers/mission/ElementAIRemove")
@@ -83,6 +82,7 @@ require("lib/managers/mission/ElementSpawnGrenade")
 require("lib/managers/mission/ElementSpotter")
 require("lib/managers/mission/ElementSpawnGageAssignment")
 require("lib/managers/mission/ElementPrePlanning")
+require("lib/managers/mission/ElementCinematicCamera")
 require("lib/managers/mission/ElementPlayerSpawner")
 require("lib/managers/mission/ElementAreaTrigger")
 require("lib/managers/mission/ElementSpawnEnemyDummy")
@@ -123,7 +123,8 @@ function MissionManager:init(...)
 		"pku_poster",
 		"pku_artifact_statue",
 		"pku_server",
-		"pku_samurai"
+		"pku_samurai",
+		"bar_code"
 	})
 	self._mission_filter = {}
 	if not Global.mission_manager then

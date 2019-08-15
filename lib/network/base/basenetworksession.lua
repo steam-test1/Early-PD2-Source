@@ -2,10 +2,16 @@ BaseNetworkSession = BaseNetworkSession or class()
 BaseNetworkSession.TIMEOUT_CHK_INTERVAL = 5
 if SystemInfo:platform() == Idstring("X360") then
 	BaseNetworkSession.CONNECTION_TIMEOUT = 15
+elseif SystemInfo:platform() == Idstring("WIN32") then
+	BaseNetworkSession.CONNECTION_TIMEOUT = 15
 else
 	BaseNetworkSession.CONNECTION_TIMEOUT = 10
 end
-BaseNetworkSession.LOADING_CONNECTION_TIMEOUT = 20
+if SystemInfo:platform() == Idstring("WIN32") then
+	BaseNetworkSession.LOADING_CONNECTION_TIMEOUT = 25
+else
+	BaseNetworkSession.LOADING_CONNECTION_TIMEOUT = 20
+end
 BaseNetworkSession._LOAD_WAIT_TIME = 3
 BaseNetworkSession._STEAM_P2P_SEND_INTERVAL = 1
 function BaseNetworkSession:init()
@@ -23,7 +29,7 @@ end
 function BaseNetworkSession:create_local_peer()
 	local my_name = managers.network.account:username_id()
 	local my_user_id = SystemInfo:platform() == self._ids_WIN32 and Steam:userid() or false
-	self._local_peer = NetworkPeer:new(my_name, Network:self("TCP_IP"), 1, false, false, false, managers.blackmarket:get_preferred_character(), my_user_id)
+	self._local_peer = NetworkPeer:new(my_name, Network:self("TCP_IP"), 0, false, false, false, managers.blackmarket:get_preferred_character(), my_user_id)
 	self._local_peer:set_outfit_string(managers.blackmarket:outfit_string(), nil)
 end
 function BaseNetworkSession:load(data)
@@ -690,4 +696,9 @@ function BaseNetworkSession:_get_peer_outfit_versions_str()
 end
 function BaseNetworkSession:on_peer_outfit_loaded(peer)
 	print("[BaseNetworkSession:on_peer_outfit_loaded]", inspect(peer))
+end
+function BaseNetworkSession:set_packet_throttling_enabled(state)
+	for peer_id, peer in pairs(self._peers) do
+		peer:set_throttling_enabled(state)
+	end
 end

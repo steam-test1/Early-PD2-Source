@@ -5,7 +5,6 @@ function ChristmasPresentBase:init(unit)
 	self._unit:set_slot(0)
 end
 function ChristmasPresentBase:take_money(unit)
-	managers.challenges:set_flag("take_christmas_present")
 	local params = {}
 	params.effect = Idstring("effects/particles/environment/player_snowflakes")
 	params.position = Vector3()

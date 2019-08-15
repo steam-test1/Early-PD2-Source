@@ -22,6 +22,7 @@ function CoreAreaTriggerUnitElement:init(unit)
 	self._hed.use_shape_element_ids = nil
 	self._hed.use_disabled_shapes = false
 	self._hed.rules_element_ids = nil
+	self._hed.unit_ids = nil
 	table.insert(self._save_values, "interval")
 	table.insert(self._save_values, "trigger_on")
 	table.insert(self._save_values, "instigator")
@@ -35,6 +36,7 @@ function CoreAreaTriggerUnitElement:init(unit)
 	table.insert(self._save_values, "use_shape_element_ids")
 	table.insert(self._save_values, "use_disabled_shapes")
 	table.insert(self._save_values, "rules_element_ids")
+	table.insert(self._save_values, "unit_ids")
 end
 function CoreAreaTriggerUnitElement:draw_links(t, dt, selected_unit, all_units)
 	MissionElement.draw_links(self, t, dt, selected_unit, all_units)
@@ -48,6 +50,25 @@ function CoreAreaTriggerUnitElement:draw_links(t, dt, selected_unit, all_units)
 				g = 0,
 				b = 0
 			})
+		end
+	end
+	if self._hed.unit_ids then
+		for _, id in ipairs(self._hed.unit_ids) do
+			local unit = managers.editor:layer("Statics"):created_units_pairs()[id]
+			if alive(unit) then
+				if self:_should_draw_link(selected_unit, unit) then
+					self:_draw_link({
+						from_unit = unit,
+						to_unit = self._unit,
+						r = 0,
+						g = 0.5,
+						b = 0.75
+					})
+					Application:draw(unit, 0, 0.5, 0.75)
+				end
+			else
+				self:_remove_unit_id(id)
+			end
 		end
 	end
 	self:_check_removed_units(all_units)
@@ -134,6 +155,33 @@ function CoreAreaTriggerUnitElement:add_element()
 			end
 			self._hed.rules_element_ids = 0 < #self._hed.rules_element_ids and self._hed.rules_element_ids or nil
 		end
+		return
+	end
+	local ray = managers.editor:unit_by_raycast({
+		mask = 1,
+		ray_type = "body editor"
+	})
+	if ray and ray.unit then
+		self._hed.unit_ids = self._hed.unit_ids or {}
+		local id = ray.unit:unit_data().unit_id
+		if table.contains(self._hed.unit_ids, id) then
+			self:_remove_unit_id(id)
+		else
+			self:_add_unit_id(id)
+		end
+	end
+end
+function CoreAreaTriggerUnitElement:_add_unit_id(id)
+	table.insert(self._hed.unit_ids, id)
+	if self._instigator_ctrlr then
+		self._instigator_ctrlr:set_enabled(not self._hed.unit_ids)
+	end
+end
+function CoreAreaTriggerUnitElement:_remove_unit_id(id)
+	table.delete(self._hed.unit_ids, id)
+	self._hed.unit_ids = #self._hed.unit_ids > 0 and self._hed.unit_ids or nil
+	if alive(self._instigator_ctrlr) then
+		self._instigator_ctrlr:set_enabled(not self._hed.unit_ids)
 	end
 end
 function CoreAreaTriggerUnitElement:remove_links(unit)

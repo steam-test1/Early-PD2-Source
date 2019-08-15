@@ -581,14 +581,28 @@ function PrePlanningManager:_check_spawn_deployable(type, element)
 		BodyBagsBagBase.spawn(pos, rot, 0)
 	end
 end
+local mvec = Vector3()
+local mrot = Rotation()
 function PrePlanningManager:_check_spawn_unit(type, element)
 	local type_data = tweak_data.preplanning.types[type]
 	local unit_name = type_data.spawn_unit
 	if not unit_name then
 		return
 	end
+	local params = type_data.spawn_unit_params
 	local pos, rot = element:get_orientation()
-	local unit = World:spawn_unit(Idstring(unit_name), pos, rot)
+	mvector3.set(mvec, pos)
+	mrotation.set_zero(mrot)
+	mrotation.multiply(mrot, rot)
+	if params then
+		if params.position then
+			mvector3.add(mvec, params.position)
+		end
+		if params.rotation then
+			mrotation.multiply(mrot, params.rotation)
+		end
+	end
+	local unit = World:spawn_unit(Idstring(unit_name), mvec, mrot)
 end
 function PrePlanningManager:can_edit_preplan()
 	return not self._finished_preplan
@@ -750,6 +764,17 @@ function PrePlanningManager:get_location_name_by_index(index)
 	local name_id = location_data.name_id
 	debug_assert(name_id, "[PrePlanningManager:get_location_name_by_index] No name_id for location!", "index", index, "level_id", managers.job:current_level_id())
 	return managers.localization:text(name_id)
+end
+function PrePlanningManager:has_current_custom_points()
+	local current_data = self:_current_location_data()
+	debug_assert(current_data, "[PrePlanningManager:get_current_custom_points] No tweak_data for level!", "level_id", managers.job:current_level_id())
+	local t = {}
+	for i, location in ipairs(current_data) do
+		if location.custom_points and table.size(location.custom_points) > 0 then
+			return true
+		end
+	end
+	return false
 end
 function PrePlanningManager:get_current_custom_points()
 	local current_data = self:_current_location_data()
@@ -930,7 +955,7 @@ function PrePlanningManager:sync_load(data)
 			self._players_votes = data.PrePlanningManager.players_votes or {}
 			for id, element_data in pairs(self._reserved_mission_elements) do
 				local type, index = unpack(element_data.pack)
-				local mission_element = self._mission_elements_by_type[type][index]
+				local mission_element = self._mission_elements_by_type[type] and self._mission_elements_by_type[type][index]
 				if mission_element then
 					local disables_types = mission_element:value("disables_types") or {}
 					for _, type in ipairs(disables_types) do

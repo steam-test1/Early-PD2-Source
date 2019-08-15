@@ -100,6 +100,7 @@ CopActionHurt.hurt_anim_variants = {
 		r = 7
 	}
 }
+CopActionHurt.running_hurt_anim_variants = {fwd = 14}
 ShieldActionHurt = ShieldActionHurt or class(CopActionHurt)
 ShieldActionHurt.hurt_anim_variants = deep_clone(CopActionHurt.hurt_anim_variants)
 ShieldActionHurt.hurt_anim_variants.expl_hurt = {
@@ -122,6 +123,7 @@ function CopActionHurt:init(action_desc, common_data)
 	local tweak_table = self._unit:base()._tweak_table
 	local is_civilian = tweak_table == "civilian" or tweak_table == "civilian_female" or tweak_table == "bank_manager"
 	local is_female = (self._machine:get_global("female") or 0) == 1
+	local crouching = not self._unit:anim_data().crouch and self._unit:anim_data().hurt and 0 < self._machine:get_parameter(self._machine:segment_state(Idstring("base")), "crh")
 	local redir_res
 	local action_type = action_desc.hurt_type
 	if action_type == "fatal" then
@@ -208,6 +210,17 @@ function CopActionHurt:init(action_desc, common_data)
 		self._machine:set_parameter(redir_res, "var" .. tostring(variant), 1)
 	elseif action_type == "death" and (self._ext_anim.run or self._ext_anim.ragdoll) and self:_start_ragdoll() then
 		self.update = self._upd_ragdolled
+	elseif action_type == "heavy_hurt" and (self._ext_anim.run or self._ext_anim.sprint) and not common_data.is_suppressed and not crouching then
+		redir_res = self._ext_movement:play_redirect("heavy_run")
+		if not redir_res then
+			debug_pause("[CopActionHurt:init] heavy_run redirect failed in", self._machine:segment_state(Idstring("base")))
+			return
+		end
+		local variant = self.running_hurt_anim_variants.fwd or 1
+		if variant > 1 then
+			variant = math.random(variant)
+		end
+		self._machine:set_parameter(redir_res, "var" .. tostring(variant), 1)
 	else
 		local variant, height, old_variant, old_info
 		if (action_type == "hurt" or action_type == "heavy_hurt") and self._ext_anim.hurt then
@@ -231,7 +244,6 @@ function CopActionHurt:init(action_desc, common_data)
 				}
 			end
 		end
-		local crouching = not self._unit:anim_data().crouch and self._unit:anim_data().hurt and 0 < self._machine:get_parameter(self._machine:segment_state(Idstring("base")), "crh")
 		redir_res = self._ext_movement:play_redirect(action_type)
 		if not redir_res then
 			debug_pause_unit(self._unit, "[CopActionHurt:init]", action_type, "redirect failed in", self._machine:segment_state(Idstring("base")), self._unit)
