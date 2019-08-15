@@ -24,6 +24,7 @@ function PlayerFatal:enter(state_data, enter_data)
 		self._deathguard_SO_id = enter_data.deathguard_SO_id
 	end
 	self._reequip_weapon = enter_data and enter_data.equip_weapon
+	managers.network:session():send_to_peers_synched("sync_contour_state", self._unit, -1, table.index_of(ContourExt.indexed_types, "teammate_downed"), true, 1)
 end
 function PlayerFatal:_enter(enter_data)
 	self._ext_movement:set_attention_settings({
@@ -51,6 +52,7 @@ function PlayerFatal:exit(state_data, new_state_name)
 	if new_state_name == "standard" then
 		exit_data.wants_crouch = true
 	end
+	managers.network:session():send_to_peers_synched("sync_contour_state", self._unit, -1, table.index_of(ContourExt.indexed_types, "teammate_downed"), false, 1)
 	return exit_data
 end
 function PlayerFatal:interaction_blocked()

@@ -644,6 +644,7 @@ function CoreEditor:run_simulation(with_mission)
 		managers.editor:unit_output()
 		managers.editor:has_editables()
 		self:_hide_dialogs()
+		self:project_prestart_up(with_mission)
 		local mission = self._layers[self._mission_layer_name]
 		mission:set_enabled(false)
 		self._saved_simulation_values.script = mission:current_script()
@@ -686,6 +687,8 @@ function CoreEditor:_simulation_disable_continents()
 	for name, continent in pairs(self._continents) do
 		continent:set_simulation_state(t[name])
 	end
+end
+function CoreEditor:project_prestart_up(with_mission)
 end
 function CoreEditor:project_run_simulation(with_mission)
 end

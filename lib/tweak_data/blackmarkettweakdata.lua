@@ -826,6 +826,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.goat.value = 4
 	self.masks.goat.texture_bundle_folder = "gage_pack"
 	self.masks.goat.dlc = "gage_pack"
+	self.masks.goat.statistics = true
 	self.masks.panda = {}
 	self.masks.panda.unit = "units/pd2_dlc_dec5/masks/msk_panda/msk_panda"
 	self.masks.panda.name_id = "bm_msk_panda"
@@ -838,6 +839,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.panda.value = 4
 	self.masks.panda.texture_bundle_folder = "gage_pack"
 	self.masks.panda.dlc = "gage_pack"
+	self.masks.panda.statistics = true
 	self.masks.pitbull = {}
 	self.masks.pitbull.unit = "units/pd2_dlc_dec5/masks/msk_pitbull/msk_pitbull"
 	self.masks.pitbull.name_id = "bm_msk_pitbull"
@@ -850,6 +852,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.pitbull.value = 4
 	self.masks.pitbull.texture_bundle_folder = "gage_pack"
 	self.masks.pitbull.dlc = "gage_pack"
+	self.masks.pitbull.statistics = true
 	self.masks.eagle = {}
 	self.masks.eagle.unit = "units/pd2_dlc_dec5/masks/msk_eagle/msk_eagle"
 	self.masks.eagle.name_id = "bm_msk_eagle"
@@ -863,6 +866,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.eagle.qlvl = 0
 	self.masks.eagle.texture_bundle_folder = "gage_pack"
 	self.masks.eagle.dlc = "gage_pack"
+	self.masks.eagle.statistics = true
 	self.masks.santa_happy = {}
 	self.masks.santa_happy.unit = "units/pd2_dlc2/masks/msk_santa_happy/msk_santa_happy"
 	self.masks.santa_happy.name_id = "bm_msk_santa_happy"
@@ -875,6 +879,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.santa_happy.value = 4
 	self.masks.santa_happy.dlc = "pd2_clan"
 	self.masks.santa_happy.global_value = "pd2_clan"
+	self.masks.santa_happy.statistics = true
 	self.masks.santa_mad = {}
 	self.masks.santa_mad.unit = "units/pd2_dlc_xmas/masks/msk_santa_mad/msk_santa_mad"
 	self.masks.santa_mad.name_id = "bm_msk_santa_mad"
@@ -886,6 +891,7 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.santa_mad.value = 4
 	self.masks.santa_mad.dlc = "xmas_soundtrack"
+	self.masks.santa_mad.statistics = true
 	self.masks.santa_drunk = {}
 	self.masks.santa_drunk.unit = "units/pd2_dlc_xmas/masks/msk_santa_drunk/msk_santa_drunk"
 	self.masks.santa_drunk.name_id = "bm_msk_santa_drunk"
@@ -897,6 +903,7 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.santa_drunk.value = 4
 	self.masks.santa_drunk.dlc = "xmas_soundtrack"
+	self.masks.santa_drunk.statistics = true
 	self.masks.santa_surprise = {}
 	self.masks.santa_surprise.unit = "units/pd2_dlc_xmas/masks/msk_santa_suprise/msk_santa_suprise"
 	self.masks.santa_surprise.name_id = "bm_msk_santa_surprise"
@@ -908,6 +915,7 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.santa_surprise.value = 4
 	self.masks.santa_surprise.dlc = "xmas_soundtrack"
+	self.masks.santa_surprise.statistics = true
 	self.masks.aviator = {}
 	self.masks.aviator.unit = "units/pd2_dlc_infamy/masks/msk_aviator/msk_aviator"
 	self.masks.aviator.name_id = "bm_msk_aviator"
@@ -918,6 +926,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.aviator.global_value = "infamy"
 	self.masks.aviator.texture_bundle_folder = "infamous"
 	self.masks.aviator.infamy_lock = "infamy_root"
+	self.masks.aviator.statistics = true
 	self.masks.ghost = {}
 	self.masks.ghost.unit = "units/pd2_dlc_infamy/masks/msk_ghost/msk_ghost"
 	self.masks.ghost.name_id = "bm_msk_ghost"
@@ -927,6 +936,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.ghost.texture_bundle_folder = "infamous"
 	self.masks.ghost.type = "helmet"
 	self.masks.ghost.infamy_lock = "infamy_ghost"
+	self.masks.ghost.statistics = true
 	self.masks.welder = {}
 	self.masks.welder.unit = "units/pd2_dlc_infamy/masks/msk_welder/msk_welder"
 	self.masks.welder.name_id = "bm_msk_welder"
@@ -935,6 +945,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.welder.global_value = "infamy"
 	self.masks.welder.texture_bundle_folder = "infamous"
 	self.masks.welder.infamy_lock = "infamy_enforcer"
+	self.masks.welder.statistics = true
 	self.masks.plague = {}
 	self.masks.plague.unit = "units/pd2_dlc_infamy/masks/msk_plague/msk_plague"
 	self.masks.plague.name_id = "bm_msk_plague"
@@ -943,6 +954,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.plague.global_value = "infamy"
 	self.masks.plague.texture_bundle_folder = "infamous"
 	self.masks.plague.infamy_lock = "infamy_mastermind"
+	self.masks.plague.statistics = true
 	self.masks.smoker = {}
 	self.masks.smoker.unit = "units/pd2_dlc_infamy/masks/msk_smoker/msk_smoker"
 	self.masks.smoker.name_id = "bm_msk_smoker"
@@ -951,6 +963,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.smoker.global_value = "infamy"
 	self.masks.smoker.texture_bundle_folder = "infamous"
 	self.masks.smoker.infamy_lock = "infamy_technician"
+	self.masks.smoker.statistics = true
 	self.masks.cloth_commander = {}
 	self.masks.cloth_commander.unit = "units/pd2_dlc_gage_lmg/masks/cloth_commander/msk_cloth_commander"
 	self.masks.cloth_commander.name_id = "bm_msk_cloth_commander"
@@ -964,6 +977,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.cloth_commander.qlvl = 0
 	self.masks.cloth_commander.dlc = "gage_pack_lmg"
 	self.masks.cloth_commander.texture_bundle_folder = "gage_pack_lmg"
+	self.masks.cloth_commander.statistics = true
 	self.masks.gage_blade = {}
 	self.masks.gage_blade.unit = "units/pd2_dlc_gage_lmg/masks/msk_gage_blade/msk_gage_blade"
 	self.masks.gage_blade.name_id = "bm_msk_gage_blade"
@@ -977,6 +991,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.gage_blade.qlvl = 0
 	self.masks.gage_blade.texture_bundle_folder = "gage_pack_lmg"
 	self.masks.gage_blade.dlc = "gage_pack_lmg"
+	self.masks.gage_blade.statistics = true
 	self.masks.gage_rambo = {}
 	self.masks.gage_rambo.unit = "units/pd2_dlc_gage_lmg/masks/msk_gage_rambo/msk_gage_rambo"
 	self.masks.gage_rambo.name_id = "bm_msk_rambo"
@@ -990,6 +1005,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.gage_rambo.qlvl = 0
 	self.masks.gage_rambo.texture_bundle_folder = "gage_pack_lmg"
 	self.masks.gage_rambo.dlc = "gage_pack_lmg"
+	self.masks.gage_rambo.statistics = true
 	self.masks.gage_deltaforce = {}
 	self.masks.gage_deltaforce.unit = "units/pd2_dlc_gage_lmg/masks/msk_gage_deltaforce/msk_gage_deltaforce"
 	self.masks.gage_deltaforce.name_id = "bm_msk_deltaforce"
@@ -1003,6 +1019,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.gage_deltaforce.qlvl = 0
 	self.masks.gage_deltaforce.texture_bundle_folder = "gage_pack_lmg"
 	self.masks.gage_deltaforce.dlc = "gage_pack_lmg"
+	self.masks.gage_deltaforce.statistics = true
 	self.masks.skullhard = {}
 	self.masks.skullhard.unit = "units/payday2/masks/msk_skullhard/msk_skullhard"
 	self.masks.skullhard.name_id = "bm_msk_skullhard"
@@ -1010,6 +1027,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skullhard.value = 0
 	self.masks.skullhard.qlvl = 0
 	self.masks.skullhard.infamous = true
+	self.masks.skullhard.statistics = true
 	self.masks.skullveryhard = {}
 	self.masks.skullveryhard.unit = "units/payday2/masks/msk_skullveryhard/msk_skullveryhard"
 	self.masks.skullveryhard.name_id = "bm_msk_skullveryhard"
@@ -1017,6 +1035,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skullveryhard.value = 0
 	self.masks.skullveryhard.qlvl = 0
 	self.masks.skullveryhard.infamous = true
+	self.masks.skullveryhard.statistics = true
 	self.masks.skulloverkill = {}
 	self.masks.skulloverkill.unit = "units/payday2/masks/msk_skulloverkill/msk_skulloverkill"
 	self.masks.skulloverkill.name_id = "bm_msk_skulloverkill"
@@ -1024,6 +1043,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skulloverkill.value = 0
 	self.masks.skulloverkill.qlvl = 0
 	self.masks.skulloverkill.infamous = true
+	self.masks.skulloverkill.statistics = true
 	self.masks.skulloverkillplus = {}
 	self.masks.skulloverkillplus.unit = "units/payday2/masks/msk_skulloverkillplus/msk_skulloverkillplus"
 	self.masks.skulloverkillplus.name_id = "bm_msk_skulloverkillplus"
@@ -1031,6 +1051,7 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skulloverkillplus.value = 0
 	self.masks.skulloverkillplus.qlvl = 0
 	self.masks.skulloverkillplus.infamous = true
+	self.masks.skulloverkillplus.statistics = true
 	if SystemInfo:platform() == Idstring("PS3") then
 		self.masks.sweettooth = {}
 		self.masks.sweettooth.unit = "units/payday2/masks/msk_sweettooth/msk_sweettooth"

@@ -1,5 +1,5 @@
 local tmp_vec1 = Vector3()
-CivilianLogicIdle = class(CopLogicBase)
+CivilianLogicIdle = class(CivilianLogicBase)
 function CivilianLogicIdle.enter(data, new_logic_name, enter_params)
 	CopLogicBase.enter(data, new_logic_name, enter_params)
 	local my_data = {
@@ -120,6 +120,12 @@ function CivilianLogicIdle._enable_outline(data)
 	my_data.outline_detection_task_key = nil
 end
 function CivilianLogicIdle.on_alert(data, alert_data)
+	if data.is_tied and data.unit:anim_data().stand then
+		if TimerManager:game():time() - data.internal_data.state_enter_t > 3 then
+			data.unit:brain():on_hostage_move_interaction(nil, "stay")
+		end
+		return
+	end
 	local my_data = data.internal_data
 	local my_dis, alert_delay
 	local my_listen_pos = data.unit:movement():m_head_pos()
@@ -146,7 +152,7 @@ function CivilianLogicIdle.on_alert(data, alert_data)
 			end
 		end
 		data.unit:movement():set_cool(false, managers.groupai:state().analyse_giveaway(data.unit:base()._tweak_table, alert_data[5], alert_data))
-		data.unit:movement():set_stance("hos")
+		data.unit:movement():set_stance(data.is_tied and "cbt" or "hos")
 	end
 	if alert_data[5] then
 		local att_obj_data, is_new = CopLogicBase.identify_attention_obj_instant(data, alert_data[5]:key())
@@ -187,7 +193,7 @@ function CivilianLogicIdle._delayed_alert_clbk(ignore_this, params)
 end
 function CivilianLogicIdle.on_intimidated(data, amount, aggressor_unit)
 	data.unit:movement():set_cool(false, managers.groupai:state().analyse_giveaway(data.unit:base()._tweak_table, aggressor_unit))
-	data.unit:movement():set_stance("hos")
+	data.unit:movement():set_stance(data.is_tied and "cbt" or "hos")
 	local att_obj_data, is_new = CopLogicBase.identify_attention_obj_instant(data, aggressor_unit:key())
 	if not data.char_tweak.intimidateable or data.unit:base().unintimidateable or data.unit:anim_data().unintimidateable then
 		return
@@ -203,7 +209,7 @@ function CivilianLogicIdle.on_intimidated(data, amount, aggressor_unit)
 end
 function CivilianLogicIdle.damage_clbk(data, damage_info)
 	data.unit:movement():set_cool(false, managers.groupai:state().analyse_giveaway(data.unit:base()._tweak_table, damage_info.attacker_unit))
-	data.unit:movement():set_stance("hos")
+	data.unit:movement():set_stance(data.is_tied and "cbt" or "hos")
 	if not CivilianLogicIdle.is_obstructed(data, damage_info.attacker_unit) then
 		return
 	end
@@ -215,14 +221,17 @@ function CivilianLogicIdle.damage_clbk(data, damage_info)
 end
 function CivilianLogicIdle.on_new_objective(data, old_objective)
 	local new_objective = data.objective
+	CivilianLogicIdle.super.on_new_objective(data, old_objective)
 	local my_data = data.internal_data
 	if new_objective then
 		if new_objective.type == "escort" then
 			CopLogicBase._exit(data.unit, "escort")
-		elseif new_objective.nav_seg and not new_objective.in_place then
+		elseif CopLogicIdle._chk_objective_needs_travel(data, new_objective) then
 			CopLogicBase._exit(data.unit, "travel")
 		elseif new_objective.type == "act" then
 			CopLogicBase._exit(data.unit, "idle")
+		elseif data.is_tied then
+			CopLogicBase._exit(data.unit, "surrender")
 		elseif new_objective.type == "free" then
 			if data.unit:movement():cool() or not new_objective.is_default then
 				CopLogicBase._exit(data.unit, "idle")
@@ -234,17 +243,18 @@ function CivilianLogicIdle.on_new_objective(data, old_objective)
 		end
 	elseif data.unit:movement():cool() then
 		CopLogicBase._exit(data.unit, "idle")
+	elseif data.is_tied then
+		CopLogicBase._exit(data.unit, "surrender")
 	else
 		CopLogicBase._exit(data.unit, "flee")
 	end
 	if new_objective and new_objective.stance then
 		if new_objective.stance == "ntl" then
 			data.unit:movement():set_cool(true)
-			data.unit:movement():set_stance("ntl")
 		else
 			data.unit:movement():set_cool(false)
-			data.unit:movement():set_stance("hos")
 		end
+		data.unit:movement():set_stance(new_objective.stance)
 	end
 	if old_objective and old_objective.fail_clbk then
 		old_objective.fail_clbk(data.unit)
@@ -306,6 +316,9 @@ function CivilianLogicIdle._upd_detection(data)
 				return
 			end
 		end
+	end
+	if CopLogicIdle._chk_relocate(data) then
+		return
 	end
 	CopLogicBase.queue_task(my_data, my_data.detection_task_key, CivilianLogicIdle._upd_detection, data, data.t + delay)
 end

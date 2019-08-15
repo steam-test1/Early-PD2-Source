@@ -240,7 +240,7 @@ function MenuManager:is_in_root(menu_name)
 	return false
 end
 function MenuManager:is_pc_controller()
-	return self:active_menu() and self:active_menu().input._controller.TYPE == "pc" or managers.controller:get_default_wrapper_type() == "pc"
+	return self:active_menu() and self:active_menu().input and self:active_menu().input._controller and self:active_menu().input._controller.TYPE == "pc" or managers.controller:get_default_wrapper_type() == "pc"
 end
 function MenuManager:toggle_menu_state()
 	if self._is_start_menu then
@@ -849,6 +849,7 @@ function MenuManager:do_clear_progress()
 	managers.dlc:on_reset_profile()
 	managers.mission:on_reset_profile()
 	managers.job:reset_job_heat()
+	managers.job:reset_ghost_bonus()
 	managers.infamy:reset()
 	managers.crimenet:reset_seed()
 	if Global.game_settings.difficulty == "overkill_145" then
@@ -2161,6 +2162,7 @@ function MenuCallbackHandler:end_game()
 	managers.system_menu:show(dialog_data)
 end
 function MenuCallbackHandler:_dialog_end_game_yes()
+	managers.job:clear_saved_ghost_bonus()
 	managers.statistics:stop_session()
 	managers.savefile:save_progress()
 	managers.job:deactivate_current_job()
@@ -2195,6 +2197,7 @@ function MenuCallbackHandler:abort_mission()
 	managers.menu:show_abort_mission_dialog({yes_func = yes_func})
 end
 function MenuCallbackHandler:load_start_menu_lobby()
+	managers.job:clear_saved_ghost_bonus()
 	managers.network:session():load_lobby()
 end
 function MenuCallbackHandler:_dialog_end_game_no()
@@ -2339,12 +2342,6 @@ end
 function MenuCallbackHandler:print_local_steam_stats()
 	managers.statistics:debug_print_stats(false, 1)
 end
-function MenuCallbackHandler:print_local_steam_stats_7days()
-	managers.statistics:debug_print_stats(false, 7)
-end
-function MenuCallbackHandler:print_local_steam_stats_30days()
-	managers.statistics:debug_print_stats(false, 30)
-end
 function MenuCallbackHandler:print_global_steam_stats()
 	managers.statistics:debug_print_stats(true, 1)
 end
@@ -2353,6 +2350,9 @@ function MenuCallbackHandler:print_global_steam_stats_7days()
 end
 function MenuCallbackHandler:print_global_steam_stats_30days()
 	managers.statistics:debug_print_stats(true, 30)
+end
+function MenuCallbackHandler:print_global_steam_stats_60days()
+	managers.statistics:debug_print_stats(true, 60)
 end
 function MenuCallbackHandler:print_global_steam_stats_alltime()
 	managers.statistics:debug_print_stats(true)

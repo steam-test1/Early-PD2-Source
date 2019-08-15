@@ -349,8 +349,12 @@ function CopMovement:_upd_actions(t)
 	if has_no_action and (not self._queued_actions or not next(self._queued_actions)) then
 		self:action_request({type = "idle", body_part = 1})
 	end
-	if not a_actions[1] and not a_actions[3] and (not self._queued_actions or not next(self._queued_actions)) and not self:chk_action_forbidden("action") then
-		self:action_request({type = "idle", body_part = 3})
+	if not a_actions[1] and not a_actions[2] and (not self._queued_actions or not next(self._queued_actions)) and not self:chk_action_forbidden("action") then
+		if a_actions[3] then
+			self:action_request({type = "idle", body_part = 2})
+		else
+			self:action_request({type = "idle", body_part = 1})
+		end
 	end
 	self:_upd_stance(t)
 	if not self._need_upd and (self._ext_anim.base_need_upd or self._ext_anim.upper_need_upd or self._stance.transition or self._suppression.transition) then
@@ -588,17 +592,17 @@ function CopMovement:set_attention(attention)
 		end
 	end
 end
-function CopMovement:set_stance(new_stance_name, instant)
+function CopMovement:set_stance(new_stance_name, instant, execute_queued)
 	for i_stance, stance_name in ipairs(CopMovement._stance.names) do
 		if stance_name == new_stance_name then
-			self:set_stance_by_code(i_stance, instant)
+			self:set_stance_by_code(i_stance, instant, execute_queued)
 		else
 		end
 	end
 end
-function CopMovement:set_stance_by_code(new_stance_code, instant)
+function CopMovement:set_stance_by_code(new_stance_code, instant, execute_queued)
 	if self._stance.code ~= new_stance_code then
-		self._ext_network:send("set_stance", new_stance_code)
+		self._ext_network:send("set_stance", new_stance_code, instant, execute_queued)
 		self:_change_stance(new_stance_code, instant)
 	end
 end
@@ -696,8 +700,17 @@ function CopMovement:_change_stance(stance_code, instant)
 	end
 	self:enable_update()
 end
-function CopMovement:sync_stance(i_stance)
-	self:_change_stance(i_stance)
+function CopMovement:sync_stance(i_stance, instant, execute_queued)
+	if execute_queued and (self._active_actions[1] and self._active_actions[1]:type() ~= "idle" or self._active_actions[2] and self._active_actions[2]:type() ~= "idle") then
+		table.insert(self._queued_actions, {
+			type = "stance",
+			code = i_stance,
+			instant = instant,
+			block_type = "walk"
+		})
+		return
+	end
+	self:_change_stance(i_stance, instant)
 	if i_stance == 1 then
 		self:set_cool(true)
 	else
@@ -736,6 +749,10 @@ function CopMovement:set_cool(state, giveaway)
 	self._action_common_data.is_cool = state
 	if not state and old_state then
 		self._not_cool_t = TimerManager:game():time()
+		if self._unit:unit_data().mission_element and not self._unit:unit_data().alerted_event_called then
+			self._unit:unit_data().alerted_event_called = true
+			self._unit:unit_data().mission_element:event("alerted", self._unit)
+		end
 	end
 	self._unit:brain():on_cool_state_changed(state)
 	if not state and old_state and self._unit:unit_data().mission_element then
@@ -766,6 +783,7 @@ function CopMovement:synch_attention(attention)
 		local listener_key = "CopMovement" .. tostring(self._unit:key())
 		attention.destroy_listener_key = listener_key
 		attention.unit:base():add_destroy_listener(listener_key, callback(self, self, "attention_unit_destroy_clbk"))
+		attention.debug_unit_name = attention.unit:name()
 	end
 	self._attention = attention
 	self._action_common_data.attention = attention
@@ -1377,6 +1395,18 @@ function CopMovement:_chk_start_queued_action()
 		else
 			if action_desc.type == "spooc" then
 				action_desc.nav_path[action_desc.path_index or 1] = mvector3.copy(self._m_pos)
+			elseif action_desc.type == "stance" then
+				if queued_actions[2] and not self:chk_action_forbidden(queued_actions[2]) or (not self._active_actions[1] or self._active_actions[1]:type() == "idle") and (not self._active_actions[2] or self._active_actions[2]:type() == "idle") then
+					table.remove(queued_actions, 1)
+					self:_change_stance(action_desc.code, action_desc.instant)
+					if action_desc.code == 1 then
+						self:set_cool(true)
+					else
+						self:set_cool(false)
+					end
+					self:_chk_start_queued_action()
+				end
+				return
 			end
 			table.remove(queued_actions, 1)
 			CopMovement.action_request(self, action_desc)
@@ -1694,7 +1724,11 @@ function CopMovement:pre_destroy()
 		end
 	end
 	if self._attention and self._attention.destroy_listener_key then
-		self._attention.unit:base():remove_destroy_listener(self._attention.destroy_listener_key)
+		if alive(self._attention.unit) then
+			self._attention.unit:base():remove_destroy_listener(self._attention.destroy_listener_key)
+		else
+			debug_pause_unit(self._unit, "[CopMovement:pre_destroy] destroyed unit did not remove attention: ", self._attention.debug_unit_name)
+		end
 		self._attention.destroy_listener_key = nil
 	end
 end

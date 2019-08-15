@@ -591,6 +591,11 @@ function HUDManager:loot_value_updated()
 		self._hud_statsscreen:loot_value_updated()
 	end
 end
+function HUDManager:on_ext_inventory_changed()
+	if self._hud_statsscreen then
+		self._hud_statsscreen:on_ext_inventory_changed()
+	end
+end
 function HUDManager:feed_point_of_no_return_timer(time, is_inside)
 	self._hud_assault_corner:feed_point_of_no_return_timer(time, is_inside)
 end
@@ -1034,6 +1039,9 @@ function HUDManager:layout_mission_briefing_hud()
 		self._hud_mission_briefing:update_layout()
 	end
 end
+function HUDManager:get_mission_briefing_hud()
+	return self._hud_mission_briefing
+end
 function HUDManager:set_player_slot(nr, params)
 	self._hud_mission_briefing:set_player_slot(nr, params)
 end
@@ -1093,6 +1101,11 @@ end
 function HUDManager:set_statistics_endscreen_hud(criminals_completed, success)
 	if self._hud_stage_endscreen then
 		self._hud_stage_endscreen:set_statistics(criminals_completed, success)
+	end
+end
+function HUDManager:set_ghost_bonus_endscreen_hud(bonus)
+	if self._hud_stage_endscreen then
+		self._hud_stage_endscreen:set_ghost_bonus(bonus)
 	end
 end
 function HUDManager:set_group_statistics_endscreen_hud(best_kills, best_kills_score, best_special_kills, best_special_kills_score, best_accuracy, best_accuracy_score, most_downs, most_downs_score, total_kills, total_specials_kills, total_head_shots, group_accuracy, group_downs)

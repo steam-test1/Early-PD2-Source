@@ -442,6 +442,9 @@ function GamePlayCentralManager:mission_disable_unit(unit)
 		end
 		self._mission_disabled_units[unit:unit_data().unit_id] = true
 		unit:set_enabled(false)
+		if unit:base() and unit:base().on_unit_set_enabled then
+			unit:base():on_unit_set_enabled(false)
+		end
 	end
 end
 function GamePlayCentralManager:mission_enable_unit(unit)
@@ -451,6 +454,9 @@ function GamePlayCentralManager:mission_enable_unit(unit)
 		end
 		self._mission_disabled_units[unit:unit_data().unit_id] = nil
 		unit:set_enabled(true)
+		if unit:base() and unit:base().on_unit_set_enabled then
+			unit:base():on_unit_set_enabled(true)
+		end
 	end
 end
 function GamePlayCentralManager:start_heist_timer()

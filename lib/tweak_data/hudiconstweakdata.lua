@@ -1005,15 +1005,6 @@ function HudIconsTweakData:init()
 			48
 		}
 	}
-	self.equipment_crowbar = {
-		texture = "guis/textures/hud_icons",
-		texture_rect = {
-			192,
-			240,
-			48,
-			48
-		}
-	}
 	self.equipment_cable_ties = {
 		texture = "guis/textures/hud_icons",
 		texture_rect = {

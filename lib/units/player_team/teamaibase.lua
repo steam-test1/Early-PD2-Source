@@ -7,7 +7,6 @@ function TeamAIBase:post_init()
 	self._lod_stage = 1
 	self._allow_invisible = true
 	self:_register()
-	self._unit:contour():add("teammate")
 	managers.occlusion:remove_occlusion(self._unit)
 end
 function TeamAIBase:nick_name()
@@ -21,7 +20,6 @@ function TeamAIBase:arrest_settings()
 	return tweak_data.character[self._tweak_table].arrest
 end
 function TeamAIBase:pre_destroy(unit)
-	unit:contour():clear()
 	self:unregister()
 	UnitBase.pre_destroy(self, unit)
 	unit:brain():pre_destroy(unit)

@@ -15,7 +15,8 @@ function SpawnDeployableUnitElement:_build_panel(panel, panel_sizer)
 		options = {
 			"doctor_bag",
 			"ammo_bag",
-			"grenade_crate"
+			"grenade_crate",
+			"bodybags_bag"
 		},
 		value = self._hed.deployable_id,
 		default = "none",

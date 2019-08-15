@@ -95,7 +95,7 @@ function CarryData:start_explosion()
 	end
 	self:_unregister_steal_SO()
 	self:_start_explosion()
-	managers.network:session():send_to_peers_synched("sync_unit_event_id_8", self._unit, "carry_data", CarryData.EVENT_IDS.will_explode)
+	managers.network:session():send_to_peers_synched("sync_unit_event_id_16", self._unit, "carry_data", CarryData.EVENT_IDS.will_explode)
 	self._explode_t = Application:time() + 1 + math.rand(3)
 end
 function CarryData:_start_explosion()
@@ -157,7 +157,7 @@ function CarryData:_explode()
 	QuickFlashGrenade:make_flash(pos, range, {
 		self._unit
 	})
-	managers.network:session():send_to_peers_synched("sync_unit_event_id_8", self._unit, "carry_data", CarryData.EVENT_IDS.explode)
+	managers.network:session():send_to_peers_synched("sync_unit_event_id_16", self._unit, "carry_data", CarryData.EVENT_IDS.explode)
 	self._unit:set_slot(0)
 end
 function CarryData:_local_player_explosion_damage()

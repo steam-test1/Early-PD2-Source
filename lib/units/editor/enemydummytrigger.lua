@@ -69,6 +69,7 @@ function EnemyDummyTriggerUnitElement:_build_panel(panel, panel_sizer)
 		panel = panel,
 		sizer = panel_sizer,
 		options = {
+			"alerted",
 			"death",
 			"spawn",
 			"panic",

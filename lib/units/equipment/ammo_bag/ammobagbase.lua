@@ -67,7 +67,7 @@ end
 function AmmoBagBase:server_set_dynamic()
 	self:_set_dynamic()
 	if managers.network:session() then
-		managers.network:session():send_to_peers_synched("sync_unit_event_id_8", self._unit, "base", 1)
+		managers.network:session():send_to_peers_synched("sync_unit_event_id_16", self._unit, "base", 1)
 	end
 end
 function AmmoBagBase:sync_net_event(event_id)

@@ -374,7 +374,11 @@ function CopActionWalk:_init()
 		end
 		self._nav_path = nav_path
 	else
-		self._nav_path[1] = mvec3_cpy(common_data.pos)
+		if not action_desc.interrupted or not self._nav_path[1].x then
+			table.insert(self._nav_path, 1, mvec3_cpy(common_data.pos))
+		else
+			self._nav_path[1] = mvec3_cpy(common_data.pos)
+		end
 		for i, nav_point in ipairs(self._nav_path) do
 			if not nav_point.x then
 				function nav_point.element.value(element, name)
@@ -396,7 +400,7 @@ function CopActionWalk:_init()
 			end
 		end
 	end
-	if action_desc.path_simplified then
+	if action_desc.path_simplified and action_desc.persistent then
 		if self._sync then
 			local t_ins = table.insert
 			local original_path = self._nav_path
@@ -416,7 +420,7 @@ function CopActionWalk:_init()
 		end
 	else
 		local good_pos = common_data.nav_tracker:lost() and common_data.nav_tracker:field_position() or common_data.nav_tracker:position()
-		self._simplified_path = self._calculate_simplified_path(good_pos, self._nav_path, self._common_data.stance.name == "ntl" and 1)
+		self._simplified_path = self._calculate_simplified_path(good_pos, self._nav_path, (not self._sync or self._common_data.stance.name == "ntl") and 2 or 1, self._sync, true)
 	end
 	if not self._simplified_path[2].x then
 		self._next_is_nav_link = self._simplified_path[2]
@@ -469,6 +473,7 @@ function CopActionWalk:_init()
 		self._ext_network:send("action_walk_start", self._nav_point_pos(next_nav_point), nav_link_act_yaw, nav_link_act_index, nav_link_from_idle, sync_haste, sync_yaw, self._no_walk and true or false, self._no_strafe and true or false)
 	end
 	if Network:is_server() then
+		self._unit:brain():rem_pos_rsrv("stand")
 		self._unit:brain():add_pos_rsrv("move_dest", {
 			position = mvector3.copy(self._simplified_path[#self._simplified_path]),
 			radius = 30
@@ -742,12 +747,6 @@ function CopActionWalk:on_exit()
 	end
 	if Network:is_server() then
 		self._unit:brain():rem_pos_rsrv("move_dest")
-		if not self._unit:character_damage():dead() then
-			self._unit:brain():add_pos_rsrv("stand", {
-				position = mvector3.copy(self._common_data.pos),
-				radius = 30
-			})
-		end
 	end
 end
 function CopActionWalk:_upd_wait_for_full_blend(t)
@@ -773,6 +772,9 @@ function CopActionWalk:_upd_wait_for_full_blend(t)
 			end
 			return
 		end
+	else
+		self._ext_movement:set_m_rot(self._unit:rotation())
+		self._ext_movement:set_m_pos(self._unit:position())
 	end
 end
 function CopActionWalk:update(t)
@@ -1165,50 +1167,30 @@ function CopActionWalk._chk_shortcut_pos_to_pos(from, to, trace)
 	local res = managers.navigation:raycast(params)
 	return res, params.trace
 end
-function CopActionWalk._calculate_simplified_path(good_pos, path, iteration_nr)
+function CopActionWalk._calculate_simplified_path(good_pos, original_path, nr_iterations, z_test, apply_padding)
 	local simplified_path = {good_pos}
-	local size_path = #path
-	if size_path > 2 then
-		local index_from = 1
-		while index_from < #path do
-			local index_to = index_from + 2
-			while index_to <= #path do
-				if path[index_to - 1].x then
-					local pos_from = path[index_from]
-					local pos_to = CopActionWalk._nav_point_pos(path[index_to])
-					local pos_mid = path[index_to - 1]
-					local add_point = math.abs(pos_from.z - pos_mid.z - (pos_mid.z - pos_to.z)) > 30
-					add_point = add_point or CopActionWalk._chk_shortcut_pos_to_pos(pos_from, pos_to)
-					if add_point then
-						table.insert(simplified_path, mvec3_cpy(path[index_to - 1]))
-						index_from = index_to - 1
-						break
-					end
-				else
-					table.insert(simplified_path, path[index_to - 1])
-					if path[index_to].x then
-						table.insert(simplified_path, mvec3_cpy(path[index_to]))
-						index_from = index_to
-						break
-					end
-					index_from = index_to - 1
-					break
+	local original_path_size = #original_path
+	for i_nav_point, nav_point in ipairs(original_path) do
+		if nav_point.x and i_nav_point ~= original_path_size and (i_nav_point == 1 or simplified_path[#simplified_path].x) then
+			local pos_from = simplified_path[#simplified_path]
+			local pos_to = CopActionWalk._nav_point_pos(original_path[i_nav_point + 1])
+			local add_point = z_test and math.abs(nav_point.z - pos_from.z - (nav_point.z - pos_to.z)) > 60
+			add_point = add_point or CopActionWalk._chk_shortcut_pos_to_pos(pos_from, pos_to)
+			if add_point then
+				if add_point then
 				end
-				index_to = index_to + 1
+				table.insert(simplified_path, mvec3_cpy(nav_point))
 			end
-			if index_to > #path then
-				break
-			end
+		else
+			table.insert(simplified_path, nav_point)
 		end
 	end
-	table.insert(simplified_path, mvec3_cpy(path[#path]))
-	simplified_path[1] = mvec3_cpy(path[1])
-	if (not iteration_nr or iteration_nr == 1) and #simplified_path > 2 then
+	if apply_padding and #simplified_path > 2 then
 		CopActionWalk._apply_padding_to_simplified_path(simplified_path)
 		CopActionWalk._calculate_shortened_path(simplified_path)
-		if iteration_nr == 1 then
-			simplified_path = CopActionWalk._calculate_simplified_path(good_pos, simplified_path, 2)
-		end
+	end
+	if nr_iterations > 1 and #simplified_path > 2 then
+		simplified_path = CopActionWalk._calculate_simplified_path(good_pos, simplified_path, nr_iterations - 1, z_test, apply_padding)
 	end
 	return simplified_path
 end
@@ -1700,7 +1682,7 @@ function CopActionWalk:stop(pos)
 			self._end_of_curved_path = nil
 		end
 	end
-	if is_initialized and #s_path == 3 and self.update ~= self._upd_nav_link and self.update ~= self._upd_nav_link_first_frame and self.update ~= self._upd_nav_link_blend_to_idle and self.update ~= self._upd_stop_anim_first_frame and self.update ~= self._upd_stop_anim and self.update ~= self._upd_walk_turn_first_frame and self.update ~= self._upd_walk_turn then
+	if is_initialized and #s_path >= 3 and self.update ~= self._upd_nav_link and self.update ~= self._upd_nav_link_first_frame and self.update ~= self._upd_nav_link_blend_to_idle and self.update ~= self._upd_stop_anim_first_frame and self.update ~= self._upd_stop_anim and self.update ~= self._upd_walk_turn_first_frame and self.update ~= self._upd_walk_turn and math.abs(mvector3.z(self._common_data.pos) - mvector3.z(pos)) < 100 then
 		local ray_params = {
 			tracker_from = self._common_data.nav_tracker,
 			pos_to = pos
@@ -1716,9 +1698,34 @@ function CopActionWalk:stop(pos)
 				mvec3_cpy(self._common_data.pos),
 				stop_pos
 			}
-			table.remove(s_path, 2)
+			self._simplified_path = {
+				mvec3_cpy(self._common_data.pos),
+				stop_pos
+			}
 		end
 	end
+	local ray_params = {pos_to = pos}
+	for i_nav_point = 2, #self._simplified_path - 1 do
+		ray_params.pos_from = CopActionWalk._nav_point_pos(self._simplified_path[i_nav_point])
+		if not managers.navigation:raycast(ray_params) then
+			local nr_points_to_remove = #self._simplified_path - 1 - i_nav_point
+			for i = 1, nr_points_to_remove do
+				table.remove(self._simplified_path, i_nav_point + 1)
+			end
+			break
+		end
+	end
+	managers.navigation:draw_path(self._simplified_path, {
+		0.2,
+		0,
+		0,
+		1
+	}, {
+		0.3,
+		1,
+		1,
+		0
+	}, 0)
 end
 function CopActionWalk:append_nav_point(nav_point)
 	if not nav_point.x then
