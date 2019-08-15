@@ -119,6 +119,7 @@ end
 function TweakData:_set_easy()
 	self.player:_set_easy()
 	self.character:_set_easy()
+	self.money_manager:init(self)
 	self.group_ai:init(self)
 	self.weapon:_set_easy()
 	self.experience_manager.civilians_killed = 15
@@ -130,6 +131,7 @@ end
 function TweakData:_set_normal()
 	self.player:_set_normal()
 	self.character:_set_normal()
+	self.money_manager:init(self)
 	self.group_ai:init(self)
 	self.weapon:_set_normal()
 	self.experience_manager.civilians_killed = 35
@@ -141,6 +143,7 @@ end
 function TweakData:_set_hard()
 	self.player:_set_hard()
 	self.character:_set_hard()
+	self.money_manager:init(self)
 	self.group_ai:init(self)
 	self.weapon:_set_hard()
 	self.experience_manager.civilians_killed = 75
@@ -152,6 +155,7 @@ end
 function TweakData:_set_overkill()
 	self.player:_set_overkill()
 	self.character:_set_overkill()
+	self.money_manager:init(self)
 	self.group_ai:init(self)
 	self.weapon:_set_overkill()
 	self.experience_manager.civilians_killed = 150
@@ -163,6 +167,7 @@ end
 function TweakData:_set_overkill_145()
 	self.player:_set_overkill_145()
 	self.character:_set_overkill_145()
+	self.money_manager:init(self)
 	self.group_ai:init(self)
 	self.weapon:_set_overkill_145()
 	self.experience_manager.civilians_killed = 550
@@ -174,6 +179,7 @@ end
 function TweakData:_set_overkill_290()
 	self.player:_set_overkill_290()
 	self.character:_set_overkill_290()
+	self.money_manager:init(self)
 	self.group_ai:init(self)
 	self.weapon:_set_overkill_290()
 	self.experience_manager.civilians_killed = 10000
@@ -273,7 +279,7 @@ function TweakData:init()
 	self.skilltree = SkillTreeTweakData:new()
 	self.upgrades.visual = UpgradesVisualTweakData:new()
 	self.tips = TipsTweakData:new()
-	self.money_manager = MoneyTweakData:new()
+	self.money_manager = MoneyTweakData:new(self)
 	self.blackmarket = BlackMarketTweakData:new(self)
 	self.carry = CarryTweakData:new(self)
 	self.mission_door = MissionDoorTweakData:new()
@@ -400,6 +406,12 @@ function TweakData:init()
 		Color(self.peer_vector_colors[3]:unpack()),
 		Color(self.peer_vector_colors[4]:unpack()),
 		Color(self.peer_vector_colors[5]:unpack())
+	}
+	self.preplanning_peer_colors = {
+		Color("ff82991e"),
+		Color("ff0055ff"),
+		Color("ffff7800"),
+		Color("ffffff00")
 	}
 	self.screen_colors = {}
 	self.screen_colors.text = Color(255, 255, 255, 255) / 255
@@ -1033,9 +1045,8 @@ function TweakData:init()
 	self.interaction.big_computer_hackable.icon = "interaction_keyboard"
 	self.interaction.big_computer_hackable.text_id = "hud_int_big_computer_hackable"
 	self.interaction.big_computer_hackable.timer = 6
-	self.interaction.big_computer_hackable.axis = "z"
 	self.interaction.big_computer_hackable.start_active = false
-	self.interaction.big_computer_hackable.interact_distance = 150
+	self.interaction.big_computer_hackable.interact_distance = 200
 	self.interaction.big_computer_hackable.sound_start = "bar_keyboard"
 	self.interaction.big_computer_hackable.sound_interupt = "bar_keyboard_cancel"
 	self.interaction.big_computer_hackable.sound_done = "bar_keyboard_finished"
@@ -1043,9 +1054,8 @@ function TweakData:init()
 	self.interaction.big_computer_not_hackable.icon = "interaction_keyboard"
 	self.interaction.big_computer_not_hackable.text_id = "hud_int_big_computer_hackable"
 	self.interaction.big_computer_not_hackable.timer = 6
-	self.interaction.big_computer_not_hackable.axis = "z"
 	self.interaction.big_computer_not_hackable.start_active = false
-	self.interaction.big_computer_not_hackable.interact_distance = 150
+	self.interaction.big_computer_not_hackable.interact_distance = 200
 	self.interaction.big_computer_not_hackable.sound_start = "bar_keyboard"
 	self.interaction.big_computer_not_hackable.sound_interupt = "bar_keyboard_cancel"
 	self.interaction.big_computer_not_hackable.sound_done = "bar_keyboard_finished"
@@ -1055,7 +1065,6 @@ function TweakData:init()
 	self.interaction.big_computer_server.icon = "interaction_keyboard"
 	self.interaction.big_computer_server.text_id = "hud_int_big_computer_server"
 	self.interaction.big_computer_server.timer = 6
-	self.interaction.big_computer_server.axis = "z"
 	self.interaction.big_computer_server.start_active = false
 	self.interaction.big_computer_server.interact_distance = 150
 	self.interaction.big_computer_server.sound_start = "bar_keyboard"
@@ -1876,7 +1885,7 @@ function TweakData:init()
 	self.interaction.steal_methbag.timer = 3
 	self.interaction.pickup_keycard = {}
 	self.interaction.pickup_keycard.text_id = "hud_int_pickup_keycard"
-	self.interaction.pickup_keycard.sound_event = "ammo_bag_drop"
+	self.interaction.pickup_keycard.sound_done = "pick_up_key_card"
 	self.interaction.open_from_inside = {}
 	self.interaction.open_from_inside.text_id = "hud_int_invisible_interaction_open"
 	self.interaction.open_from_inside.start_active = true
@@ -1980,6 +1989,7 @@ function TweakData:init()
 	self.interaction.gen_pku_crowbar = {}
 	self.interaction.gen_pku_crowbar.text_id = "hud_int_take_crowbar"
 	self.interaction.gen_pku_crowbar.special_equipment_block = "crowbar"
+	self.interaction.gen_pku_crowbar.sound_done = "pick_up_crowbar"
 	self.interaction.gen_pku_thermite = {}
 	self.interaction.gen_pku_thermite.text_id = "hud_int_take_thermite"
 	self.interaction.gen_pku_thermite.special_equipment_block = "thermite"
@@ -1987,6 +1997,7 @@ function TweakData:init()
 	self.interaction.gen_pku_thermite_paste.text_id = "hud_int_take_thermite_paste"
 	self.interaction.gen_pku_thermite_paste.special_equipment_block = "thermite_paste"
 	self.interaction.gen_pku_thermite_paste.contour = "deployable"
+	self.interaction.gen_pku_thermite_paste.sound_done = "pick_up_thermite"
 	self.interaction.button_infopad = {}
 	self.interaction.button_infopad.text_id = "hud_int_press_for_info"
 	self.interaction.button_infopad.start_active = false
@@ -2115,6 +2126,8 @@ function TweakData:init()
 	self.interaction.money_small.sound_start = "bar_bag_pour_money"
 	self.interaction.money_small.sound_interupt = "bar_bag_pour_money_cancel"
 	self.interaction.money_small.sound_done = "bar_bag_pour_money_finished"
+	self.interaction.money_small_take = deep_clone(self.interaction.money_small)
+	self.interaction.money_small_take.text_id = "debug_interact_money_printed_take_money"
 	self.interaction.shape_charge_plantable = {}
 	self.interaction.shape_charge_plantable.text_id = "debug_interact_c4"
 	self.interaction.shape_charge_plantable.action_text_id = "hud_action_placing_c4"
@@ -2131,9 +2144,8 @@ function TweakData:init()
 	self.interaction.bag_zipline = {}
 	self.interaction.bag_zipline.text_id = "hud_int_bag_zipline"
 	self.interaction.huge_lance = {}
-	self.interaction.huge_lance.contour = "contour_off"
-	self.interaction.huge_lance.text_id = "hud_int_equipment_lance"
-	self.interaction.huge_lance.action_text_id = "hud_action_placing_lance"
+	self.interaction.huge_lance.text_id = "hud_int_equipment_huge_lance"
+	self.interaction.huge_lance.action_text_id = "hud_action_placing_huge_lance"
 	self.interaction.huge_lance.timer = 3
 	self.interaction.huge_lance.sound_start = "bar_huge_lance_fix"
 	self.interaction.huge_lance.sound_interupt = "bar_huge_lance_fix_cancel"
@@ -2143,7 +2155,7 @@ function TweakData:init()
 	self.interaction.huge_lance_jammed.action_text_id = "hud_action_fixing_huge_lance"
 	self.interaction.huge_lance_jammed.special_equipment = "lance_part"
 	self.interaction.huge_lance_jammed.equipment_text_id = "hud_int_equipment_no_lance_part"
-	self.interaction.huge_lance_jammed.blocked_hint = "no_lance"
+	self.interaction.huge_lance_jammed.blocked_hint = "no_huge_lance"
 	self.interaction.huge_lance_jammed.equipment_consume = true
 	self.interaction.huge_lance_jammed.timer = 10
 	self.interaction.huge_lance_jammed.sound_start = "bar_huge_lance_fix"
@@ -2152,6 +2164,7 @@ function TweakData:init()
 	self.interaction.gen_pku_lance_part = {}
 	self.interaction.gen_pku_lance_part.text_id = "hud_int_take_lance_part"
 	self.interaction.gen_pku_lance_part.special_equipment_block = "lance_part"
+	self.interaction.gen_pku_lance_part.sound_done = "drill_fix_end"
 	self.interaction.crane_joystick_left = {}
 	self.interaction.crane_joystick_left.text_id = "hud_int_crane_left"
 	self.interaction.crane_joystick_left.start_active = false
@@ -2215,6 +2228,167 @@ function TweakData:init()
 	self.interaction.samurai_armor.sound_start = "bar_bag_armor"
 	self.interaction.samurai_armor.sound_interupt = "bar_bag_armor_cancel"
 	self.interaction.samurai_armor.sound_done = "bar_bag_armor_finished"
+	self.interaction.fingerprint_scanner = {}
+	self.interaction.fingerprint_scanner.text_id = "hud_int_use_scanner"
+	self.interaction.fingerprint_scanner.start_active = false
+	self.interaction.enter_code = {}
+	self.interaction.enter_code.text_id = "hud_int_enter_code"
+	self.interaction.enter_code.action_text_id = "hud_action_enter_code"
+	self.interaction.enter_code.timer = 1
+	self.interaction.enter_code.start_active = false
+	self.interaction.enter_code.sound_start = "bar_keyboard"
+	self.interaction.enter_code.sound_interupt = "bar_keyboard_cancel"
+	self.interaction.enter_code.sound_done = "bar_keyboard_finished"
+	self.interaction.take_keys = {}
+	self.interaction.take_keys.text_id = "hud_int_take_keys"
+	self.interaction.push_button = {}
+	self.interaction.push_button.text_id = "hud_int_push_button"
+	self.interaction.breach_door = {}
+	self.interaction.breach_door.text_id = "debug_interact_crowbar"
+	self.interaction.breach_door.action_text_id = "hud_action_breaching_door"
+	self.interaction.breach_door.start_active = false
+	self.interaction.breach_door.timer = 2
+	self.interaction.breach_door.sound_start = "bar_pry_open_elevator_door"
+	self.interaction.breach_door.sound_interupt = "bar_pry_open_elevator_door_cancel"
+	self.interaction.breach_door.sound_done = "bar_pry_open_elevator_door_finished"
+	self.interaction.bus_wall_phone = {}
+	self.interaction.bus_wall_phone.text_id = "hud_int_use_phone_signal_bus"
+	self.interaction.bus_wall_phone.start_active = false
+	self.interaction.zipline_mount = {}
+	self.interaction.zipline_mount.text_id = "hud_int_setup_zipline"
+	self.interaction.zipline_mount.action_text_id = "hud_action_setting_zipline"
+	self.interaction.zipline_mount.start_active = false
+	self.interaction.zipline_mount.timer = 2
+	self.interaction.zipline_mount.sound_start = "bar_drill_apply"
+	self.interaction.zipline_mount.sound_interupt = "bar_drill_apply_cancel"
+	self.interaction.zipline_mount.sound_done = "bar_drill_apply_finished"
+	self.interaction.rewire_timelock = deep_clone(self.interaction.security_station)
+	self.interaction.rewire_timelock.text_id = "hud_int_rewire_timelock"
+	self.interaction.rewire_timelock.action_text_id = "hud_action_rewiring_timelock"
+	self.interaction.rewire_timelock.axis = "x"
+	self.interaction.pick_lock_x_axis = deep_clone(self.interaction.pick_lock_hard_no_skill)
+	self.interaction.pick_lock_x_axis.axis = "x"
+	self.interaction.money_wrap_single_bundle_active = deep_clone(self.interaction.money_wrap_single_bundle)
+	self.interaction.money_wrap_single_bundle_active.start_active = true
+	self.interaction.pku_barcode_downtown = {}
+	self.interaction.pku_barcode_downtown.text_id = "hud_int_hold_barcode"
+	self.interaction.pku_barcode_downtown.action_text_id = "hud_action_barcode"
+	self.interaction.pku_barcode_downtown.special_equipment_block = "barcode_downtown"
+	self.interaction.pku_barcode_downtown.timer = 2
+	self.interaction.pku_barcode_brickell = deep_clone(self.interaction.pku_barcode_downtown)
+	self.interaction.pku_barcode_brickell.special_equipment_block = "barcode_brickell"
+	self.interaction.pku_barcode_edgewater = deep_clone(self.interaction.pku_barcode_downtown)
+	self.interaction.pku_barcode_edgewater.special_equipment_block = "barcode_edgewater"
+	self.interaction.pku_barcode_isles_beach = deep_clone(self.interaction.pku_barcode_downtown)
+	self.interaction.pku_barcode_isles_beach.special_equipment_block = "barcode_isles_beach"
+	self.interaction.pku_barcode_opa_locka = deep_clone(self.interaction.pku_barcode_downtown)
+	self.interaction.pku_barcode_opa_locka.special_equipment_block = "barcode_opa_locka"
+	self.interaction.read_barcode_downtown = {}
+	self.interaction.read_barcode_downtown.text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_downtown.action_text_id = "hud_action_read_barcode"
+	self.interaction.read_barcode_downtown.special_equipment = "barcode_downtown"
+	self.interaction.read_barcode_downtown.dont_need_equipment = true
+	self.interaction.read_barcode_downtown.possible_special_equipment = {
+		"barcode_downtown",
+		"barcode_brickell",
+		"barcode_edgewater",
+		"barcode_isles_beach",
+		"barcode_opa_locka"
+	}
+	self.interaction.read_barcode_downtown.equipment_text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_downtown.equipment_consume = true
+	self.interaction.read_barcode_downtown.start_active = false
+	self.interaction.read_barcode_downtown.timer = 2
+	self.interaction.read_barcode_brickell = {}
+	self.interaction.read_barcode_brickell.text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_brickell.action_text_id = "hud_action_read_barcode"
+	self.interaction.read_barcode_brickell.special_equipment = "barcode_brickell"
+	self.interaction.read_barcode_brickell.dont_need_equipment = true
+	self.interaction.read_barcode_brickell.possible_special_equipment = {
+		"barcode_downtown",
+		"barcode_brickell",
+		"barcode_edgewater",
+		"barcode_isles_beach",
+		"barcode_opa_locka"
+	}
+	self.interaction.read_barcode_brickell.equipment_text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_brickell.equipment_consume = true
+	self.interaction.read_barcode_brickell.start_active = false
+	self.interaction.read_barcode_brickell.timer = 2
+	self.interaction.read_barcode_edgewater = {}
+	self.interaction.read_barcode_edgewater.text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_edgewater.action_text_id = "hud_action_read_barcode"
+	self.interaction.read_barcode_edgewater.special_equipment = "barcode_edgewater"
+	self.interaction.read_barcode_edgewater.dont_need_equipment = true
+	self.interaction.read_barcode_edgewater.possible_special_equipment = {
+		"barcode_downtown",
+		"barcode_brickell",
+		"barcode_edgewater",
+		"barcode_isles_beach",
+		"barcode_opa_locka"
+	}
+	self.interaction.read_barcode_edgewater.equipment_text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_edgewater.equipment_consume = true
+	self.interaction.read_barcode_edgewater.start_active = false
+	self.interaction.read_barcode_edgewater.timer = 2
+	self.interaction.read_barcode_isles_beach = {}
+	self.interaction.read_barcode_isles_beach.text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_isles_beach.action_text_id = "hud_action_read_barcode"
+	self.interaction.read_barcode_isles_beach.special_equipment = "barcode_isles_beach"
+	self.interaction.read_barcode_isles_beach.dont_need_equipment = true
+	self.interaction.read_barcode_isles_beach.possible_special_equipment = {
+		"barcode_downtown",
+		"barcode_brickell",
+		"barcode_edgewater",
+		"barcode_isles_beach",
+		"barcode_opa_locka"
+	}
+	self.interaction.read_barcode_isles_beach.equipment_text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_isles_beach.equipment_consume = true
+	self.interaction.read_barcode_isles_beach.start_active = false
+	self.interaction.read_barcode_isles_beach.timer = 2
+	self.interaction.read_barcode_opa_locka = {}
+	self.interaction.read_barcode_opa_locka.text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_opa_locka.action_text_id = "hud_action_read_barcode"
+	self.interaction.read_barcode_opa_locka.special_equipment = "barcode_opa_locka"
+	self.interaction.read_barcode_opa_locka.dont_need_equipment = true
+	self.interaction.read_barcode_opa_locka.possible_special_equipment = {
+		"barcode_downtown",
+		"barcode_brickell",
+		"barcode_edgewater",
+		"barcode_isles_beach",
+		"barcode_opa_locka"
+	}
+	self.interaction.read_barcode_opa_locka.equipment_text_id = "hud_int_hold_read_barcode"
+	self.interaction.read_barcode_opa_locka.equipment_consume = true
+	self.interaction.read_barcode_opa_locka.start_active = false
+	self.interaction.read_barcode_opa_locka.timer = 2
+	self.interaction.hlm_motor_start = {}
+	self.interaction.hlm_motor_start.text_id = "hud_int_hold_start_motor"
+	self.interaction.hlm_motor_start.action_text_id = "hud_action_startig_motor"
+	self.interaction.hlm_motor_start.start_active = false
+	self.interaction.hlm_motor_start.timer = 2
+	self.interaction.hlm_motor_start.sound_start = "bar_huge_lance_fix"
+	self.interaction.hlm_motor_start.sound_interupt = "bar_huge_lance_fix_cancel"
+	self.interaction.hlm_motor_start.sound_done = "bar_huge_lance_fix_finished"
+	self.interaction.hlm_connect_equip = {}
+	self.interaction.hlm_connect_equip.text_id = "hud_int_hold_connect_equip"
+	self.interaction.hlm_connect_equip.action_text_id = "hud_action_connecting_equip"
+	self.interaction.hlm_connect_equip.start_active = false
+	self.interaction.hlm_connect_equip.timer = 2
+	self.interaction.hlm_roll_carpet = {}
+	self.interaction.hlm_roll_carpet.text_id = "hud_int_hold_roll_carpet"
+	self.interaction.hlm_roll_carpet.action_text_id = "hud_action_rolling_carpet"
+	self.interaction.hlm_roll_carpet.start_active = false
+	self.interaction.hlm_roll_carpet.timer = 2
+	self.interaction.hlm_roll_carpet.sound_start = "bar_roll_carpet"
+	self.interaction.hlm_roll_carpet.sound_interupt = "bar_roll_carpet_cancel"
+	self.interaction.hlm_roll_carpet.sound_done = "bar_roll_carpet_finished"
+	self.interaction.hold_pku_equipmentbag = {}
+	self.interaction.hold_pku_equipmentbag.text_id = "hud_int_hold_pku_equipment"
+	self.interaction.hold_pku_equipmentbag.action_text_id = "hud_action_grabbing_equipment"
+	self.interaction.hold_pku_equipmentbag.sound_event = "ammo_bag_drop"
+	self.interaction.hold_pku_equipmentbag.timer = 1
 	self.gui = self.gui or {}
 	self.gui.BOOT_SCREEN_LAYER = 1
 	self.gui.TITLE_SCREEN_LAYER = 1
@@ -2222,6 +2396,7 @@ function TweakData:init()
 	self.gui.MENU_COMPONENT_LAYER = 300
 	self.gui.ATTRACT_SCREEN_LAYER = 400
 	self.gui.LOADING_SCREEN_LAYER = 1000
+	self.gui.CRIMENET_CHAT_LAYER = 1000
 	self.gui.DIALOG_LAYER = 1100
 	self.gui.MOUSE_LAYER = 1200
 	self.gui.SAVEFILE_LAYER = 1400
@@ -2648,6 +2823,32 @@ function TweakData:init()
 	self.achievement.demise_knuckles = "brass_knuckles"
 	self.achievement.vote_for_change = "g22c"
 	self.achievement.steam_500k = "akm_gold"
+	self.achievement.shotgun_one_o_one = {
+		count = 50,
+		accuracy = 101,
+		award = "gage4_5"
+	}
+	self.achievement.shock_awe = {
+		count = 4,
+		weapon_type = "shotgun",
+		award = "gage4_9"
+	}
+	self.achievement.close_and_personal = {
+		award = "gage4_3",
+		kill_type = "melee",
+		count = 50
+	}
+	self.achievement.weapons_owned = {
+		gage4_2 = {
+			"huntsman",
+			"r870",
+			"saiga",
+			"ksg",
+			"striker",
+			"serbu",
+			"benelli"
+		}
+	}
 	self.achievement.gage_assignments = {
 		green_mantis = "gmod_1_stats",
 		yellow_bull = "gmod_2_stats",
@@ -2814,6 +3015,31 @@ function TweakData:init()
 		public_enemy_no_one = {
 			stat = "gage3_17_stats",
 			weapon = "msr"
+		},
+		knock_knock = {
+			stat = "gage4_6_stats",
+			enemy = "shield",
+			weapon_type = "shotgun",
+			part_id = "wpn_fps_upg_a_slug"
+		},
+		peek_a_boo = {
+			stat = "gage4_8_stats",
+			enemy = "sniper",
+			weapon_type = "shotgun",
+			part_id = "wpn_fps_upg_a_piercing"
+		},
+		seven_eleven = {
+			award = "gage4_4",
+			weapon_type = "shotgun",
+			in_head = true,
+			timer = 11,
+			count = 7
+		},
+		bang_for_buck = {
+			stat = "gage4_10_stats",
+			enemy = "tank",
+			weapon_type = "shotgun",
+			part_id = "wpn_fps_upg_a_custom"
 		}
 	}
 	self.achievement.enemy_melee_kill_achievements = {
@@ -2839,6 +3065,17 @@ function TweakData:init()
 				"overkill_290"
 			},
 			health = 25
+		},
+		police_brutality = {
+			award = "gage4_1",
+			enemy = "shield",
+			melee_id = "baton"
+		},
+		every_day_shovelin = {
+			stat = "gage4_7_stats",
+			level_id = "nightclub",
+			melee_id = "shovel",
+			is_cop = true
 		}
 	}
 	self.achievement.complete_heist_achievements = {
@@ -3077,6 +3314,31 @@ function TweakData:init()
 				"overkill_290"
 			},
 			job = "kosugi"
+		},
+		death_bigbank = {
+			award = "bigbank_9",
+			difficulty = {
+				"overkill_290"
+			},
+			job = "big"
+		},
+		not_for_old_men = {
+			award = "gage4_11",
+			full_jobs_id = {
+				"framing_frame",
+				"framing_frame_prof"
+			},
+			stealth = true,
+			equipped = {
+				secondaries = {
+					weapon_id = "serbu",
+					blueprint = {
+						{
+							"wpn_fps_upg_ns_shot_thick"
+						}
+					}
+				}
+			}
 		}
 	}
 	self.achievement.job_list = {}
@@ -3116,6 +3378,7 @@ function TweakData:init()
 		"arm_und",
 		"kosugi"
 	}
+	self.achievement.job_list.dentist = {"big"}
 	self.achievement.complete_heist_stats_achievements = {
 		death_vlad = {
 			award = "death_5",
@@ -3176,6 +3439,29 @@ function TweakData:init()
 				"skulloverkill",
 				"skulloverkillplus"
 			}
+		},
+		funding_father = {
+			award = "bigbank_10",
+			masks = {
+				"franklin",
+				"lincoln",
+				"grant",
+				"washington"
+			}
+		},
+		go_bananas = {
+			award = "gage4_12",
+			jobs = {"alex", "alex_prof"},
+			difficulties = {
+				"overkill_145",
+				"overkill_290"
+			},
+			masks = {
+				"silverback",
+				"mandril",
+				"skullmonkey",
+				"orangutang"
+			}
 		}
 	}
 	self.achievement.sniper_kill_achievements = {
@@ -3197,59 +3483,136 @@ function TweakData:init()
 			multi_kill = 2
 		}
 	}
-	self.achievement.weapon_part_tracker = {}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_m95_barrel_long = {
-		text_id = "bm_wp_m95_b_barrel_long_achievment",
-		stat = "gage3_7_stats",
-		max_progress = 25
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_r93_b_suppressed = {
-		text_id = "bm_wp_r93_b_suppressed_achievment",
-		award = "gage3_8"
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_upg_o_45iron = {
-		text_id = "bm_wp_upg_o_45iron_achievment",
-		award = "gage3_9"
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_r93_b_short = {
-		text_id = "bm_wp_r93_b_short_achievment",
-		stat = "gage3_10_stats",
-		max_progress = 10
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_m95_barrel_suppressed = {
-		text_id = "bm_wp_m95_b_barrel_suppressed_achievment",
-		stat = "gage3_11_stats",
-		max_progress = 10
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_m95_barrel_short = {
-		text_id = "bm_wp_m95_b_barrel_short_achievment",
-		award = "gage3_12_stats",
-		max_progress = 10
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_upg_o_leupold = {
-		text_id = "bm_wp_upg_o_leupold_achievment",
-		stat = "gage3_13_stats",
-		max_progress = 10
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_msr_body_msr = {
-		text_id = "bm_wp_msr_body_msr_achievment",
-		stat = "gage3_14_stats",
-		max_progress = 25
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_r93_body_wood = {
-		text_id = "bm_wp_r93_body_wood_achievment",
-		stat = "gage3_15_stats",
-		max_progress = 25
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_msr_ns_suppressor = {
-		text_id = "bm_wp_snp_msr_ns_suppressor_achievment",
-		stat = "gage3_16_stats",
-		max_progress = 25
-	}
-	self.achievement.weapon_part_tracker.wpn_fps_snp_msr_b_long = {
-		text_id = "bm_wp_snp_msr_b_long_achievment",
-		stat = "gage3_17_stats",
-		max_progress = 250
+	self.achievement.weapon_part_tracker = {
+		wpn_fps_snp_m95_barrel_long = {
+			text_id = "bm_wp_m95_b_barrel_long_achievment",
+			stat = "gage3_7_stats",
+			max_progress = 25
+		},
+		wpn_fps_snp_r93_b_suppressed = {
+			text_id = "bm_wp_r93_b_suppressed_achievment",
+			award = "gage3_8"
+		},
+		wpn_fps_upg_o_45iron = {
+			text_id = "bm_wp_upg_o_45iron_achievment",
+			award = "gage3_9"
+		},
+		wpn_fps_snp_r93_b_short = {
+			text_id = "bm_wp_r93_b_short_achievment",
+			stat = "gage3_10_stats",
+			max_progress = 10
+		},
+		wpn_fps_snp_m95_barrel_suppressed = {
+			text_id = "bm_wp_m95_b_barrel_suppressed_achievment",
+			stat = "gage3_11_stats",
+			max_progress = 10
+		},
+		wpn_fps_snp_m95_barrel_short = {
+			text_id = "bm_wp_m95_b_barrel_short_achievment",
+			award = "gage3_12_stats",
+			max_progress = 10
+		},
+		wpn_fps_upg_o_leupold = {
+			text_id = "bm_wp_upg_o_leupold_achievment",
+			stat = "gage3_13_stats",
+			max_progress = 10
+		},
+		wpn_fps_snp_msr_body_msr = {
+			text_id = "bm_wp_msr_body_msr_achievment",
+			stat = "gage3_14_stats",
+			max_progress = 25
+		},
+		wpn_fps_snp_r93_body_wood = {
+			text_id = "bm_wp_r93_body_wood_achievment",
+			stat = "gage3_15_stats",
+			max_progress = 25
+		},
+		wpn_fps_snp_msr_ns_suppressor = {
+			text_id = "bm_wp_snp_msr_ns_suppressor_achievment",
+			stat = "gage3_16_stats",
+			max_progress = 25
+		},
+		wpn_fps_snp_msr_b_long = {
+			text_id = "bm_wp_snp_msr_b_long_achievment",
+			stat = "gage3_17_stats",
+			max_progress = 250
+		},
+		wpn_fps_ass_fal_fg_01 = {
+			text_id = "bm_wp_fal_fg_01_achievment",
+			award = "bigbank_7"
+		},
+		wpn_fps_ass_fal_fg_03 = {
+			text_id = "bm_wp_fal_fg_03_achievment",
+			award = "bigbank_8"
+		},
+		wpn_fps_ass_fal_fg_04 = {
+			text_id = "bm_wp_fal_fg_04_achievment",
+			award = "bigbank_3"
+		},
+		wpn_fps_ass_fal_fg_wood = {
+			text_id = "bm_wp_fal_fg_wood_achievment",
+			award = "bigbank_4"
+		},
+		wpn_fps_ass_fal_s_01 = {
+			text_id = "bm_wp_fal_s_01_achievment",
+			award = "bigbank_5"
+		},
+		wpn_fps_ass_fal_s_03 = {
+			text_id = "bm_wp_fal_s_03_achievment",
+			award = "bigbank_10"
+		},
+		wpn_fps_ass_fal_s_wood = {
+			text_id = "bm_wp_fal_s_wood_achievment",
+			award = "bigbank_6"
+		},
+		wpn_fps_ass_fal_g_01 = {
+			text_id = "bm_wp_fal_g_01_achievment",
+			award = "bigbank_1"
+		},
+		wpn_fps_ass_fal_m_01 = {
+			text_id = "bm_wp_fal_m_01_achievment",
+			award = "bigbank_2"
+		},
+		wpn_fps_upg_o_mbus_rear = {
+			text_id = "bm_wp_upg_o_mbus_rear_achievment",
+			award = "gage4_2"
+		},
+		wpn_fps_sho_ben_b_short = {
+			text_id = "bm_wp_ben_b_short_achievment",
+			award = "gage4_4"
+		},
+		wpn_fps_sho_ben_b_long = {
+			text_id = "bm_wp_ben_b_long_achievment",
+			award = "gage4_5"
+		},
+		wpn_fps_sho_ben_s_collapsed = {
+			text_id = "bm_wp_ben_s_collapsed_achievment",
+			stat = "gage4_6",
+			max_progress = 50
+		},
+		wpn_fps_sho_ksg_b_short = {
+			text_id = "bm_wp_ksg_b_short_achievment",
+			stat = "gage4_7",
+			max_progress = 25
+		},
+		wpn_fps_sho_ksg_b_long = {
+			text_id = "bm_wp_ksg_b_long_achievment",
+			stat = "gage4_8",
+			max_progress = 10
+		},
+		wpn_fps_sho_ben_s_solid = {
+			text_id = "bm_wp_ben_s_solid_achievment",
+			award = "gage4_9"
+		},
+		wpn_fps_sho_striker_b_long = {
+			text_id = "bm_wp_striker_b_long_achievment",
+			stat = "gage4_10_stats",
+			max_progress = 10
+		},
+		wpn_fps_sho_striker_b_suppressed = {
+			text_id = "bm_wp_striker_b_suppressed_achievment",
+			award = "gage4_11"
+		}
 	}
 	self.pickups = {}
 	self.pickups.ammo = {
@@ -3346,6 +3709,14 @@ function TweakData:init()
 		"track_13"
 	}
 	self.music.heist.switches_infamous = {"track_11"}
+	self.music.big_bank = {}
+	self.music.big_bank.intro = "music_heist_setup"
+	self.music.big_bank.anticipation = "music_heist_anticipation"
+	self.music.big_bank.assault = "music_heist_assault"
+	self.music.big_bank.fake_assault = "music_heist_assault"
+	self.music.big_bank.control = "music_heist_control"
+	self.music.big_bank.switches = {"track_14"}
+	self.music.big_bank.switches_infamous = {"track_11"}
 	self.music.default = deep_clone(self.music.heist)
 	self.blame = {}
 	self.blame.default = "hint_blame_missing"

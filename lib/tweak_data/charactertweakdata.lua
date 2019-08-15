@@ -181,7 +181,7 @@ function CharacterTweakData:_init_heavy_swat(presets)
 	self.heavy_swat.detection = presets.detection.normal
 	self.heavy_swat.HEALTH_INIT = 10
 	self.heavy_swat.headshot_dmg_mul = self.heavy_swat.HEALTH_INIT / 6
-	self.heavy_swat.damage.explosion_damage_mul = 0.7
+	self.heavy_swat.damage.explosion_damage_mul = 0.9
 	self.heavy_swat.move_speed = presets.move_speed.fast
 	self.heavy_swat.surrender_break_time = {6, 8}
 	self.heavy_swat.suppression = presets.suppression.hard_agg
@@ -235,7 +235,7 @@ function CharacterTweakData:_init_fbi_heavy_swat(presets)
 	self.fbi_heavy_swat.detection = presets.detection.normal
 	self.fbi_heavy_swat.HEALTH_INIT = 20
 	self.fbi_heavy_swat.headshot_dmg_mul = self.fbi_heavy_swat.HEALTH_INIT / 10
-	self.fbi_heavy_swat.damage.explosion_damage_mul = 0.6
+	self.fbi_heavy_swat.damage.explosion_damage_mul = 0.9
 	self.fbi_heavy_swat.move_speed = presets.move_speed.fast
 	self.fbi_heavy_swat.surrender_break_time = {6, 8}
 	self.fbi_heavy_swat.suppression = presets.suppression.hard_agg
@@ -516,7 +516,7 @@ function CharacterTweakData:_init_tank(presets)
 	self.tank.detection = presets.detection.normal
 	self.tank.HEALTH_INIT = 550
 	self.tank.headshot_dmg_mul = self.tank.HEALTH_INIT / 24
-	self.tank.damage.explosion_damage_mul = 0.75
+	self.tank.damage.explosion_damage_mul = 1
 	self.tank.move_speed = presets.move_speed.very_slow
 	self.tank.allowed_stances = {cbt = true}
 	self.tank.allowed_poses = {stand = true}
@@ -621,7 +621,7 @@ function CharacterTweakData:_init_shield(presets)
 	self.shield.deathguard = false
 	self.shield.no_equip_anim = true
 	self.shield.wall_fwd_offset = 100
-	self.shield.damage.explosion_damage_mul = 0.25
+	self.shield.damage.explosion_damage_mul = 0.8
 	self.shield.damage.hurt_severity = presets.hurt_severities.only_explosion_hurts
 	self.shield.damage.shield_knocked = true
 	self.shield.weapon.mp9 = {}
@@ -1065,6 +1065,12 @@ function CharacterTweakData:_presets(tweak_data)
 			zones = {
 				{none = 1}
 			}
+		},
+		melee = {
+			health_reference = 1,
+			zones = {
+				{none = 1}
+			}
 		}
 	}
 	presets.hurt_severities.only_light_hurt = {
@@ -1078,6 +1084,12 @@ function CharacterTweakData:_presets(tweak_data)
 			health_reference = 1,
 			zones = {
 				{explode = 1}
+			}
+		},
+		melee = {
+			health_reference = 1,
+			zones = {
+				{light = 1}
 			}
 		}
 	}
@@ -1093,6 +1105,12 @@ function CharacterTweakData:_presets(tweak_data)
 			zones = {
 				{explode = 1}
 			}
+		},
+		melee = {
+			health_reference = 1,
+			zones = {
+				{none = 1}
+			}
 		}
 	}
 	presets.hurt_severities.base = {
@@ -1100,22 +1118,28 @@ function CharacterTweakData:_presets(tweak_data)
 			health_reference = "current",
 			zones = {
 				{
-					health_limit = 0.2,
-					none = 0,
+					health_limit = 0.3,
+					none = 0.2,
 					light = 0.7,
-					moderate = 0.2,
-					heavy = 0.1
+					moderate = 0.05,
+					heavy = 0.05
 				},
 				{
-					health_limit = 0.4,
+					health_limit = 0.6,
+					light = 0.4,
+					moderate = 0.4,
+					heavy = 0.2
+				},
+				{
+					health_limit = 0.9,
 					light = 0.2,
-					moderate = 0.5,
-					heavy = 0.3
+					moderate = 0.2,
+					heavy = 0.6
 				},
 				{
-					light = 0.1,
-					moderate = 0.3,
-					heavy = 0.6
+					light = 0,
+					moderate = 0,
+					heavy = 1
 				}
 			}
 		},
@@ -1133,6 +1157,35 @@ function CharacterTweakData:_presets(tweak_data)
 					explode = 0.4
 				},
 				{heavy = 0.2, explode = 0.8}
+			}
+		},
+		melee = {
+			health_reference = "current",
+			zones = {
+				{
+					health_limit = 0.3,
+					none = 0.3,
+					light = 0.7,
+					moderate = 0,
+					heavy = 0
+				},
+				{
+					health_limit = 0.8,
+					light = 1,
+					moderate = 0,
+					heavy = 0
+				},
+				{
+					health_limit = 0.9,
+					light = 0.6,
+					moderate = 0.2,
+					heavy = 0.2
+				},
+				{
+					light = 0,
+					moderate = 0,
+					heavy = 9
+				}
 			}
 		}
 	}
@@ -1173,7 +1226,7 @@ function CharacterTweakData:_presets(tweak_data)
 	presets.gang_member_damage.BLEED_OUT_HEALTH_INIT = tweak_data.player.damage.BLEED_OUT_HEALTH_INIT
 	presets.gang_member_damage.ARRESTED_TIME = tweak_data.player.damage.ARRESTED_TIME
 	presets.gang_member_damage.INCAPACITATED_TIME = tweak_data.player.damage.INCAPACITATED_TIME
-	presets.gang_member_damage.hurt_severity = presets.hurt_severities.base
+	presets.gang_member_damage.hurt_severity = deep_clone(presets.hurt_severities.base)
 	presets.gang_member_damage.hurt_severity.bullet = {
 		health_reference = "current",
 		zones = {
@@ -4518,7 +4571,8 @@ function CharacterTweakData:_create_table_structure()
 		"m249",
 		"benelli",
 		"g36",
-		"ump"
+		"ump",
+		"scar_murky"
 	}
 	self.weap_unit_names = {
 		Idstring("units/payday2/weapons/wpn_npc_beretta92/wpn_npc_beretta92"),
@@ -4537,7 +4591,8 @@ function CharacterTweakData:_create_table_structure()
 		Idstring("units/payday2/weapons/wpn_npc_lmg_m249/wpn_npc_lmg_m249"),
 		Idstring("units/payday2/weapons/wpn_npc_benelli/wpn_npc_benelli"),
 		Idstring("units/payday2/weapons/wpn_npc_g36/wpn_npc_g36"),
-		Idstring("units/payday2/weapons/wpn_npc_ump/wpn_npc_ump")
+		Idstring("units/payday2/weapons/wpn_npc_ump/wpn_npc_ump"),
+		Idstring("units/payday2/weapons/wpn_npc_scar_murkywater/wpn_npc_scar_murkywater")
 	}
 end
 function CharacterTweakData:_process_weapon_usage_table(weap_usage_table)
@@ -5124,7 +5179,7 @@ function CharacterTweakData:_set_overkill_290()
 	}
 	self.city_swat.HEALTH_INIT = 24
 	self.city_swat.headshot_dmg_mul = self.fbi_swat.HEALTH_INIT / 8
-	self.city_swat.damage.explosion_damage_mul = 0.6
+	self.city_swat.damage.explosion_damage_mul = 0.8
 	self.city_swat.damage.hurt_severity = self.presets.hurt_severities.only_light_hurt
 	self.shield.weapon.mp9.focus_dis = 200
 	self.tank.weapon.saiga.focus_dis = 200

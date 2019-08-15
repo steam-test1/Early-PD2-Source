@@ -85,7 +85,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.character_locked.wolf = "units/payday2/masks/msk_wolf/msk_wolf"
 	self.masks.character_locked.hoxton = "units/payday2/masks/msk_hoxton/msk_hoxton"
 	self.masks.character_locked.chains = "units/payday2/masks/msk_chains/msk_chains"
-	self.masks.character_locked.statistics = true
 	self.masks.skull = {}
 	self.masks.skull.unit = "units/payday2/masks/msk_skull/msk_skull"
 	self.masks.skull.name_id = "bm_msk_skull"
@@ -97,7 +96,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.skull.dlc = "preorder"
 	self.masks.skull.value = 1
-	self.masks.skull.statistics = true
 	self.masks.wolf_clean = {}
 	self.masks.wolf_clean.unit = "units/payday2/masks/msk_wolf_clean/msk_wolf_clean"
 	self.masks.wolf_clean.name_id = "bm_msk_wolf_clean"
@@ -110,7 +108,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.wolf_clean.infamous = true
 	self.masks.wolf_clean.value = 9
 	self.masks.wolf_clean.qlvl = 0
-	self.masks.wolf_clean.statistics = true
 	self.masks.hoxton_clean = {}
 	self.masks.hoxton_clean.unit = "units/payday2/masks/msk_hoxton_clean/msk_hoxton_clean"
 	self.masks.hoxton_clean.name_id = "bm_msk_hoxton_clean"
@@ -123,7 +120,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.hoxton_clean.infamous = true
 	self.masks.hoxton_clean.value = 9
 	self.masks.hoxton_clean.qlvl = 0
-	self.masks.hoxton_clean.statistics = true
 	self.masks.dallas_clean = {}
 	self.masks.dallas_clean.unit = "units/payday2/masks/msk_dallas_clean/msk_dallas_clean"
 	self.masks.dallas_clean.name_id = "bm_msk_dallas_clean"
@@ -136,7 +132,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.dallas_clean.infamous = true
 	self.masks.dallas_clean.value = 10
 	self.masks.dallas_clean.qlvl = 0
-	self.masks.dallas_clean.statistics = true
 	self.masks.chains_clean = {}
 	self.masks.chains_clean.unit = "units/payday2/masks/msk_chains_clean/msk_chains_clean"
 	self.masks.chains_clean.name_id = "bm_msk_chains_clean"
@@ -149,7 +144,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.chains_clean.infamous = true
 	self.masks.chains_clean.value = 9
 	self.masks.chains_clean.qlvl = 0
-	self.masks.chains_clean.statistics = true
 	self.masks.dallas = {}
 	self.masks.dallas.unit = "units/payday2/masks/msk_dallas/msk_dallas"
 	self.masks.dallas.name_id = "bm_msk_dallas"
@@ -161,7 +155,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.dallas.infamous = true
 	self.masks.dallas.value = 7
-	self.masks.dallas.statistics = true
 	self.masks.hoxton = {}
 	self.masks.hoxton.unit = "units/payday2/masks/msk_hoxton/msk_hoxton"
 	self.masks.hoxton.name_id = "bm_msk_hoxton"
@@ -173,7 +166,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.hoxton.infamous = true
 	self.masks.hoxton.value = 7
-	self.masks.hoxton.statistics = true
 	self.masks.chains = {}
 	self.masks.chains.unit = "units/payday2/masks/msk_chains/msk_chains"
 	self.masks.chains.name_id = "bm_msk_chains"
@@ -185,7 +177,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.chains.infamous = true
 	self.masks.chains.value = 7
-	self.masks.chains.statistics = true
 	self.masks.wolf = {}
 	self.masks.wolf.unit = "units/payday2/masks/msk_wolf/msk_wolf"
 	self.masks.wolf.name_id = "bm_msk_wolf"
@@ -197,7 +188,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.wolf.infamous = true
 	self.masks.wolf.value = 7
-	self.masks.wolf.statistics = true
 	self.masks.cthulhu = {}
 	self.masks.cthulhu.unit = "units/payday2/masks/msk_cthulhu/msk_cthulhu"
 	self.masks.cthulhu.name_id = "bm_msk_cthulhu"
@@ -210,7 +200,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.cthulhu.infamous = true
 	self.masks.cthulhu.value = 8
 	self.masks.cthulhu.qlvl = 0
-	self.masks.cthulhu.statistics = true
 	self.masks.grin = {}
 	self.masks.grin.unit = "units/payday2/masks/msk_grin/msk_grin"
 	self.masks.grin.name_id = "bm_msk_grin"
@@ -223,7 +212,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.grin.infamous = true
 	self.masks.grin.value = 8
 	self.masks.grin.qlvl = 0
-	self.masks.grin.statistics = true
 	self.masks.anonymous = {}
 	self.masks.anonymous.unit = "units/payday2/masks/msk_anonymous/msk_anonymous"
 	self.masks.anonymous.name_id = "bm_msk_anonymous"
@@ -236,7 +224,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.anonymous.infamous = true
 	self.masks.anonymous.value = 6
 	self.masks.anonymous.qlvl = 0
-	self.masks.anonymous.statistics = true
 	self.masks.dillinger_death_mask = {}
 	self.masks.dillinger_death_mask.unit = "units/payday2/masks/msk_dillinger_death_mask/msk_dillinger_death_mask"
 	self.masks.dillinger_death_mask.name_id = "bm_msk_dillinger_death_mask"
@@ -249,7 +236,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.dillinger_death_mask.infamous = true
 	self.masks.dillinger_death_mask.value = 9
 	self.masks.dillinger_death_mask.qlvl = 0
-	self.masks.dillinger_death_mask.statistics = true
 	self.masks.alienware = {}
 	self.masks.alienware.unit = "units/payday2/masks/msk_alienware/msk_alienware"
 	self.masks.alienware.name_id = "bm_msk_alienware"
@@ -260,7 +246,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.alienware.value = 3
-	self.masks.alienware.statistics = true
 	self.masks.greek_tragedy = {}
 	self.masks.greek_tragedy.unit = "units/payday2/masks/msk_greek_tragedy/msk_greek_tragedy"
 	self.masks.greek_tragedy.name_id = "bm_msk_greek_tragedy"
@@ -272,7 +257,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.greek_tragedy.value = 7
 	self.masks.greek_tragedy.qlvl = 0
-	self.masks.greek_tragedy.statistics = true
 	self.masks.jaw = {}
 	self.masks.jaw.unit = "units/payday2/masks/msk_jaw/msk_jaw"
 	self.masks.jaw.name_id = "bm_msk_jaw"
@@ -283,7 +267,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.jaw.value = 4
-	self.masks.jaw.statistics = true
 	self.masks.hockey = {}
 	self.masks.hockey.unit = "units/payday2/masks/msk_hockey_a/msk_hockey_a_mask"
 	self.masks.hockey.name_id = "bm_msk_hockey"
@@ -294,7 +277,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.hockey.value = 5
-	self.masks.hockey.statistics = true
 	self.masks.troll = {}
 	self.masks.troll.unit = "units/payday2/masks/msk_troll/msk_troll"
 	self.masks.troll.name_id = "bm_msk_troll"
@@ -305,7 +287,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.troll.value = 3
-	self.masks.troll.statistics = true
 	self.masks.gagball = {}
 	self.masks.gagball.unit = "units/payday2/masks/msk_gagball/msk_gagball"
 	self.masks.gagball.name_id = "bm_msk_gagball"
@@ -316,7 +297,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.gagball.value = 4
-	self.masks.gagball.statistics = true
 	self.masks.tounge = {}
 	self.masks.tounge.unit = "units/payday2/masks/msk_tounge/msk_tounge"
 	self.masks.tounge.name_id = "bm_msk_tounge"
@@ -327,7 +307,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.tounge.value = 2
-	self.masks.tounge.statistics = true
 	self.masks.zipper = {}
 	self.masks.zipper.unit = "units/payday2/masks/msk_zipper/msk_zipper"
 	self.masks.zipper.name_id = "bm_msk_zipper"
@@ -338,7 +317,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.zipper.value = 5
-	self.masks.zipper.statistics = true
 	self.masks.biglips = {}
 	self.masks.biglips.unit = "units/payday2/masks/msk_biglips/msk_biglips"
 	self.masks.biglips.name_id = "bm_msk_biglips"
@@ -349,7 +327,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.biglips.value = 3
-	self.masks.biglips.statistics = true
 	self.masks.clowncry = {}
 	self.masks.clowncry.unit = "units/payday2/masks/msk_clowncry/msk_clowncry"
 	self.masks.clowncry.name_id = "bm_msk_clowncry"
@@ -360,7 +337,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.clowncry.value = 4
-	self.masks.clowncry.statistics = true
 	self.masks.mr_sinister = {}
 	self.masks.mr_sinister.unit = "units/payday2/masks/msk_mr_sinister/msk_mr_sinister"
 	self.masks.mr_sinister.name_id = "bm_msk_mr_sinister"
@@ -371,7 +347,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.mr_sinister.value = 5
-	self.masks.mr_sinister.statistics = true
 	self.masks.clown_56 = {}
 	self.masks.clown_56.unit = "units/payday2/masks/msk_clown_56/msk_clown_56"
 	self.masks.clown_56.name_id = "bm_msk_clown_56"
@@ -382,7 +357,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.clown_56.value = 3
-	self.masks.clown_56.statistics = true
 	self.masks.dripper = {}
 	self.masks.dripper.unit = "units/payday2/masks/msk_dripper/msk_dripper"
 	self.masks.dripper.name_id = "bm_msk_dripper"
@@ -394,7 +368,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.dripper.value = 8
 	self.masks.dripper.qlvl = 0
-	self.masks.dripper.statistics = true
 	self.masks.buha = {}
 	self.masks.buha.unit = "units/payday2/masks/msk_buha/msk_buha"
 	self.masks.buha.name_id = "bm_msk_buha"
@@ -405,7 +378,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.buha.value = 5
-	self.masks.buha.statistics = true
 	self.masks.shogun = {}
 	self.masks.shogun.unit = "units/payday2/masks/msk_shogun/msk_shogun"
 	self.masks.shogun.name_id = "bm_msk_shogun"
@@ -416,7 +388,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.shogun.value = 6
-	self.masks.shogun.statistics = true
 	self.masks.oni = {}
 	self.masks.oni.unit = "units/payday2/masks/msk_oni/msk_oni"
 	self.masks.oni.name_id = "bm_msk_oni"
@@ -427,7 +398,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.oni.value = 4
-	self.masks.oni.statistics = true
 	self.masks.monkeybiss = {}
 	self.masks.monkeybiss.unit = "units/payday2/masks/msk_monkeybiss/msk_monkeybiss"
 	self.masks.monkeybiss.name_id = "bm_msk_monkeybiss"
@@ -438,7 +408,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.monkeybiss.value = 5
-	self.masks.monkeybiss.statistics = true
 	self.masks.babyrhino = {}
 	self.masks.babyrhino.unit = "units/payday2/masks/msk_babyrhino/msk_babyrhino"
 	self.masks.babyrhino.name_id = "bm_msk_babyrhino"
@@ -449,7 +418,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.babyrhino.value = 3
-	self.masks.babyrhino.statistics = true
 	self.masks.hog = {}
 	self.masks.hog.unit = "units/payday2/masks/msk_hog/msk_hog"
 	self.masks.hog.name_id = "bm_msk_hog"
@@ -461,7 +429,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.hog.value = 3
 	self.masks.hog.qlvl = 0
-	self.masks.hog.statistics = true
 	self.masks.outlandish_a = {}
 	self.masks.outlandish_a.unit = "units/payday2/masks/msk_outlandish_a/msk_outlandish_a"
 	self.masks.outlandish_a.name_id = "bm_msk_outlandish_a"
@@ -472,7 +439,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.outlandish_a.value = 2
-	self.masks.outlandish_a.statistics = true
 	self.masks.outlandish_b = {}
 	self.masks.outlandish_b.unit = "units/payday2/masks/msk_outlandish_b/msk_outlandish_b"
 	self.masks.outlandish_b.name_id = "bm_msk_outlandish_b"
@@ -483,7 +449,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.outlandish_b.value = 3
-	self.masks.outlandish_b.statistics = true
 	self.masks.outlandish_c = {}
 	self.masks.outlandish_c.unit = "units/payday2/masks/msk_outlandish_c/msk_outlandish_c"
 	self.masks.outlandish_c.name_id = "bm_msk_outlandish_c"
@@ -494,7 +459,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.outlandish_c.value = 4
-	self.masks.outlandish_c.statistics = true
 	self.masks.bullet = {}
 	self.masks.bullet.unit = "units/payday2/masks/msk_bullet/msk_bullet"
 	self.masks.bullet.name_id = "bm_msk_bullet"
@@ -505,7 +469,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.bullet.value = 3
-	self.masks.bullet.statistics = true
 	self.masks.shrunken = {}
 	self.masks.shrunken.unit = "units/payday2/masks/msk_shrunken/msk_shrunken"
 	self.masks.shrunken.name_id = "bm_msk_shrunken"
@@ -516,7 +479,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.shrunken.value = 3
-	self.masks.shrunken.statistics = true
 	self.masks.brainiack = {}
 	self.masks.brainiack.unit = "units/payday2/masks/msk_brainiack/msk_brainiack"
 	self.masks.brainiack.name_id = "bm_msk_brainiack"
@@ -527,7 +489,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.brainiack.value = 6
-	self.masks.brainiack.statistics = true
 	self.masks.zombie = {}
 	self.masks.zombie.unit = "units/payday2/masks/msk_zombie/msk_zombie"
 	self.masks.zombie.name_id = "bm_msk_zombie"
@@ -538,7 +499,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.zombie.value = 3
-	self.masks.zombie.statistics = true
 	self.masks.scarecrow = {}
 	self.masks.scarecrow.unit = "units/payday2/masks/msk_scarecrow/msk_scarecrow"
 	self.masks.scarecrow.name_id = "bm_msk_scarecrow"
@@ -550,7 +510,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.scarecrow.value = 7
 	self.masks.scarecrow.qlvl = 0
-	self.masks.scarecrow.statistics = true
 	self.masks.mummy = {}
 	self.masks.mummy.unit = "units/payday2/masks/msk_mummy/msk_mummy"
 	self.masks.mummy.name_id = "bm_msk_mummy"
@@ -561,7 +520,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.mummy.value = 3
-	self.masks.mummy.statistics = true
 	self.masks.vampire = {}
 	self.masks.vampire.unit = "units/payday2/masks/msk_vampire/msk_vampire"
 	self.masks.vampire.name_id = "bm_msk_vampire"
@@ -572,7 +530,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.vampire.value = 2
-	self.masks.vampire.statistics = true
 	self.masks.day_of_the_dead = {}
 	self.masks.day_of_the_dead.unit = "units/payday2/masks/msk_day_of_the_dead/msk_day_of_the_dead"
 	self.masks.day_of_the_dead.name_id = "bm_msk_day_of_the_dead"
@@ -584,7 +541,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.day_of_the_dead.value = 3
 	self.masks.day_of_the_dead.qlvl = 0
-	self.masks.day_of_the_dead.statistics = true
 	self.masks.dawn_of_the_dead = {}
 	self.masks.dawn_of_the_dead.unit = "units/payday2/masks/msk_dawn_of_the_dead/msk_dawn_of_the_dead"
 	self.masks.dawn_of_the_dead.name_id = "bm_msk_dawn_of_the_dead"
@@ -595,7 +551,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.dawn_of_the_dead.value = 2
-	self.masks.dawn_of_the_dead.statistics = true
 	self.masks.demon = {}
 	self.masks.demon.unit = "units/payday2/masks/msk_demon/msk_demon"
 	self.masks.demon.name_id = "bm_msk_demon"
@@ -607,7 +562,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.demon.value = 10
 	self.masks.demon.qlvl = 0
-	self.masks.demon.statistics = true
 	self.masks.stonekisses = {}
 	self.masks.stonekisses.unit = "units/payday2/masks/msk_stonekisses/msk_stonekisses"
 	self.masks.stonekisses.name_id = "bm_msk_stonekisses"
@@ -618,7 +572,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.stonekisses.value = 4
-	self.masks.stonekisses.statistics = true
 	self.masks.demonictender = {}
 	self.masks.demonictender.unit = "units/payday2/masks/msk_demonictender/msk_demonictender"
 	self.masks.demonictender.name_id = "bm_msk_demonictender"
@@ -629,7 +582,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.demonictender.value = 3
-	self.masks.demonictender.statistics = true
 	self.masks.kawaii = {}
 	self.masks.kawaii.unit = "units/payday2/masks/msk_kawaii/msk_kawaii"
 	self.masks.kawaii.name_id = "bm_msk_kawaii"
@@ -640,7 +592,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.kawaii.value = 3
-	self.masks.kawaii.statistics = true
 	self.masks.irondoom = {}
 	self.masks.irondoom.unit = "units/payday2/masks/msk_irondoom/msk_irondoom"
 	self.masks.irondoom.name_id = "bm_msk_irondoom"
@@ -651,7 +602,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.irondoom.value = 3
-	self.masks.irondoom.statistics = true
 	self.masks.rubber_male = {}
 	self.masks.rubber_male.unit = "units/payday2/masks/msk_rubber_male/msk_rubber_male"
 	self.masks.rubber_male.name_id = "bm_msk_rubber_male"
@@ -662,7 +612,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.rubber_male.value = 3
-	self.masks.rubber_male.statistics = true
 	self.masks.rubber_female = {}
 	self.masks.rubber_female.unit = "units/payday2/masks/msk_rubber_female/msk_rubber_female"
 	self.masks.rubber_female.name_id = "bm_msk_rubber_female"
@@ -673,7 +622,6 @@ function BlackMarketTweakData:_init_masks()
 		40
 	}
 	self.masks.rubber_female.value = 3
-	self.masks.rubber_female.statistics = true
 	self.masks.pumpkin_king = {}
 	self.masks.pumpkin_king.unit = "units/payday2/masks/msk_pumpkin_king/msk_pumpkin_king"
 	self.masks.pumpkin_king.name_id = "bm_msk_pumpkin_king"
@@ -682,7 +630,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.pumpkin_king.global_value = "halloween"
 	self.masks.pumpkin_king.value = 5
 	self.masks.pumpkin_king.qlvl = 0
-	self.masks.pumpkin_king.statistics = true
 	self.masks.witch = {}
 	self.masks.witch.unit = "units/payday2/masks/msk_witch/msk_witch"
 	self.masks.witch.name_id = "bm_msk_witch"
@@ -691,7 +638,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.witch.global_value = "halloween"
 	self.masks.witch.value = 5
 	self.masks.witch.qlvl = 0
-	self.masks.witch.statistics = true
 	self.masks.venomorph = {}
 	self.masks.venomorph.unit = "units/payday2/masks/msk_venomorph/msk_venomorph"
 	self.masks.venomorph.name_id = "bm_msk_venomorph"
@@ -700,7 +646,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.venomorph.global_value = "halloween"
 	self.masks.venomorph.value = 5
 	self.masks.venomorph.qlvl = 0
-	self.masks.venomorph.statistics = true
 	self.masks.frank = {}
 	self.masks.frank.unit = "units/payday2/masks/msk_frank/msk_frank"
 	self.masks.frank.name_id = "bm_msk_frank"
@@ -709,35 +654,30 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.frank.global_value = "halloween"
 	self.masks.frank.value = 5
 	self.masks.frank.qlvl = 0
-	self.masks.frank.statistics = true
 	self.masks.brazil_baby = {}
 	self.masks.brazil_baby.unit = "units/payday2/masks/msk_brazil_baby/msk_brazil_baby"
 	self.masks.brazil_baby.name_id = "bm_msk_brazil_baby"
 	self.masks.brazil_baby.global_value = "halloween"
 	self.masks.brazil_baby.value = 8
 	self.masks.brazil_baby.qlvl = 0
-	self.masks.brazil_baby.statistics = true
 	self.masks.baby_angry = {}
 	self.masks.baby_angry.unit = "units/payday2/masks/msk_baby_angry/msk_baby_angry"
 	self.masks.baby_angry.name_id = "bm_msk_baby_angry"
 	self.masks.baby_angry.global_value = "halloween"
 	self.masks.baby_angry.value = 8
 	self.masks.baby_angry.qlvl = 0
-	self.masks.baby_angry.statistics = true
 	self.masks.baby_cry = {}
 	self.masks.baby_cry.unit = "units/payday2/masks/msk_baby_cry/msk_baby_cry"
 	self.masks.baby_cry.name_id = "bm_msk_baby_cry"
 	self.masks.baby_cry.global_value = "halloween"
 	self.masks.baby_cry.value = 8
 	self.masks.baby_cry.qlvl = 0
-	self.masks.baby_cry.statistics = true
 	self.masks.baby_happy = {}
 	self.masks.baby_happy.unit = "units/payday2/masks/msk_baby_happy/msk_baby_happy"
 	self.masks.baby_happy.name_id = "bm_msk_baby_happy"
 	self.masks.baby_happy.global_value = "halloween"
 	self.masks.baby_happy.value = 8
 	self.masks.baby_happy.qlvl = 0
-	self.masks.baby_happy.statistics = true
 	self.masks.heat = {}
 	self.masks.heat.unit = "units/pd2_dlc1/masks/msk_hockey_b/msk_hockey_b"
 	self.masks.heat.name_id = "bm_msk_heat"
@@ -749,7 +689,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.heat.value = 6
 	self.masks.heat.dlc = "pd2_clan"
-	self.masks.heat.statistics = true
 	self.masks.bear = {}
 	self.masks.bear.unit = "units/payday2/masks/msk_bear/msk_bear"
 	self.masks.bear.name_id = "bm_msk_bear"
@@ -762,7 +701,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.bear.value = 3
 	self.masks.bear.qlvl = 0
 	self.masks.bear.dlcs = {"pd2_clan"}
-	self.masks.bear.statistics = true
 	self.masks.clinton = {}
 	self.masks.clinton.unit = "units/pd2_dlc1/masks/msk_clinton/msk_clinton"
 	self.masks.clinton.name_id = "bm_msk_clinton"
@@ -775,7 +713,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.clinton.value = 6
 	self.masks.clinton.dlc = "armored_transport"
 	self.masks.clinton.texture_bundle_folder = "dlc1"
-	self.masks.clinton.statistics = true
 	self.masks.bush = {}
 	self.masks.bush.unit = "units/pd2_dlc1/masks/msk_bush/msk_bush"
 	self.masks.bush.name_id = "bm_msk_bush"
@@ -788,7 +725,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.bush.value = 6
 	self.masks.bush.dlc = "armored_transport"
 	self.masks.bush.texture_bundle_folder = "dlc1"
-	self.masks.bush.statistics = true
 	self.masks.obama = {}
 	self.masks.obama.unit = "units/pd2_dlc1/masks/msk_obama/msk_obama"
 	self.masks.obama.name_id = "bm_msk_obama"
@@ -801,7 +737,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.obama.value = 6
 	self.masks.obama.dlc = "armored_transport"
 	self.masks.obama.texture_bundle_folder = "dlc1"
-	self.masks.obama.statistics = true
 	self.masks.nixon = {}
 	self.masks.nixon.unit = "units/pd2_dlc1/masks/msk_nixon/msk_nixon"
 	self.masks.nixon.name_id = "bm_msk_nixon"
@@ -814,7 +749,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.nixon.value = 6
 	self.masks.nixon.dlc = "armored_transport"
 	self.masks.nixon.texture_bundle_folder = "dlc1"
-	self.masks.nixon.statistics = true
 	self.masks.goat = {}
 	self.masks.goat.unit = "units/pd2_dlc_dec5/masks/msk_goat/msk_goat"
 	self.masks.goat.name_id = "bm_msk_goat"
@@ -827,7 +761,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.goat.value = 4
 	self.masks.goat.texture_bundle_folder = "gage_pack"
 	self.masks.goat.dlc = "gage_pack"
-	self.masks.goat.statistics = true
 	self.masks.panda = {}
 	self.masks.panda.unit = "units/pd2_dlc_dec5/masks/msk_panda/msk_panda"
 	self.masks.panda.name_id = "bm_msk_panda"
@@ -840,7 +773,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.panda.value = 4
 	self.masks.panda.texture_bundle_folder = "gage_pack"
 	self.masks.panda.dlc = "gage_pack"
-	self.masks.panda.statistics = true
 	self.masks.pitbull = {}
 	self.masks.pitbull.unit = "units/pd2_dlc_dec5/masks/msk_pitbull/msk_pitbull"
 	self.masks.pitbull.name_id = "bm_msk_pitbull"
@@ -853,7 +785,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.pitbull.value = 4
 	self.masks.pitbull.texture_bundle_folder = "gage_pack"
 	self.masks.pitbull.dlc = "gage_pack"
-	self.masks.pitbull.statistics = true
 	self.masks.eagle = {}
 	self.masks.eagle.unit = "units/pd2_dlc_dec5/masks/msk_eagle/msk_eagle"
 	self.masks.eagle.name_id = "bm_msk_eagle"
@@ -867,7 +798,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.eagle.qlvl = 0
 	self.masks.eagle.texture_bundle_folder = "gage_pack"
 	self.masks.eagle.dlc = "gage_pack"
-	self.masks.eagle.statistics = true
 	self.masks.santa_happy = {}
 	self.masks.santa_happy.unit = "units/pd2_dlc2/masks/msk_santa_happy/msk_santa_happy"
 	self.masks.santa_happy.name_id = "bm_msk_santa_happy"
@@ -880,7 +810,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.santa_happy.value = 4
 	self.masks.santa_happy.dlc = "pd2_clan"
 	self.masks.santa_happy.global_value = "pd2_clan"
-	self.masks.santa_happy.statistics = true
 	self.masks.santa_mad = {}
 	self.masks.santa_mad.unit = "units/pd2_dlc_xmas/masks/msk_santa_mad/msk_santa_mad"
 	self.masks.santa_mad.name_id = "bm_msk_santa_mad"
@@ -892,7 +821,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.santa_mad.value = 4
 	self.masks.santa_mad.dlc = "xmas_soundtrack"
-	self.masks.santa_mad.statistics = true
 	self.masks.santa_drunk = {}
 	self.masks.santa_drunk.unit = "units/pd2_dlc_xmas/masks/msk_santa_drunk/msk_santa_drunk"
 	self.masks.santa_drunk.name_id = "bm_msk_santa_drunk"
@@ -904,7 +832,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.santa_drunk.value = 4
 	self.masks.santa_drunk.dlc = "xmas_soundtrack"
-	self.masks.santa_drunk.statistics = true
 	self.masks.santa_surprise = {}
 	self.masks.santa_surprise.unit = "units/pd2_dlc_xmas/masks/msk_santa_suprise/msk_santa_suprise"
 	self.masks.santa_surprise.name_id = "bm_msk_santa_surprise"
@@ -916,7 +843,6 @@ function BlackMarketTweakData:_init_masks()
 	}
 	self.masks.santa_surprise.value = 4
 	self.masks.santa_surprise.dlc = "xmas_soundtrack"
-	self.masks.santa_surprise.statistics = true
 	self.masks.aviator = {}
 	self.masks.aviator.unit = "units/pd2_dlc_infamy/masks/msk_aviator/msk_aviator"
 	self.masks.aviator.name_id = "bm_msk_aviator"
@@ -927,7 +853,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.aviator.global_value = "infamy"
 	self.masks.aviator.texture_bundle_folder = "infamous"
 	self.masks.aviator.infamy_lock = "infamy_root"
-	self.masks.aviator.statistics = true
 	self.masks.ghost = {}
 	self.masks.ghost.unit = "units/pd2_dlc_infamy/masks/msk_ghost/msk_ghost"
 	self.masks.ghost.name_id = "bm_msk_ghost"
@@ -937,7 +862,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.ghost.texture_bundle_folder = "infamous"
 	self.masks.ghost.type = "helmet"
 	self.masks.ghost.infamy_lock = "infamy_ghost"
-	self.masks.ghost.statistics = true
 	self.masks.welder = {}
 	self.masks.welder.unit = "units/pd2_dlc_infamy/masks/msk_welder/msk_welder"
 	self.masks.welder.name_id = "bm_msk_welder"
@@ -946,7 +870,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.welder.global_value = "infamy"
 	self.masks.welder.texture_bundle_folder = "infamous"
 	self.masks.welder.infamy_lock = "infamy_enforcer"
-	self.masks.welder.statistics = true
 	self.masks.plague = {}
 	self.masks.plague.unit = "units/pd2_dlc_infamy/masks/msk_plague/msk_plague"
 	self.masks.plague.name_id = "bm_msk_plague"
@@ -955,7 +878,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.plague.global_value = "infamy"
 	self.masks.plague.texture_bundle_folder = "infamous"
 	self.masks.plague.infamy_lock = "infamy_mastermind"
-	self.masks.plague.statistics = true
 	self.masks.smoker = {}
 	self.masks.smoker.unit = "units/pd2_dlc_infamy/masks/msk_smoker/msk_smoker"
 	self.masks.smoker.name_id = "bm_msk_smoker"
@@ -964,7 +886,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.smoker.global_value = "infamy"
 	self.masks.smoker.texture_bundle_folder = "infamous"
 	self.masks.smoker.infamy_lock = "infamy_technician"
-	self.masks.smoker.statistics = true
 	self.masks.cloth_commander = {}
 	self.masks.cloth_commander.unit = "units/pd2_dlc_gage_lmg/masks/cloth_commander/msk_cloth_commander"
 	self.masks.cloth_commander.name_id = "bm_msk_cloth_commander"
@@ -978,7 +899,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.cloth_commander.qlvl = 0
 	self.masks.cloth_commander.dlc = "gage_pack_lmg"
 	self.masks.cloth_commander.texture_bundle_folder = "gage_pack_lmg"
-	self.masks.cloth_commander.statistics = true
 	self.masks.gage_blade = {}
 	self.masks.gage_blade.unit = "units/pd2_dlc_gage_lmg/masks/msk_gage_blade/msk_gage_blade"
 	self.masks.gage_blade.name_id = "bm_msk_gage_blade"
@@ -992,7 +912,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.gage_blade.qlvl = 0
 	self.masks.gage_blade.texture_bundle_folder = "gage_pack_lmg"
 	self.masks.gage_blade.dlc = "gage_pack_lmg"
-	self.masks.gage_blade.statistics = true
 	self.masks.gage_rambo = {}
 	self.masks.gage_rambo.unit = "units/pd2_dlc_gage_lmg/masks/msk_gage_rambo/msk_gage_rambo"
 	self.masks.gage_rambo.name_id = "bm_msk_rambo"
@@ -1006,7 +925,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.gage_rambo.qlvl = 0
 	self.masks.gage_rambo.texture_bundle_folder = "gage_pack_lmg"
 	self.masks.gage_rambo.dlc = "gage_pack_lmg"
-	self.masks.gage_rambo.statistics = true
 	self.masks.gage_deltaforce = {}
 	self.masks.gage_deltaforce.unit = "units/pd2_dlc_gage_lmg/masks/msk_gage_deltaforce/msk_gage_deltaforce"
 	self.masks.gage_deltaforce.name_id = "bm_msk_deltaforce"
@@ -1020,7 +938,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.gage_deltaforce.qlvl = 0
 	self.masks.gage_deltaforce.texture_bundle_folder = "gage_pack_lmg"
 	self.masks.gage_deltaforce.dlc = "gage_pack_lmg"
-	self.masks.gage_deltaforce.statistics = true
 	self.masks.robberfly = {}
 	self.masks.robberfly.unit = "units/pd2_dlc_gage_snp/masks/msk_robberfly/msk_robberfly"
 	self.masks.robberfly.name_id = "bm_msk_robberfly"
@@ -1029,7 +946,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.robberfly.qlvl = 0
 	self.masks.robberfly.texture_bundle_folder = "gage_pack_snp"
 	self.masks.robberfly.dlc = "gage_pack_snp"
-	self.masks.robberfly.statistics = false
 	self.masks.spider = {}
 	self.masks.spider.unit = "units/pd2_dlc_gage_snp/masks/msk_spider/msk_spider"
 	self.masks.spider.name_id = "bm_msk_spider"
@@ -1038,7 +954,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.spider.qlvl = 0
 	self.masks.spider.texture_bundle_folder = "gage_pack_snp"
 	self.masks.spider.dlc = "gage_pack_snp"
-	self.masks.spider.statistics = false
 	self.masks.mantis = {}
 	self.masks.mantis.unit = "units/pd2_dlc_gage_snp/masks/msk_mantis/msk_mantis"
 	self.masks.mantis.name_id = "bm_msk_mantis"
@@ -1047,7 +962,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.mantis.qlvl = 0
 	self.masks.mantis.texture_bundle_folder = "gage_pack_snp"
 	self.masks.mantis.dlc = "gage_pack_snp"
-	self.masks.mantis.statistics = false
 	self.masks.wasp = {}
 	self.masks.wasp.unit = "units/pd2_dlc_gage_snp/masks/msk_wasp/msk_wasp"
 	self.masks.wasp.name_id = "bm_msk_wasp"
@@ -1056,7 +970,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.wasp.qlvl = 0
 	self.masks.wasp.texture_bundle_folder = "gage_pack_snp"
 	self.masks.wasp.dlc = "gage_pack_snp"
-	self.masks.wasp.statistics = false
 	self.masks.skullhard = {}
 	self.masks.skullhard.unit = "units/payday2/masks/msk_skullhard/msk_skullhard"
 	self.masks.skullhard.name_id = "bm_msk_skullhard"
@@ -1064,7 +977,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skullhard.value = 0
 	self.masks.skullhard.qlvl = 0
 	self.masks.skullhard.infamous = true
-	self.masks.skullhard.statistics = true
 	self.masks.skullveryhard = {}
 	self.masks.skullveryhard.unit = "units/payday2/masks/msk_skullveryhard/msk_skullveryhard"
 	self.masks.skullveryhard.name_id = "bm_msk_skullveryhard"
@@ -1072,7 +984,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skullveryhard.value = 0
 	self.masks.skullveryhard.qlvl = 0
 	self.masks.skullveryhard.infamous = true
-	self.masks.skullveryhard.statistics = true
 	self.masks.skulloverkill = {}
 	self.masks.skulloverkill.unit = "units/payday2/masks/msk_skulloverkill/msk_skulloverkill"
 	self.masks.skulloverkill.name_id = "bm_msk_skulloverkill"
@@ -1080,7 +991,6 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skulloverkill.value = 0
 	self.masks.skulloverkill.qlvl = 0
 	self.masks.skulloverkill.infamous = true
-	self.masks.skulloverkill.statistics = true
 	self.masks.skulloverkillplus = {}
 	self.masks.skulloverkillplus.unit = "units/payday2/masks/msk_skulloverkillplus/msk_skulloverkillplus"
 	self.masks.skulloverkillplus.name_id = "bm_msk_skulloverkillplus"
@@ -1088,7 +998,121 @@ function BlackMarketTweakData:_init_masks()
 	self.masks.skulloverkillplus.value = 0
 	self.masks.skulloverkillplus.qlvl = 0
 	self.masks.skulloverkillplus.infamous = true
-	self.masks.skulloverkillplus.statistics = true
+	self.masks.metalhead = {}
+	self.masks.metalhead.unit = "units/pd2_poetry_winners/masks/veggie/msk_metalhead"
+	self.masks.metalhead.name_id = "bm_msk_metalhead"
+	self.masks.metalhead.pcs = {}
+	self.masks.metalhead.value = 0
+	self.masks.metalhead.dlc = "poetry_soundtrack"
+	self.masks.metalhead.global_value = "poetry_soundtrack"
+	self.masks.tcn = {}
+	self.masks.tcn.unit = "units/pd2_poetry_winners/masks/tcn/msk_tcn"
+	self.masks.tcn.name_id = "bm_msk_tcn"
+	self.masks.tcn.pcs = {}
+	self.masks.tcn.value = 0
+	self.masks.tcn.dlc = "poetry_soundtrack"
+	self.masks.tcn.global_value = "poetry_soundtrack"
+	self.masks.surprise = {}
+	self.masks.surprise.unit = "units/pd2_poetry_winners/masks/shaegro/msk_surprise"
+	self.masks.surprise.name_id = "bm_msk_surprise"
+	self.masks.surprise.pcs = {}
+	self.masks.surprise.value = 0
+	self.masks.surprise.dlc = "poetry_soundtrack"
+	self.masks.surprise.global_value = "poetry_soundtrack"
+	self.masks.optimist_prime = {}
+	self.masks.optimist_prime.unit = "units/pd2_poetry_winners/masks/optimist_prime/msk_optimist_prime"
+	self.masks.optimist_prime.name_id = "bm_msk_optimist_prime"
+	self.masks.optimist_prime.pcs = {}
+	self.masks.optimist_prime.value = 0
+	self.masks.optimist_prime.dlc = "poetry_soundtrack"
+	self.masks.optimist_prime.global_value = "poetry_soundtrack"
+	self.masks.samurai = {}
+	self.masks.samurai.unit = "units/payday2/masks/msk_samurai/msk_samurai"
+	self.masks.samurai.name_id = "bm_msk_samurai"
+	self.masks.samurai.pcs = {}
+	self.masks.samurai.value = 0
+	self.masks.samurai.qlvl = 0
+	self.masks.samurai.infamous = true
+	self.masks.twitch_orc = {}
+	self.masks.twitch_orc.unit = "units/pd2_twitch_pack/masks/msk_twitch_orc/msk_twitch_orc"
+	self.masks.twitch_orc.name_id = "bm_msk_twitch_orc"
+	self.masks.twitch_orc.pcs = {}
+	self.masks.twitch_orc.value = 0
+	self.masks.twitch_orc.qlvl = 0
+	self.masks.twitch_orc.texture_bundle_folder = "twitch_pack"
+	self.masks.twitch_orc.dlc = "twitch_pack"
+	self.masks.ancient = {}
+	self.masks.ancient.unit = "units/pd2_twitch_pack/masks/msk_ancient/msk_ancient"
+	self.masks.ancient.name_id = "bm_msk_ancient"
+	self.masks.ancient.pcs = {}
+	self.masks.ancient.value = 0
+	self.masks.ancient.qlvl = 0
+	self.masks.ancient.texture_bundle_folder = "twitch_pack"
+	self.masks.ancient.dlc = "twitch_pack"
+	self.masks.franklin = {}
+	self.masks.franklin.unit = "units/pd2_dlc_big/masks/msk_franklin/msk_franklin"
+	self.masks.franklin.name_id = "bm_msk_franklin"
+	self.masks.franklin.pcs = {}
+	self.masks.franklin.value = 0
+	self.masks.franklin.qlvl = 0
+	self.masks.franklin.dlc = "big_bank"
+	self.masks.franklin.texture_bundle_folder = "big_bank"
+	self.masks.lincoln = {}
+	self.masks.lincoln.unit = "units/pd2_dlc_big/masks/msk_lincoln/msk_lincoln"
+	self.masks.lincoln.name_id = "bm_msk_lincoln"
+	self.masks.lincoln.pcs = {}
+	self.masks.lincoln.value = 0
+	self.masks.lincoln.qlvl = 0
+	self.masks.lincoln.dlc = "big_bank"
+	self.masks.lincoln.texture_bundle_folder = "big_bank"
+	self.masks.grant = {}
+	self.masks.grant.unit = "units/pd2_dlc_big/masks/msk_grant/msk_grant"
+	self.masks.grant.name_id = "bm_msk_grant"
+	self.masks.grant.pcs = {}
+	self.masks.grant.value = 0
+	self.masks.grant.qlvl = 0
+	self.masks.grant.dlc = "big_bank"
+	self.masks.grant.texture_bundle_folder = "big_bank"
+	self.masks.washington = {}
+	self.masks.washington.unit = "units/pd2_dlc_big/masks/msk_washington/msk_washington"
+	self.masks.washington.name_id = "bm_msk_washington"
+	self.masks.washington.pcs = {}
+	self.masks.washington.value = 0
+	self.masks.washington.qlvl = 0
+	self.masks.washington.dlc = "big_bank"
+	self.masks.washington.texture_bundle_folder = "big_bank"
+	self.masks.silverback = {}
+	self.masks.silverback.unit = "units/pd2_dlc_gage_shot/masks/silverback/msk_silverback"
+	self.masks.silverback.name_id = "bm_msk_silverback"
+	self.masks.silverback.pcs = {}
+	self.masks.silverback.value = 0
+	self.masks.silverback.dlc = "gage_pack_shotgun"
+	self.masks.silverback.texture_bundle_folder = "gage_pack_shotgun"
+	self.masks.silverback.statistics = false
+	self.masks.mandril = {}
+	self.masks.mandril.unit = "units/pd2_dlc_gage_shot/masks/mandrill/msk_mandril"
+	self.masks.mandril.name_id = "bm_msk_mandril"
+	self.masks.mandril.pcs = {}
+	self.masks.mandril.value = 0
+	self.masks.mandril.dlc = "gage_pack_shotgun"
+	self.masks.mandril.texture_bundle_folder = "gage_pack_shotgun"
+	self.masks.mandril.statistics = false
+	self.masks.skullmonkey = {}
+	self.masks.skullmonkey.unit = "units/pd2_dlc_gage_shot/masks/skullmonkey/msk_skullmonkey"
+	self.masks.skullmonkey.name_id = "bm_msk_skullmonkey"
+	self.masks.skullmonkey.pcs = {}
+	self.masks.skullmonkey.value = 0
+	self.masks.skullmonkey.dlc = "gage_pack_shotgun"
+	self.masks.skullmonkey.texture_bundle_folder = "gage_pack_shotgun"
+	self.masks.skullmonkey.statistics = false
+	self.masks.orangutang = {}
+	self.masks.orangutang.unit = "units/pd2_dlc_gage_shot/masks/orangutang/msk_orangutang"
+	self.masks.orangutang.name_id = "bm_msk_orangutang"
+	self.masks.orangutang.pcs = {}
+	self.masks.orangutang.value = 0
+	self.masks.orangutang.dlc = "gage_pack_shotgun"
+	self.masks.orangutang.texture_bundle_folder = "gage_pack_shotgun"
+	self.masks.orangutang.statistics = false
 	if SystemInfo:platform() == Idstring("PS3") then
 		self.masks.sweettooth = {}
 		self.masks.sweettooth.unit = "units/payday2/masks/msk_sweettooth/msk_sweettooth"
@@ -2814,6 +2838,89 @@ function BlackMarketTweakData:_init_materials()
 	self.materials.insectoid.texture = "units/pd2_dlc_gage_snp/materials/matcap_insectoid_df"
 	self.materials.insectoid.value = 0
 	self.materials.insectoid.dlc = "gage_pack_snp"
+	self.materials.blackmetal = {}
+	self.materials.blackmetal.name_id = "bm_mtl_blackmetal"
+	self.materials.blackmetal.pcs = {}
+	self.materials.blackmetal.texture = "units/pd2_poetry_winners/materials/matcap_blackmetal_df"
+	self.materials.blackmetal.material_amount = 0
+	self.materials.blackmetal.value = 0
+	self.materials.blackmetal.dlc = "poetry_soundtrack"
+	self.materials.blackmetal.global_value = "poetry_soundtrack"
+	self.materials.carbongrid = {}
+	self.materials.carbongrid.name_id = "bm_mtl_carbongrid"
+	self.materials.carbongrid.pcs = {}
+	self.materials.carbongrid.texture = "units/pd2_poetry_winners/materials/matcap_carbongrid_df"
+	self.materials.carbongrid.material_amount = 0
+	self.materials.carbongrid.value = 0
+	self.materials.carbongrid.dlc = "poetry_soundtrack"
+	self.materials.carbongrid.global_value = "poetry_soundtrack"
+	self.materials.cosmoline = {}
+	self.materials.cosmoline.name_id = "bm_mtl_cosmoline"
+	self.materials.cosmoline.pcs = {}
+	self.materials.cosmoline.texture = "units/pd2_poetry_winners/materials/matcap_cosmoline_df"
+	self.materials.cosmoline.value = 0
+	self.materials.cosmoline.dlc = "poetry_soundtrack"
+	self.materials.cosmoline.global_value = "poetry_soundtrack"
+	self.materials.electronic = {}
+	self.materials.electronic.name_id = "bm_mtl_electronic"
+	self.materials.electronic.pcs = {}
+	self.materials.electronic.texture = "units/pd2_poetry_winners/materials/matcap_electronic_df"
+	self.materials.electronic.material_amount = 0
+	self.materials.electronic.value = 0
+	self.materials.electronic.dlc = "poetry_soundtrack"
+	self.materials.electronic.global_value = "poetry_soundtrack"
+	self.materials.gemstone = {}
+	self.materials.gemstone.name_id = "bm_mtl_gemstone"
+	self.materials.gemstone.pcs = {}
+	self.materials.gemstone.texture = "units/pd2_dlc_big/matcaps/matcap_gemstone_df"
+	self.materials.gemstone.value = 0
+	self.materials.gemstone.dlc = "big_bank"
+	self.materials.old = {}
+	self.materials.old.name_id = "bm_mtl_old"
+	self.materials.old.pcs = {}
+	self.materials.old.texture = "units/pd2_dlc_big/matcaps/matcap_old_df"
+	self.materials.old.value = 0
+	self.materials.old.dlc = "big_bank"
+	self.materials.clay = {}
+	self.materials.clay.name_id = "bm_mtl_clay"
+	self.materials.clay.pcs = {}
+	self.materials.clay.texture = "units/pd2_dlc_big/matcaps/matcap_clay_df"
+	self.materials.clay.material_amount = 0
+	self.materials.clay.value = 0
+	self.materials.clay.dlc = "big_bank"
+	self.materials.parchment = {}
+	self.materials.parchment.name_id = "bm_mtl_parchment"
+	self.materials.parchment.pcs = {}
+	self.materials.parchment.texture = "units/pd2_dlc_big/matcaps/matcap_parchment_df"
+	self.materials.parchment.material_amount = 0
+	self.materials.parchment.value = 0
+	self.materials.parchment.dlc = "big_bank"
+	self.materials.sparks = {}
+	self.materials.sparks.name_id = "bm_mtl_sparks"
+	self.materials.sparks.pcs = {}
+	self.materials.sparks.texture = "units/pd2_dlc_gage_shot/matcaps/matcap_sparks_df"
+	self.materials.sparks.value = 0
+	self.materials.sparks.dlc = "gage_pack_shotgun"
+	self.materials.explosive = {}
+	self.materials.explosive.name_id = "bm_mtl_explosive"
+	self.materials.explosive.pcs = {}
+	self.materials.explosive.texture = "units/pd2_dlc_gage_shot/matcaps/matcap_explosive_df"
+	self.materials.explosive.value = 0
+	self.materials.explosive.dlc = "gage_pack_shotgun"
+	self.materials.bananapeel = {}
+	self.materials.bananapeel.name_id = "bm_mtl_bananapeel"
+	self.materials.bananapeel.pcs = {}
+	self.materials.bananapeel.texture = "units/pd2_dlc_gage_shot/matcaps/matcap_bananapeel_df"
+	self.materials.bananapeel.material_amount = 0
+	self.materials.bananapeel.value = 0
+	self.materials.bananapeel.dlc = "gage_pack_shotgun"
+	self.materials.leaf = {}
+	self.materials.leaf.name_id = "bm_mtl_leaf"
+	self.materials.leaf.pcs = {}
+	self.materials.leaf.texture = "units/pd2_dlc_gage_shot/matcaps/matcap_leaf_df"
+	self.materials.leaf.material_amount = 0
+	self.materials.leaf.value = 0
+	self.materials.leaf.dlc = "gage_pack_shotgun"
 end
 function BlackMarketTweakData:_init_textures()
 	self.textures = {}
@@ -4139,6 +4246,87 @@ function BlackMarketTweakData:_init_textures()
 	self.textures.wingsofdeath.texture = "units/pd2_dlc_gage_snp/patterns/pattern_wingsofdeath_df"
 	self.textures.wingsofdeath.value = 0
 	self.textures.wingsofdeath.dlc = "gage_pack_snp"
+	self.textures.deathcube = {}
+	self.textures.deathcube.name_id = "bm_txt_deathcube"
+	self.textures.deathcube.pcs = {}
+	self.textures.deathcube.texture = "units/pd2_poetry_winners/patterns/pattern_deathcube_df"
+	self.textures.deathcube.value = 0
+	self.textures.deathcube.dlc = "poetry_soundtrack"
+	self.textures.deathcube.global_value = "poetry_soundtrack"
+	self.textures.tcn = {}
+	self.textures.tcn.name_id = "bm_txt_tcn"
+	self.textures.tcn.pcs = {}
+	self.textures.tcn.texture = "units/pd2_poetry_winners/patterns/pattern_tcn_df"
+	self.textures.tcn.value = 0
+	self.textures.tcn.dlc = "poetry_soundtrack"
+	self.textures.tcn.global_value = "poetry_soundtrack"
+	self.textures.tribalstroke = {}
+	self.textures.tribalstroke.name_id = "bm_txt_tribalstroke"
+	self.textures.tribalstroke.pcs = {}
+	self.textures.tribalstroke.texture = "units/pd2_poetry_winners/patterns/pattern_tribalstroke_df"
+	self.textures.tribalstroke.value = 0
+	self.textures.tribalstroke.dlc = "poetry_soundtrack"
+	self.textures.tribalstroke.global_value = "poetry_soundtrack"
+	self.textures.kraken = {}
+	self.textures.kraken.name_id = "bm_txt_kraken"
+	self.textures.kraken.pcs = {}
+	self.textures.kraken.texture = "units/pd2_poetry_winners/patterns/pattern_kraken_df"
+	self.textures.kraken.value = 0
+	self.textures.kraken.dlc = "poetry_soundtrack"
+	self.textures.kraken.global_value = "poetry_soundtrack"
+	self.textures.roman = {}
+	self.textures.roman.name_id = "bm_txt_roman"
+	self.textures.roman.pcs = {}
+	self.textures.roman.texture = "units/pd2_dlc_big/masks/patterns/pattern_roman_df"
+	self.textures.roman.value = 0
+	self.textures.roman.dlc = "big_bank"
+	self.textures.wargod = {}
+	self.textures.wargod.name_id = "bm_txt_wargod"
+	self.textures.wargod.pcs = {}
+	self.textures.wargod.texture = "units/pd2_dlc_big/masks/patterns/pattern_wargod_df"
+	self.textures.wargod.value = 0
+	self.textures.wargod.dlc = "big_bank"
+	self.textures.spartan = {}
+	self.textures.spartan.name_id = "bm_txt_spartan"
+	self.textures.spartan.pcs = {}
+	self.textures.spartan.texture = "units/pd2_dlc_big/masks/patterns/pattern_spartan_df"
+	self.textures.spartan.value = 0
+	self.textures.spartan.dlc = "big_bank"
+	self.textures.ruler = {}
+	self.textures.ruler.name_id = "bm_txt_ruler"
+	self.textures.ruler.pcs = {
+		10,
+		20,
+		30,
+		40
+	}
+	self.textures.ruler.texture = "units/pd2_dlc_big/masks/patterns/pattern_ruler_df"
+	self.textures.ruler.value = 0
+	self.textures.ruler.dlc = "big_bank"
+	self.textures.banana = {}
+	self.textures.banana.name_id = "bm_txt_banana"
+	self.textures.banana.pcs = {}
+	self.textures.banana.texture = "units/pd2_dlc_gage_shot/patterns/pattern_banana_df"
+	self.textures.banana.value = 0
+	self.textures.banana.dlc = "gage_pack_shotgun"
+	self.textures.chief = {}
+	self.textures.chief.name_id = "bm_txt_chief"
+	self.textures.chief.pcs = {}
+	self.textures.chief.texture = "units/pd2_dlc_gage_shot/patterns/pattern_chief_df"
+	self.textures.chief.value = 0
+	self.textures.chief.dlc = "gage_pack_shotgun"
+	self.textures.monkeyskull = {}
+	self.textures.monkeyskull.name_id = "bm_txt_monkeyskull"
+	self.textures.monkeyskull.pcs = {}
+	self.textures.monkeyskull.texture = "units/pd2_dlc_gage_shot/patterns/pattern_monkeyskull_df"
+	self.textures.monkeyskull.value = 0
+	self.textures.monkeyskull.dlc = "gage_pack_shotgun"
+	self.textures.terror = {}
+	self.textures.terror.name_id = "bm_txt_terror"
+	self.textures.terror.pcs = {}
+	self.textures.terror.texture = "units/pd2_dlc_gage_shot/patterns/pattern_terror_df"
+	self.textures.terror.value = 0
+	self.textures.terror.dlc = "gage_pack_shotgun"
 end
 function BlackMarketTweakData:_init_cash()
 	self.cash = {}
@@ -4393,8 +4581,8 @@ function BlackMarketTweakData:_init_melee_weapons()
 	self.melee_weapons.fists.stats = {}
 	self.melee_weapons.fists.stats.min_damage = 1
 	self.melee_weapons.fists.stats.max_damage = 3
-	self.melee_weapons.fists.stats.min_damage_effect = 2
-	self.melee_weapons.fists.stats.max_damage_effect = 4
+	self.melee_weapons.fists.stats.min_damage_effect = 5.35
+	self.melee_weapons.fists.stats.max_damage_effect = 2.89
 	self.melee_weapons.fists.stats.charge_time = 1
 	self.melee_weapons.fists.stats.range = 150
 	self.melee_weapons.fists.stats.remove_weapon_movement_penalty = true
@@ -4428,9 +4616,9 @@ function BlackMarketTweakData:_init_melee_weapons()
 	self.melee_weapons.kabar.stats.min_damage = 1.5
 	self.melee_weapons.kabar.stats.max_damage = 7
 	self.melee_weapons.kabar.stats.min_damage_effect = 0.7
-	self.melee_weapons.kabar.stats.max_damage_effect = 0.75
+	self.melee_weapons.kabar.stats.max_damage_effect = 0.525
 	self.melee_weapons.kabar.stats.charge_time = 1.8
-	self.melee_weapons.kabar.stats.range = 150
+	self.melee_weapons.kabar.stats.range = 185
 	self.melee_weapons.kabar.stats.remove_weapon_movement_penalty = true
 	self.melee_weapons.kabar.stats.weapon_type = "sharp"
 	self.melee_weapons.kabar.anim_global_param = "melee_knife"
@@ -4456,10 +4644,10 @@ function BlackMarketTweakData:_init_melee_weapons()
 	self.melee_weapons.rambo.third_unit = "units/pd2_dlc_gage_lmg/weapons/wpn_third_mel_rambo/wpn_third_mel_rambo"
 	self.melee_weapons.rambo.stats.min_damage = 2.2
 	self.melee_weapons.rambo.stats.max_damage = 10
-	self.melee_weapons.rambo.stats.min_damage_effect = 0.7
-	self.melee_weapons.rambo.stats.max_damage_effect = 0.75
+	self.melee_weapons.rambo.stats.min_damage_effect = 0.61
+	self.melee_weapons.rambo.stats.max_damage_effect = 0.4
 	self.melee_weapons.rambo.stats.charge_time = 2
-	self.melee_weapons.rambo.stats.range = 185
+	self.melee_weapons.rambo.stats.range = 200
 	self.melee_weapons.gerber = deep_clone(self.melee_weapons.kabar)
 	self.melee_weapons.gerber.name_id = "bm_melee_gerber"
 	self.melee_weapons.gerber.type = "knife"
@@ -4468,9 +4656,9 @@ function BlackMarketTweakData:_init_melee_weapons()
 	self.melee_weapons.gerber.stats.min_damage = 2
 	self.melee_weapons.gerber.stats.max_damage = 5.2
 	self.melee_weapons.gerber.stats.min_damage_effect = 1
-	self.melee_weapons.gerber.stats.max_damage_effect = 1.15
+	self.melee_weapons.gerber.stats.max_damage_effect = 0.58
 	self.melee_weapons.gerber.stats.charge_time = 1.3
-	self.melee_weapons.gerber.stats.range = 125
+	self.melee_weapons.gerber.stats.range = 160
 	self.melee_weapons.kampfmesser = deep_clone(self.melee_weapons.kabar)
 	self.melee_weapons.kampfmesser.name_id = "bm_melee_kampfmesser"
 	self.melee_weapons.kampfmesser.type = "knife"
@@ -4479,9 +4667,9 @@ function BlackMarketTweakData:_init_melee_weapons()
 	self.melee_weapons.kampfmesser.stats.min_damage = 1.5
 	self.melee_weapons.kampfmesser.stats.max_damage = 7.5
 	self.melee_weapons.kampfmesser.stats.min_damage_effect = 1
-	self.melee_weapons.kampfmesser.stats.max_damage_effect = 1.15
+	self.melee_weapons.kampfmesser.stats.max_damage_effect = 0.445
 	self.melee_weapons.kampfmesser.stats.charge_time = 1.5
-	self.melee_weapons.kampfmesser.stats.range = 150
+	self.melee_weapons.kampfmesser.stats.range = 185
 	self.melee_weapons.brass_knuckles = deep_clone(self.melee_weapons.fists)
 	self.melee_weapons.brass_knuckles.name_id = "bm_melee_brass_knuckles"
 	self.melee_weapons.brass_knuckles.free = nil
@@ -4495,11 +4683,118 @@ function BlackMarketTweakData:_init_melee_weapons()
 	self.melee_weapons.brass_knuckles.third_unit = "units/payday2/weapons/wpn_fps_mel_brassknuckle/wpn_third_mel_brassknuckle"
 	self.melee_weapons.brass_knuckles.stats.min_damage = 1.5
 	self.melee_weapons.brass_knuckles.stats.max_damage = 3.5
-	self.melee_weapons.brass_knuckles.stats.min_damage_effect = 2
-	self.melee_weapons.brass_knuckles.stats.max_damage_effect = 4
+	self.melee_weapons.brass_knuckles.stats.min_damage_effect = 3.7
+	self.melee_weapons.brass_knuckles.stats.max_damage_effect = 2.675
 	self.melee_weapons.brass_knuckles.stats.charge_time = 1.3
 	self.melee_weapons.brass_knuckles.stats.range = 150
 	self.melee_weapons.brass_knuckles.sounds.hit_gen = "knuckles_hit_gen"
 	self.melee_weapons.brass_knuckles.sounds.hit_body = "knuckles_hit_body"
+	self.melee_weapons.tomahawk = deep_clone(self.melee_weapons.kabar)
+	self.melee_weapons.tomahawk.name_id = "bm_melee_tomahawk"
+	self.melee_weapons.tomahawk.dlc = "gage_pack_shotgun"
+	self.melee_weapons.tomahawk.texture_bundle_folder = "gage_pack_shotgun"
+	self.melee_weapons.tomahawk.anim_global_param = "melee_axe"
+	self.melee_weapons.tomahawk.type = "axe"
+	self.melee_weapons.tomahawk.align_objects = {
+		"a_weapon_right"
+	}
+	self.melee_weapons.tomahawk.unit = "units/pd2_dlc_gage_shot/weapons/wpn_fps_mel_tomahawk/wpn_fps_mel_tomahawk"
+	self.melee_weapons.tomahawk.third_unit = "units/pd2_dlc_gage_shot/weapons/wpn_third_mel_tomahawk/wpn_third_mel_tomahawk"
+	self.melee_weapons.tomahawk.stats.weapon_type = "sharp"
+	self.melee_weapons.tomahawk.stats.min_damage = 4
+	self.melee_weapons.tomahawk.stats.max_damage = 6.64
+	self.melee_weapons.tomahawk.stats.min_damage_effect = 0.5
+	self.melee_weapons.tomahawk.stats.max_damage_effect = 0.6
+	self.melee_weapons.tomahawk.stats.charge_time = 2.2
+	self.melee_weapons.tomahawk.stats.range = 225
+	self.melee_weapons.tomahawk.expire_t = 1.1
+	self.melee_weapons.tomahawk.repeat_expire_t = 0.8
+	self.melee_weapons.tomahawk.attack_allowed_expire_t = 0.1
+	self.melee_weapons.tomahawk.sounds = {}
+	self.melee_weapons.tomahawk.sounds.equip = "tomahawk_equip"
+	self.melee_weapons.tomahawk.sounds.hit_air = "tomahawk_hit_air"
+	self.melee_weapons.tomahawk.sounds.hit_gen = "tomahawk_hit_gen"
+	self.melee_weapons.tomahawk.sounds.hit_body = "tomahawk_hit_body"
+	self.melee_weapons.tomahawk.sounds.charge = "tomahawk_charge"
+	self.melee_weapons.baton = deep_clone(self.melee_weapons.tomahawk)
+	self.melee_weapons.baton.name_id = "bm_melee_baton"
+	self.melee_weapons.baton.unit = "units/pd2_dlc_gage_shot/weapons/wpn_fps_mel_baton/wpn_fps_mel_baton"
+	self.melee_weapons.baton.third_unit = "units/pd2_dlc_gage_shot/weapons/wpn_third_mel_baton/wpn_third_mel_baton"
+	self.melee_weapons.baton.stats.weapon_type = "blunt"
+	self.melee_weapons.baton.stats.min_damage = 0.68
+	self.melee_weapons.baton.stats.max_damage = 1.68
+	self.melee_weapons.baton.stats.min_damage_effect = 12
+	self.melee_weapons.baton.stats.max_damage_effect = 8.8
+	self.melee_weapons.baton.stats.charge_time = 2
+	self.melee_weapons.baton.stats.range = 250
+	self.melee_weapons.baton.sounds = {}
+	self.melee_weapons.baton.sounds.equip = "baton_equip"
+	self.melee_weapons.baton.sounds.hit_air = "baton_hit_air"
+	self.melee_weapons.baton.sounds.hit_gen = "baton_hit_gen"
+	self.melee_weapons.baton.sounds.hit_body = "baton_hit_body"
+	self.melee_weapons.baton.sounds.charge = "baton_charge"
+	self.melee_weapons.shovel = deep_clone(self.melee_weapons.tomahawk)
+	self.melee_weapons.shovel.name_id = "bm_melee_shovel"
+	self.melee_weapons.shovel.unit = "units/pd2_dlc_gage_shot/weapons/wpn_fps_mel_combat/wpn_fps_mel_combat"
+	self.melee_weapons.shovel.third_unit = "units/pd2_dlc_gage_shot/weapons/wpn_third_mel_combat/wpn_third_mel_combat"
+	self.melee_weapons.shovel.align_objects = {
+		"a_weapon_right"
+	}
+	self.melee_weapons.shovel.stats.weapon_type = "blunt"
+	self.melee_weapons.shovel.stats.min_damage = 1.34
+	self.melee_weapons.shovel.stats.max_damage = 2.64
+	self.melee_weapons.shovel.stats.min_damage_effect = 4.75
+	self.melee_weapons.shovel.stats.max_damage_effect = 5.06
+	self.melee_weapons.shovel.stats.charge_time = 2.2
+	self.melee_weapons.shovel.stats.range = 250
+	self.melee_weapons.shovel.sounds = {}
+	self.melee_weapons.shovel.sounds.equip = "shovel_equip"
+	self.melee_weapons.shovel.sounds.hit_air = "shovel_hit_air"
+	self.melee_weapons.shovel.sounds.hit_gen = "shovel_hit_gen"
+	self.melee_weapons.shovel.sounds.hit_body = "shovel_hit_body"
+	self.melee_weapons.shovel.sounds.charge = "shovel_charge"
+	self.melee_weapons.becker = deep_clone(self.melee_weapons.tomahawk)
+	self.melee_weapons.becker.name_id = "bm_melee_becker"
+	self.melee_weapons.becker.unit = "units/pd2_dlc_gage_shot/weapons/wpn_fps_mel_tac/wpn_fps_mel_tac"
+	self.melee_weapons.becker.third_unit = "units/pd2_dlc_gage_shot/weapons/wpn_third_mel_tac/wpn_third_mel_tac"
+	self.melee_weapons.becker.stats.min_damage = 1.68
+	self.melee_weapons.becker.stats.max_damage = 11.68
+	self.melee_weapons.becker.stats.min_damage_effect = 0.4
+	self.melee_weapons.becker.stats.max_damage_effect = 0.345
+	self.melee_weapons.becker.stats.charge_time = 3
+	self.melee_weapons.becker.stats.range = 200
+	self.melee_weapons.becker.repeat_expire_t = 0.6
+	self.melee_weapons.becker.sounds = {}
+	self.melee_weapons.becker.sounds.equip = "becker_equip"
+	self.melee_weapons.becker.sounds.hit_air = "becker_hit_air"
+	self.melee_weapons.becker.sounds.hit_gen = "becker_hit_gen"
+	self.melee_weapons.becker.sounds.hit_body = "becker_hit_body"
+	self.melee_weapons.becker.sounds.charge = "knife_charge"
+	self.melee_weapons.moneybundle = deep_clone(self.melee_weapons.kabar)
+	self.melee_weapons.moneybundle.name_id = "bm_melee_moneybundle"
+	self.melee_weapons.moneybundle.dlc = "pd2_clan"
+	self.melee_weapons.moneybundle.texture_bundle_folder = "pd2_million"
+	self.melee_weapons.moneybundle.free = nil
+	self.melee_weapons.moneybundle.anim_global_param = "melee_axe"
+	self.melee_weapons.moneybundle.type = "axe"
+	self.melee_weapons.moneybundle.align_objects = {
+		"a_weapon_right"
+	}
+	self.melee_weapons.moneybundle.unit = "units/pd2_million/weapons/wpn_fps_mel_moneybundle/wpn_fps_mel_moneybundle"
+	self.melee_weapons.moneybundle.third_unit = "units/pd2_million/weapons/wpn_third_mel_moneybundle/wpn_third_mel_moneybundle"
+	self.melee_weapons.moneybundle.stats.weapon_type = "blunt"
+	self.melee_weapons.moneybundle.stats.min_damage = 0.2
+	self.melee_weapons.moneybundle.stats.max_damage = 1
+	self.melee_weapons.moneybundle.stats.min_damage_effect = 15
+	self.melee_weapons.moneybundle.stats.max_damage_effect = 10
+	self.melee_weapons.moneybundle.stats.charge_time = 1
+	self.melee_weapons.moneybundle.stats.range = 150
+	self.melee_weapons.moneybundle.sounds = {}
+	self.melee_weapons.moneybundle.repeat_expire_t = 0.5
+	self.melee_weapons.moneybundle.sounds.equip = "cash_equip"
+	self.melee_weapons.moneybundle.sounds.hit_air = "cash_hit_air"
+	self.melee_weapons.moneybundle.sounds.hit_gen = "cash_hit_gen"
+	self.melee_weapons.moneybundle.sounds.hit_body = "cash_hit_body"
+	self.melee_weapons.moneybundle.sounds.charge = "cash_charge"
 	self:_add_desc_from_name_macro(self.melee_weapons)
 end

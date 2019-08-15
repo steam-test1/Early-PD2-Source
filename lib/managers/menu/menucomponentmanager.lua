@@ -29,6 +29,7 @@ function MenuComponentManager:init()
 	self._sound_source = SoundDevice:create_source("MenuComponentManager")
 	self._resolution_changed_callback_id = managers.viewport:add_resolution_changed_func(callback(self, self, "resolution_changed"))
 	self._request_done_clbk_func = callback(self, self, "_request_done_callback")
+	self._preplanning_saved_draws = {}
 	self._active_components = {}
 	self._active_components.news = {
 		create = callback(self, self, "_create_newsfeed_gui"),
@@ -53,6 +54,10 @@ function MenuComponentManager:init()
 	self._active_components.crimenet_chats = {
 		create = callback(self, self, "_create_crimenet_chats_gui"),
 		close = callback(self, self, "hide_crimenet_chat_gui")
+	}
+	self._active_components.preplanning_chats = {
+		create = callback(self, self, "_create_preplanning_chats_gui"),
+		close = callback(self, self, "hide_preplanning_chat_gui")
 	}
 	self._active_components.contract = {
 		create = callback(self, self, "_create_contract_gui"),
@@ -165,7 +170,7 @@ function MenuComponentManager:_destroy_controller_input()
 		end
 		self._controller_connected = nil
 		if SystemInfo:platform() == Idstring("WIN32") then
-			self._fullscreen_ws:panel():disconnect_keyboard()
+			self._fullscreen_ws:disconnect_keyboard()
 			self._fullscreen_ws:panel():key_press(nil)
 		end
 	end
@@ -375,7 +380,7 @@ function MenuComponentManager:input_focus()
 	if self._infamytree_gui and self._infamytree_gui:input_focus() then
 		return 1
 	end
-	if self._preplanning_map then
+	if self:is_preplanning_enabled() then
 		return self._preplanning_map:input_focus()
 	end
 	if self._blackmarket_gui then
@@ -565,7 +570,7 @@ function MenuComponentManager:next_page()
 	if self._crimenet_gui and self._crimenet_gui:next_page() then
 		return true
 	end
-	if self._preplanning_map and self._preplanning_map:next_page() then
+	if self:is_preplanning_enabled() and self._preplanning_map:next_page() then
 		return true
 	end
 	if self._lootdrop_gui and self._lootdrop_gui:next_page() then
@@ -597,7 +602,7 @@ function MenuComponentManager:previous_page()
 	if self._crimenet_gui and self._crimenet_gui:previous_page() then
 		return true
 	end
-	if self._preplanning_map and self._preplanning_map:previous_page() then
+	if self:is_preplanning_enabled() and self._preplanning_map:previous_page() then
 		return true
 	end
 	if self._lootdrop_gui and self._lootdrop_gui:previous_page() then
@@ -632,7 +637,7 @@ function MenuComponentManager:confirm_pressed()
 	if self._crimenet_gui and self._crimenet_gui:confirm_pressed() then
 		return true
 	end
-	if self._preplanning_map and self._preplanning_map:confirm_pressed() then
+	if self:is_preplanning_enabled() and self._preplanning_map:confirm_pressed() then
 		return true
 	end
 	if self._lootdrop_gui and self._lootdrop_gui:confirm_pressed() then
@@ -663,7 +668,13 @@ function MenuComponentManager:back_pressed()
 	end
 end
 function MenuComponentManager:special_btn_pressed(...)
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._game_chat_gui and self._game_chat_gui:special_btn_pressed(...) then
+		return true
+	end
+	if self._preplanning_map and self._preplanning_map:special_btn_pressed(...) then
 		return true
 	end
 	if self._skilltree_gui and self._skilltree_gui:special_btn_pressed(...) then
@@ -852,7 +863,7 @@ function MenuComponentManager:mouse_pressed(o, button, x, y)
 	if self._crimenet_gui and self._crimenet_gui:mouse_pressed(o, button, x, y) then
 		return true
 	end
-	if self._preplanning_map and self._preplanning_map:mouse_pressed(button, x, y) then
+	if self:is_preplanning_enabled() and self._preplanning_map:mouse_pressed(button, x, y) then
 		return true
 	end
 	if self._minimized_list and button == Idstring("0") then
@@ -938,7 +949,7 @@ function MenuComponentManager:mouse_released(o, button, x, y)
 	if self._crimenet_gui and self._crimenet_gui:mouse_released(o, button, x, y) then
 		return true
 	end
-	if self._preplanning_map and self._preplanning_map:mouse_released(button, x, y) then
+	if self:is_preplanning_enabled() and self._preplanning_map:mouse_released(button, x, y) then
 		return true
 	end
 	if self._blackmarket_gui then
@@ -1037,7 +1048,7 @@ function MenuComponentManager:mouse_moved(o, x, y)
 			return true, wanted_pointer
 		end
 	end
-	if self._preplanning_map then
+	if self:is_preplanning_enabled() then
 		local used, pointer = self._preplanning_map:mouse_moved(o, x, y)
 		wanted_pointer = pointer or wanted_pointer
 		if used then
@@ -1389,6 +1400,7 @@ function MenuComponentManager:close_weapon_box()
 end
 function MenuComponentManager:_create_chat_gui()
 	if SystemInfo:platform() == Idstring("WIN32") and MenuCallbackHandler:is_multiplayer() and managers.network:session() then
+		self._preplanning_chat_gui_active = false
 		self._lobby_chat_gui_active = false
 		self._crimenet_chat_gui_active = false
 		if self._game_chat_gui then
@@ -1396,11 +1408,13 @@ function MenuComponentManager:_create_chat_gui()
 		else
 			self:add_game_chat()
 		end
-		self._game_chat_gui:set_params("default")
+		self._game_chat_gui:set_params(self._saved_game_chat_params or "default")
+		self._saved_game_chat_params = nil
 	end
 end
 function MenuComponentManager:_create_lobby_chat_gui()
 	if SystemInfo:platform() == Idstring("WIN32") and MenuCallbackHandler:is_multiplayer() and managers.network:session() then
+		self._preplanning_chat_gui_active = false
 		self._lobby_chat_gui_active = true
 		self._crimenet_chat_gui_active = false
 		if self._game_chat_gui then
@@ -1408,11 +1422,13 @@ function MenuComponentManager:_create_lobby_chat_gui()
 		else
 			self:add_game_chat()
 		end
-		self._game_chat_gui:set_params("lobby")
+		self._game_chat_gui:set_params(self._saved_game_chat_params or "lobby")
+		self._saved_game_chat_params = nil
 	end
 end
 function MenuComponentManager:_create_crimenet_chats_gui()
 	if SystemInfo:platform() == Idstring("WIN32") and MenuCallbackHandler:is_multiplayer() and managers.network:session() then
+		self._preplanning_chat_gui_active = false
 		self._crimenet_chat_gui_active = true
 		self._lobby_chat_gui_active = false
 		if self._game_chat_gui then
@@ -1420,19 +1436,22 @@ function MenuComponentManager:_create_crimenet_chats_gui()
 		else
 			self:add_game_chat()
 		end
-		self._game_chat_gui:set_params("crimenet")
+		self._game_chat_gui:set_params(self._saved_game_chat_params or "crimenet")
+		self._saved_game_chat_params = nil
 	end
 end
 function MenuComponentManager:_create_preplanning_chats_gui()
 	if SystemInfo:platform() == Idstring("WIN32") and MenuCallbackHandler:is_multiplayer() and managers.network:session() then
-		self._crimenet_chat_gui_active = true
+		self._preplanning_chat_gui_active = true
+		self._crimenet_chat_gui_active = false
 		self._lobby_chat_gui_active = false
 		if self._game_chat_gui then
 			self:show_game_chat_gui()
 		else
 			self:add_game_chat()
 		end
-		self._game_chat_gui:set_params("preplanning")
+		self._game_chat_gui:set_params(self._saved_game_chat_params or "preplanning")
+		self._saved_game_chat_params = nil
 	end
 end
 function MenuComponentManager:create_chat_gui()
@@ -1495,6 +1514,11 @@ function MenuComponentManager:hide_crimenet_chat_gui()
 		self._game_chat_gui:hide()
 	end
 end
+function MenuComponentManager:hide_preplanning_chat_gui()
+	if self._game_chat_gui and self._preplanning_chat_gui_active then
+		self._game_chat_gui:hide()
+	end
+end
 function MenuComponentManager:hide_game_chat_gui()
 	if self._game_chat_gui then
 		self._game_chat_gui:hide()
@@ -1506,7 +1530,7 @@ function MenuComponentManager:show_game_chat_gui()
 	end
 end
 function MenuComponentManager:_disable_chat_gui()
-	if self._game_chat_gui and not self._lobby_chat_gui_active and not self._crimenet_chat_gui_active then
+	if self._game_chat_gui and not self._lobby_chat_gui_active and not self._crimenet_chat_gui_active and not self._preplanning_chat_gui_active then
 		self._game_chat_gui:set_enabled(false)
 	end
 end
@@ -1522,6 +1546,12 @@ function MenuComponentManager:close_chat_gui()
 	self._game_chat_bottom = nil
 	self._lobby_chat_gui_active = nil
 	self._crimenet_chat_gui_active = nil
+	self._preplanning_chat_gui_active = nil
+end
+function MenuComponentManager:set_crimenet_chat_gui(state)
+	if self._game_chat_gui then
+		self._game_chat_gui:set_crimenet_chat(state)
+	end
 end
 function MenuComponentManager:_create_friends_gui()
 	if SystemInfo:platform() == Idstring("WIN32") then
@@ -2162,6 +2192,8 @@ function MenuComponentManager:get_texture_from_mod_type(type, sub_type, gadget, 
 		texture = "guis/textures/pd2/blackmarket/inv_mod_" .. (sub_type or is_auto and "autofire" or "singlefire")
 	elseif type == "sight" then
 		texture = "guis/textures/pd2/blackmarket/inv_mod_scope"
+	elseif type == "ammo" then
+		texture = "guis/textures/pd2/blackmarket/inv_mod_" .. tostring(sub_type or type)
 	else
 		texture = "guis/textures/pd2/blackmarket/inv_mod_" .. type
 	end
@@ -2233,20 +2265,57 @@ function MenuComponentManager:close_newsfeed_gui()
 		self._newsfeed_gui = nil
 	end
 end
-function MenuComponentManager:create_preplanning_map_gui()
-	self._preplanning_map = self._preplanning_map or self:_create_preplanning_map_gui()
-	self._preplanning_map:set_enabled(true)
+function MenuComponentManager:create_preplanning_map_gui(node)
+	self._preplanning_map = self._preplanning_map or self:_create_preplanning_map_gui(node)
+	self._preplanning_map:set_active_node(node)
+	if self._preplanning_peer_draw_lines and self._preplanning_peer_draw_line_index then
+		self:_set_preplanning_drawings(self._preplanning_peer_draw_lines, self._preplanning_peer_draw_line_index)
+	end
+	if #self._preplanning_saved_draws > 0 then
+		self:_set_preplanning_saved_draws(self._preplanning_saved_draws)
+	end
+	local active_menu = managers.menu:active_menu()
+	if active_menu then
+		active_menu.input:set_force_input(true)
+	end
 end
-function MenuComponentManager:_create_preplanning_map_gui()
-	return PrePlanningMapGui:new(self._ws, self._fullscreen_ws)
+function MenuComponentManager:_create_preplanning_map_gui(node)
+	return PrePlanningMapGui:new(self._ws, self._fullscreen_ws, node)
+end
+function MenuComponentManager:is_preplanning_enabled()
+	return self._preplanning_map and self._preplanning_map:enabled()
 end
 function MenuComponentManager:close_preplanning_map_gui()
 	self:_close_preplanning_map_gui()
+	local active_menu = managers.menu:active_menu()
+	if active_menu then
+		active_menu.input:set_force_input(false)
+	end
+end
+function MenuComponentManager:kill_preplanning_map_gui()
+	if self._preplanning_map then
+		if Network:is_server() then
+			local peer_draw_lines, peer_draw_line_index = self._preplanning_map:get_drawings()
+			self._preplanning_peer_draw_lines = peer_draw_lines
+			self._preplanning_peer_draw_line_index = peer_draw_line_index
+		end
+		self._preplanning_map:close()
+		self._preplanning_map = nil
+	end
 end
 function MenuComponentManager:_close_preplanning_map_gui()
 	if self._preplanning_map then
-		self._preplanning_map:close()
-		self._preplanning_map = nil
+		self._preplanning_map:disable()
+	end
+end
+function MenuComponentManager:preplanning_flash_error(...)
+	if self._preplanning_map then
+		self._preplanning_map:flash_error(...)
+	end
+end
+function MenuComponentManager:set_preplanning_category_filter(category)
+	if self._preplanning_map then
+		self._preplanning_map:set_category_filter(category)
 	end
 end
 function MenuComponentManager:set_preplanning_type_filter(type)
@@ -2277,6 +2346,143 @@ end
 function MenuComponentManager:update_preplanning_element(type, id)
 	if self._preplanning_map then
 		return self._preplanning_map:update_element(type, id)
+	end
+end
+function MenuComponentManager:preplanning_post_event(event, listener_clbk)
+	if self._preplanning_map then
+		return self._preplanning_map:post_event(event, listener_clbk)
+	end
+end
+function MenuComponentManager:preplanning_stop_event()
+	if self._preplanning_map then
+		return self._preplanning_map:stop_event()
+	end
+end
+function MenuComponentManager:preplanning_start_custom_talk(id)
+	if self._preplanning_map then
+		return self._preplanning_map:start_custom_talk(id)
+	end
+end
+function MenuComponentManager:toggle_preplanning_drawing(peer_id)
+	if self._preplanning_map then
+		return self._preplanning_map:toggle_drawing(peer_id)
+	end
+end
+function MenuComponentManager:sync_preplanning_draw_event(peer_id, event_id, var1, var2)
+	if self._preplanning_map then
+		if event_id == 1 then
+			self._preplanning_map:sync_start_drawing(peer_id, var1, var2)
+		elseif event_id == 2 then
+			self._preplanning_map:sync_end_drawing(peer_id)
+		elseif event_id == 3 then
+			self._preplanning_map:sync_undo_drawing(peer_id)
+		elseif event_id == 4 then
+			self._preplanning_map:sync_erase_drawing(peer_id)
+		elseif event_id == 5 then
+			local server_peer = managers.network and managers.network:session() and managers.network:session():server_peer()
+			if server_peer and server_peer:id() == peer_id then
+				for i = 1, managers.criminals.get_num_characters() do
+					self._preplanning_map:sync_erase_drawing(i)
+				end
+			end
+		end
+	else
+		table.insert(self._preplanning_saved_draws, {
+			clbk = "sync_preplanning_draw_event",
+			peer_id,
+			event_id,
+			var1,
+			var2
+		})
+	end
+end
+function MenuComponentManager:sync_preplanning_draw_point(peer_id, x, y)
+	if self._preplanning_map then
+		return self._preplanning_map:sync_draw_point(peer_id, x, y)
+	else
+		table.insert(self._preplanning_saved_draws, {
+			clbk = "sync_preplanning_draw_point",
+			peer_id,
+			x,
+			y
+		})
+	end
+end
+function MenuComponentManager:clear_preplanning_draws(peer_id)
+	if self._preplanning_map then
+		self._preplanning_map:sync_erase_drawing(peer_id)
+	else
+		for i = #self._preplanning_saved_draws, 1, -1 do
+			if self._preplanning_saved_draws[i][1] == peer_id then
+				table.remove(self._preplanning_saved_draws, i)
+			end
+		end
+	end
+end
+function MenuComponentManager:preplanning_sync_save(data)
+	if not data then
+		return
+	end
+	if self._preplanning_map then
+		local peer_draw_lines, peer_draw_line_index = self._preplanning_map:get_drawings()
+		data.peer_draw_lines = peer_draw_lines
+		data.peer_draw_line_index = peer_draw_line_index
+	elseif self._preplanning_peer_draw_lines and self._preplanning_peer_draw_line_index then
+		data.peer_draw_lines = self._preplanning_peer_draw_lines
+		data.peer_draw_line_index = self._preplanning_peer_draw_line_index
+	else
+		data.preplanning_saved_draws = self._preplanning_saved_draws
+	end
+end
+function MenuComponentManager:preplanning_sync_load(data)
+	if not data then
+		return
+	end
+	if self._preplanning_map then
+		if data.preplanning_saved_draws then
+			self:_set_preplanning_saved_draws(data.preplanning_saved_draws)
+		elseif data.peer_draw_lines and data.peer_draw_line_index then
+			self:_set_preplanning_drawings(data.peer_draw_lines, data.peer_draw_line_index)
+		end
+	elseif data.preplanning_saved_draws then
+		self._preplanning_saved_draws = data.preplanning_saved_draws
+	elseif data.peer_draw_lines and data.peer_draw_line_index then
+		self._preplanning_peer_draw_lines = data.peer_draw_lines
+		self._preplanning_peer_draw_line_index = data.peer_draw_line_index
+	end
+end
+function MenuComponentManager:_set_preplanning_saved_draws(preplanning_saved_draws)
+	local clbk, vars
+	for _, draw_data in ipairs(preplanning_saved_draws) do
+		clbk = draw_data.clbk
+		if clbk and self[clbk] then
+			vars = {}
+			for _, var in ipairs(draw_data) do
+				table.insert(vars, var)
+			end
+			self[clbk](self, unpack(vars))
+		end
+	end
+	self._preplanning_saved_draws = {}
+end
+function MenuComponentManager:_set_preplanning_drawings(peer_draw_lines, peer_draw_line_index)
+	self._preplanning_map:set_drawings(peer_draw_lines, peer_draw_line_index)
+	self._preplanning_peer_draw_lines = nil
+	self._preplanning_peer_draw_line_index = nil
+end
+function MenuComponentManager:hide_preplanning_drawboard()
+	if self._preplanning_map then
+		self._preplanning_map:hide_drawboard()
+	end
+end
+function MenuComponentManager:set_preplanning_drawboard(x, y)
+	if self._preplanning_map then
+		self._preplanning_map:set_drawboard_button_position(x, y)
+	end
+end
+function MenuComponentManager:get_game_chat_button_shape()
+	if self._game_chat_gui then
+		return self._game_chat_gui:get_chat_button_shape()
 	end
 end
 function MenuComponentManager:_create_debug_fonts_gui()
@@ -2459,97 +2665,59 @@ function MenuComponentManager:remove_minimized(id)
 end
 function MenuComponentManager:_request_done_callback(texture_ids)
 	local key = texture_ids:key()
-	local requests = self._requested_textures[key]
-	if not requests then
-		print("[MenuComponentManager] request_done_callback(): Have no requests for this texture", texture_ids)
+	local entry = self._requested_textures[key]
+	if not entry then
 		return
 	end
-	local count = self._cached_textures[key] or 0
-	if self._cached_textures[key] then
-		Application:error("[MenuComponentManager] request_done_callback(): Texture already in cache!", texture_ids)
-		TextureCache:unretrieve(texture_ids)
+	local clbks = {}
+	for index, owner_data in pairs(entry.owners) do
+		table.insert(clbks, owner_data.clbk)
+		owner_data.clbk = nil
 	end
-	for _, request_cb in pairs(requests) do
-		count = count + 1
-		request_cb(texture_ids)
+	for _, clbk in pairs(clbks) do
+		clbk(texture_ids)
 	end
-	self._cached_textures[key] = count
-	self._requested_textures[key] = nil
-	self._requested_index[key] = nil
 end
 function MenuComponentManager:request_texture(texture, done_cb)
-	if not DB:has(Idstring("texture"), texture) then
-		return
-	end
 	local texture_ids = Idstring(texture)
 	local key = texture_ids:key()
-	local is_removing = self._removing_textures[key] and true or false
-	self._removing_textures[key] = nil
-	if self._cached_textures[key] then
-		self._cached_textures[key] = self._cached_textures[key] + 1
-		done_cb(texture_ids)
-		return
-	elseif self._requested_textures[key] then
-		local count = self._requested_index[key] + 1
-		self._requested_index[key] = count
-		self._requested_textures[key][count] = done_cb
-		return count
-	else
-		self._requested_textures[key] = {}
-		local count = 1
-		self._requested_index[key] = count
-		self._requested_textures[key][count] = done_cb
-		if not is_removing then
-			TextureCache:request(texture, "NORMAL", callback(self, self, "_request_done_callback"), 100)
-		else
-			Application:debug("[MenuComponentManager] request_texture(): This code should no longer be used.")
-		end
-		return count
+	local entry = self._requested_textures[key]
+	if not entry then
+		entry = {
+			next_index = 1,
+			owners = {}
+		}
+		self._requested_textures[key] = entry
 	end
+	local index = entry.next_index
+	entry.owners[index] = {clbk = done_cb}
+	local next_index = index + 1
+	while entry.owners[next_index] do
+		if index == next_index then
+			debug_pause("[MenuComponentManager:request_texture] overflow!")
+		end
+		next_index = next_index + 1
+		if next_index == 10000 then
+			next_index = 1
+		end
+	end
+	entry.next_index = next_index
+	TextureCache:request(texture_ids, "NORMAL", callback(self, self, "_request_done_callback"), 100)
+	return index
 end
 function MenuComponentManager:unretrieve_texture(texture, index)
 	local texture_ids = Idstring(texture)
 	local key = texture_ids:key()
-	local is_removing = self._removing_textures[key] and true or false
-	if self._cached_textures[key] then
-		self._cached_textures[key] = self._cached_textures[key] - 1
-		if self._cached_textures[key] == 0 then
-			if not is_removing then
-				self._removing_textures[key] = texture_ids
-			else
-				Application:error("[MenuComponentManager] unretrieve_texture(self._cached_textures): Trying to unretrieve a texture that is already to be unretrieved!", texture)
-			end
-		elseif self._cached_textures[key] < 0 then
-			Application:error("[MenuComponentManager] unretrieve_texture(): To many unretrieve calls done!", texture, self._cached_textures[key])
-			self._cached_textures[key] = 0
+	local entry = self._requested_textures[key]
+	if entry and entry.owners[index] then
+		entry.owners[index] = nil
+		if not next(entry.owners) then
+			self._requested_textures[key] = nil
 		end
-		return
-	elseif self._requested_textures[key] then
-		if not index then
-			Application:error("[MenuComponentManager] unretrieve_texture(): Index parameter needed!", texture)
-			Application:stack_dump()
-			index = 1
-		end
-		self._requested_textures[key][index] = nil
-		if table.size(self._requested_textures[key]) == 0 then
-			if not is_removing then
-				self._removing_textures[key] = texture_ids
-			else
-				Application:error("[MenuComponentManager] unretrieve_texture(self._requested_textures): Trying to unretrieve a texture that is already to be unretrieved!", texture)
-			end
-		end
-		return
-	elseif is_removing then
-		Application:error("[MenuComponentManager] unretrieve_texture(): Texture not cache nor requested, but still already to be unretrieved?!", texture)
-	else
-		Application:error("[MenuComponentManager] unretrieve_texture(): Can't unretrieve texture that is not in the system!", texture)
+		TextureCache:unretrieve(texture_ids)
 	end
 end
 function MenuComponentManager:retrieve_texture(texture)
-	self._retrieved_textures = self._retrieved_textures or {}
-	local texture_ids = Idstring(texture)
-	if not self._retrieved_textures[texture_ids:key()] then
-	end
 	return TextureCache:retrieve(texture, "NORMAL")
 end
 function MenuComponentManager:add_colors_to_text_object(text_object, ...)
@@ -2598,6 +2766,32 @@ function MenuComponentManager:add_colors_to_text_object(text_object, ...)
 		end
 	end
 end
+MenuComponentPostEventInstance = MenuComponentPostEventInstance or class()
+function MenuComponentPostEventInstance:init(sound_source)
+	self._sound_source = sound_source
+	self._post_event = false
+end
+function MenuComponentPostEventInstance:post_event(event)
+	if alive(self._post_event) then
+		self._post_event:stop()
+	end
+	self._post_event = false
+	if alive(self._sound_source) then
+		self._post_event = self._sound_source:post_event(event)
+	end
+end
+function MenuComponentPostEventInstance:stop_event()
+	if alive(self._post_event) then
+		self._post_event:stop()
+	end
+	self._post_event = false
+end
+function MenuComponentManager:new_post_event_instance()
+	local event_instance = MenuComponentPostEventInstance:new(self._sound_source)
+	self._unique_event_instances = self._unique_event_instances or {}
+	table.insert(self._unique_event_instances, event_instance)
+	return event_instance
+end
 function MenuComponentManager:post_event(event, unique)
 	if alive(self._post_event) then
 		self._post_event:stop()
@@ -2617,6 +2811,7 @@ function MenuComponentManager:stop_event()
 	end
 end
 function MenuComponentManager:close()
+	print("[MenuComponentManager:close]")
 	self:close_friends_gui()
 	self:close_newsfeed_gui()
 	self:close_profile_gui()
@@ -2631,28 +2826,22 @@ function MenuComponentManager:close()
 	self:close_lootdrop_casino_gui()
 	self:close_mission_briefing_gui()
 	self:close_debug_fonts_gui()
+	self:kill_preplanning_map_gui()
 	if self._resolution_changed_callback_id then
 		managers.viewport:remove_resolution_changed_func(self._resolution_changed_callback_id)
 	end
-	if alive(self._post_event) then
-		self._post_event:stop()
+	if alive(self._sound_source) then
+		self._sound_source:stop()
 	end
 	self:_destroy_controller_input()
-	for texture_ids, users in pairs(self._texture_cache) do
-		TextureCache:unretrieve(texture_ids)
-	end
-	self._texture_cache = {}
-	for texture_ids, users in pairs(self._requested_textures) do
-		TextureCache:unretrieve(texture_ids)
-	end
-	self._requested_textures = {}
-	if self._retrieved_textures then
-		for texture_key, texture in pairs(self._retrieved_textures) do
-			TextureCache:unretrieve(texture)
+	if self._removing_textures then
+		for key, texture_ids in pairs(self._removing_textures) do
+			TextureCache:unretrieve(texture_ids)
 		end
 	end
+	self._removing_textures = {}
 end
-function MenuComponentManager:play_transition()
+function MenuComponentManager:play_transition(run_in_pause)
 	if self._transition_panel then
 		self._transition_panel:parent():remove(self._transition_panel)
 	end
@@ -2666,11 +2855,20 @@ function MenuComponentManager:play_transition()
 		halign = "scale",
 		valign = "scale "
 	})
-	local animate_transition = function(o)
+	local function animate_transition(o)
 		local fade1 = o:child("fade1")
-		over(0.5, function(p)
+		local seconds = 0.5
+		local t = 0
+		local dt, p
+		while seconds > t do
+			dt = coroutine.yield()
+			if dt == 0 and run_in_pause then
+				dt = TimerManager:main():delta_time()
+			end
+			t = t + dt
+			p = t / seconds
 			fade1:set_alpha(1 - p)
-		end)
+		end
 	end
 	self._transition_panel:animate(animate_transition)
 end

@@ -997,6 +997,7 @@ function Layer:create_unit(name, pos, rot)
 	unit:unit_data().unit_id = self._owner:get_unit_id(unit)
 	unit:unit_data().name_id = self:get_name_id(unit)
 	managers.editor:spawned_unit(unit)
+	self:_on_unit_created(unit)
 	return unit
 end
 function Layer:do_spawn_unit(name, pos, rot)
@@ -1033,6 +1034,8 @@ function Layer:delete_unit(unit)
 	self:remove_unit(unit)
 	self:update_unit_settings()
 end
+function Layer:_on_unit_created(unit)
+end
 function Layer:show_replace_units()
 	if self:ctrl() or self:shift() or self:alt() then
 		return
@@ -1040,6 +1043,17 @@ function Layer:show_replace_units()
 	if self._selected_unit then
 		managers.editor:show_layer_replace_dialog(self)
 	end
+end
+function Layer:get_created_unit_by_pattern(patterns)
+	local units = {}
+	for _, unit in ipairs(self._created_units) do
+		for _, pattern in ipairs(patterns) do
+			if string.find(unit:name():s(), pattern, 1, true) then
+				table.insert(units, unit)
+			end
+		end
+	end
+	return units
 end
 function Layer:add_triggers()
 	local vc = self._editor_data.virtual_controller
@@ -1199,6 +1213,8 @@ function Layer:create_marker()
 end
 function Layer:use_marker()
 end
+function Layer:on_continent_changed()
+end
 function Layer:set_unit_rotations()
 end
 function Layer:set_unit_positions()
@@ -1226,24 +1242,8 @@ function Layer:save()
 					continent = unit:unit_data().continent
 				})
 			end
-			local sequence_files = {}
-			self:_get_sequence_file(PackageManager:unit_data(unit:name()), sequence_files)
-			for _, file in ipairs(sequence_files) do
-				managers.editor:add_to_world_package({
-					category = "script_data",
-					name = file:s() .. ".sequence_manager",
-					continent = unit:unit_data().continent,
-					init = true
-				})
-			end
 		end
 	end
-end
-function Layer:_get_sequence_file(unit_data, sequence_files)
-	for _, unit_name in ipairs(unit_data:unit_dependencies()) do
-		self:_get_sequence_file(PackageManager:unit_data(unit_name), sequence_files)
-	end
-	table.insert(sequence_files, unit_data:sequence_manager_filename())
 end
 function Layer:test_spawn(type)
 	local pos = Vector3()

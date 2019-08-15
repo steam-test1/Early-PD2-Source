@@ -180,9 +180,8 @@ function NavigationManager:_draw_pos_reservations(t)
 				if alive(res.unit) then
 					Application:draw_cylinder(entry.position, res.unit:movement():m_pos(), 3, 0, 0, 0)
 				else
-					Application:error("[NavigationManager:_draw_pos_reservations] dead unit. reserved from:", res.stack, "unit name:", res.u_name)
+					debug_pause("[NavigationManager:_draw_pos_reservations] dead unit. reserved from:", res.stack, "unit name:", res.u_name)
 					Application:draw_sphere(entry.position, entry.radius + 5, 1, 0, 1)
-					Application:set_pause(true)
 				end
 			end
 		else
@@ -1340,6 +1339,8 @@ function NavigationManager:_sort_nav_segs_after_pos(to_pos, i_seg, ignore_seg, v
 						}
 						ignore_seg[neighbour_seg_id] = true
 					end
+				elseif not alive(i_door) then
+					debug_pause("[NavigationManager:_sort_nav_segs_after_pos] dead nav_link! between NavSegments", i_seg, "-", neighbour_seg_id)
 				elseif TimerManager:game():time() > i_door:delay_time() and i_door:check_access(access_pos, access_neg) then
 					local end_pos = i_door:script_data().element:nav_link_end_pos()
 					local my_weight = mvec3_dis(end_pos, to_pos)

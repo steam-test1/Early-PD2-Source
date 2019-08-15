@@ -36,6 +36,9 @@ do
 		"civ_female_casual_5",
 		"civ_female_casual_6",
 		"civ_female_casual_7",
+		"civ_female_casual_8",
+		"civ_female_casual_9",
+		"civ_female_casual_10",
 		"civ_female_crackwhore_1",
 		"civ_female_hostess_apron_1",
 		"civ_female_hostess_jacket_1",
@@ -63,6 +66,7 @@ do
 		"civ_male_casual_8",
 		"civ_male_casual_9",
 		"civ_male_casual_12",
+		"civ_male_casual_13",
 		"civ_male_casual_14",
 		"civ_male_dj_1",
 		"civ_male_italian_robe_1",
@@ -115,12 +119,17 @@ do
 		"ene_gang_russian_4",
 		"ene_gang_russian_5",
 		"ene_guard_national_1",
+		"ene_murkywater_1",
 		"ene_murkywater_2",
 		"ene_secret_service_1",
 		"ene_secret_service_2",
 		"ene_security_1",
 		"ene_security_2",
 		"ene_security_3",
+		"ene_security_4",
+		"ene_security_5",
+		"ene_security_6",
+		"ene_security_7",
 		"ene_shield_1",
 		"ene_shield_2",
 		"ene_sniper_1",
@@ -287,7 +296,7 @@ function CopBase:swap_material_config(material_applied_clbk)
 	local new_material = self._material_translation_map[tostring(self._unit:material_config():key())]
 	if new_material then
 		self._is_in_original_material = not self._is_in_original_material
-		self._unit:set_material_config(new_material, true, material_applied_clbk and callback(self, self, "on_material_applied", material_applied_clbk))
+		self._unit:set_material_config(new_material, true, material_applied_clbk and callback(self, self, "on_material_applied", material_applied_clbk), 100)
 		if not material_applied_clbk then
 			self:on_material_applied()
 		end

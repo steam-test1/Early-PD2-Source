@@ -1,5 +1,5 @@
 UnitNetworkHandler = UnitNetworkHandler or class(BaseNetworkHandler)
-function UnitNetworkHandler:set_unit(unit, character_name, outfit_string, peer_id)
+function UnitNetworkHandler:set_unit(unit, character_name, outfit_string, outfit_version, peer_id)
 	print("[UnitNetworkHandler:set_unit]", unit, character_name, peer_id)
 	Application:stack_dump()
 	if not alive(unit) then
@@ -22,7 +22,9 @@ function UnitNetworkHandler:set_unit(unit, character_name, outfit_string, peer_i
 	if not peer then
 		return
 	end
-	peer:set_outfit_string(outfit_string)
+	if peer ~= managers.network:session():local_peer() then
+		peer:set_outfit_string(outfit_string, outfit_version)
+	end
 	local member = managers.network:game():member_peer(peer)
 	if member then
 		member:set_unit(unit, character_name)
@@ -577,7 +579,7 @@ function UnitNetworkHandler:long_dis_interaction(target_unit, amount, aggressor_
 		if self._verify_in_server_session() then
 			aggressor_unit:movement():sync_call_civilian(target_unit)
 		end
-	else
+	elseif target_unit:brain() then
 		target_unit:brain():on_intimidated(amount / 10, aggressor_unit)
 	end
 end

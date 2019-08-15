@@ -4,78 +4,6 @@ PlayerInventory._all_event_types = {
 	"equip",
 	"unequip"
 }
-PlayerInventory._index_to_weapon_list = {
-	Idstring("units/payday2/weapons/wpn_npc_c45/wpn_npc_c45"),
-	Idstring("units/payday2/weapons/wpn_npc_beretta92/wpn_npc_beretta92"),
-	Idstring("units/payday2/weapons/wpn_npc_raging_bull/wpn_npc_raging_bull"),
-	Idstring("units/payday2/weapons/wpn_npc_m4/wpn_npc_m4"),
-	Idstring("units/payday2/weapons/wpn_npc_ak47/wpn_npc_ak47"),
-	Idstring("units/payday2/weapons/wpn_npc_r870/wpn_npc_r870"),
-	Idstring("units/payday2/weapons/wpn_npc_sawnoff_shotgun/wpn_npc_sawnoff_shotgun"),
-	Idstring("units/payday2/weapons/wpn_npc_mp5/wpn_npc_mp5"),
-	Idstring("units/payday2/weapons/wpn_npc_mp5_tactical/wpn_npc_mp5_tactical"),
-	Idstring("units/payday2/weapons/wpn_npc_smg_mp9/wpn_npc_smg_mp9"),
-	Idstring("units/payday2/weapons/wpn_npc_mac11/wpn_npc_mac11"),
-	Idstring("units/payday2/weapons/wpn_npc_sniper/wpn_npc_sniper"),
-	Idstring("units/payday2/weapons/wpn_npc_saiga/wpn_npc_saiga"),
-	Idstring("units/payday2/weapons/wpn_npc_lmg_m249/wpn_npc_lmg_m249"),
-	Idstring("units/payday2/weapons/wpn_npc_benelli/wpn_npc_benelli"),
-	Idstring("units/payday2/weapons/wpn_npc_g36/wpn_npc_g36"),
-	Idstring("units/payday2/weapons/wpn_npc_ump/wpn_npc_ump"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_g18c/wpn_fps_pis_g18c"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_m4/wpn_fps_ass_m4"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_amcar/wpn_fps_ass_amcar"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_m16/wpn_fps_ass_m16"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_olympic/wpn_fps_smg_olympic"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_74/wpn_fps_ass_74"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_akm/wpn_fps_ass_akm"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_akm_gold/wpn_fps_ass_akm_gold"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_akmsu/wpn_fps_smg_akmsu"),
-	Idstring("units/payday2/weapons/wpn_fps_shot_saiga/wpn_fps_shot_saiga"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_ak5/wpn_fps_ass_ak5"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_aug/wpn_fps_ass_aug"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_g36/wpn_fps_ass_g36"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_p90/wpn_fps_smg_p90"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_m14/wpn_fps_ass_m14"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_mp9/wpn_fps_smg_mp9"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_deagle/wpn_fps_pis_deagle"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_mp5/wpn_fps_smg_mp5"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_1911/wpn_fps_pis_1911"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_mac10/wpn_fps_smg_mac10"),
-	Idstring("units/payday2/weapons/wpn_fps_shot_r870/wpn_fps_shot_r870"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_g17/wpn_fps_pis_g17"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_b92fs/wpn_fps_pis_beretta"),
-	Idstring("units/payday2/weapons/wpn_fps_shot_huntsman/wpn_fps_shot_huntsman"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_rage/wpn_fps_pis_rage"),
-	Idstring("units/payday2/weapons/wpn_fps_saw/wpn_fps_saw"),
-	Idstring("units/payday2/weapons/wpn_fps_shot_shorty/wpn_fps_shot_shorty"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_usp/wpn_fps_pis_usp"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_g22c/wpn_fps_pis_g22c"),
-	Idstring("units/pd2_dlc1/weapons/wpn_fps_smg_m45/wpn_fps_smg_m45"),
-	Idstring("units/pd2_dlc1/weapons/wpn_fps_ass_s552/wpn_fps_ass_s552"),
-	Idstring("units/pd2_dlc1/weapons/wpn_fps_pis_ppk/wpn_fps_pis_ppk"),
-	Idstring("units/pd2_dlc_dec5/weapons/wpn_fps_smg_mp7/wpn_fps_smg_mp7"),
-	Idstring("units/pd2_dlc_dec5/weapons/wpn_fps_ass_scar/wpn_fps_ass_scar"),
-	Idstring("units/pd2_dlc_dec5/weapons/wpn_fps_pis_p226/wpn_fps_pis_p226"),
-	Idstring("units/pd2_dlc_gage_lmg/weapons/wpn_fps_lmg_hk21/wpn_fps_lmg_hk21"),
-	Idstring("units/pd2_dlc_gage_lmg/weapons/wpn_fps_lmg_m249/wpn_fps_lmg_m249"),
-	Idstring("units/pd2_dlc_gage_lmg/weapons/wpn_fps_lmg_rpk/wpn_fps_lmg_rpk"),
-	Idstring("units/pd2_dlc_gage_snp/weapons/wpn_fps_snp_m95/wpn_fps_snp_m95"),
-	Idstring("units/pd2_dlc_gage_snp/weapons/wpn_fps_snp_msr/wpn_fps_snp_msr"),
-	Idstring("units/pd2_dlc_gage_snp/weapons/wpn_fps_snp_r93/wpn_fps_snp_r93"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_b92fs/wpn_fps_pis_beretta_primary"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_m4/wpn_fps_ass_m4_secondary"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_aug/wpn_fps_ass_aug_secondary"),
-	Idstring("units/payday2/weapons/wpn_fps_ass_74/wpn_fps_ass_74_secondary"),
-	Idstring("units/pd2_dlc1/weapons/wpn_fps_ass_s552/wpn_fps_ass_s552_secondary"),
-	Idstring("units/payday2/weapons/wpn_fps_saw/wpn_fps_saw_secondary"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_rage/wpn_fps_pis_rage_primary"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_deagle/wpn_fps_pis_deagle_primary"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_1911/wpn_fps_pis_1911_primary"),
-	Idstring("units/payday2/weapons/wpn_fps_pis_g18c/wpn_fps_pis_g18c_primary"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_olympic/wpn_fps_smg_olympic_primary"),
-	Idstring("units/payday2/weapons/wpn_fps_smg_akmsu/wpn_fps_smg_akmsu_primary")
-}
 function PlayerInventory:init(unit)
 	self._unit = unit
 	self._available_selections = {}
@@ -95,12 +23,23 @@ function PlayerInventory:init(unit)
 	self._listener_id = "PlayerInventory" .. tostring(unit:key())
 	self._listener_holder = EventListenerHolder:new()
 	self._mask_unit = nil
-	self._mask_unit_name = nil
 	self._melee_weapon_unit = nil
 	self._melee_weapon_unit_name = nil
 end
 function PlayerInventory:pre_destroy(unit)
 	self:destroy_all_items()
+end
+function PlayerInventory:destroy_all_items()
+	for i_sel, selection_data in pairs(self._available_selections) do
+		if selection_data.unit and selection_data.unit:base() then
+			selection_data.unit:base():remove_destroy_listener(self._listener_id)
+			selection_data.unit:base():set_slot(selection_data.unit, 0)
+		else
+			debug_pause_unit(self._unit, "[PlayerInventory:destroy_all_items] broken inventory unit", selection_data.unit, selection_data.unit:base())
+		end
+	end
+	self._equipped_selection = nil
+	self._available_selections = {}
 	if alive(self._mask_unit) then
 		for _, linked_unit in ipairs(self._mask_unit:children()) do
 			linked_unit:unlink()
@@ -109,31 +48,9 @@ function PlayerInventory:pre_destroy(unit)
 		World:delete_unit(self._mask_unit)
 		self._mask_unit = nil
 	end
-	if self._mask_unit_name then
-		managers.dyn_resource:unload(Idstring("unit"), self._mask_unit_name, DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
-		self._mask_unit_name = nil
-	end
 	if self._melee_weapon_unit_name then
 		managers.dyn_resource:unload(Idstring("unit"), self._melee_weapon_unit_name, DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 		self._melee_weapon_unit_name = nil
-	end
-end
-function PlayerInventory:destroy_all_items()
-	local names = {}
-	for i_sel, selection_data in pairs(self._available_selections) do
-		selection_data.unit:base():remove_destroy_listener(self._listener_id)
-		if managers.dyn_resource:has_resource(Idstring("unit"), selection_data.unit:name(), "packages/dyn_resources") then
-			table.insert(names, selection_data.unit:name())
-			selection_data.unit:base():set_slot(selection_data.unit, 0)
-			World:delete_unit(selection_data.unit)
-		else
-			selection_data.unit:base():set_slot(selection_data.unit, 0)
-		end
-	end
-	self._equipped_selection = nil
-	self._available_selections = {}
-	for _, name in pairs(names) do
-		managers.dyn_resource:unload(Idstring("unit"), name, "packages/dyn_resources", false)
 	end
 end
 function PlayerInventory:equipped_selection()
@@ -160,11 +77,7 @@ function PlayerInventory:add_unit(new_unit, is_equip, equip_is_instant)
 		is_equip = is_equip or old_weapon_unit == self:equipped_unit()
 		old_weapon_unit:base():remove_destroy_listener(self._listener_id)
 		old_weapon_unit:base():set_slot(old_weapon_unit, 0)
-		local old_weapon_name_ids = old_weapon_unit:name()
-		if managers.dyn_resource:has_resource(Idstring("unit"), old_weapon_name_ids, "packages/dyn_resources") then
-			World:delete_unit(old_weapon_unit)
-			managers.dyn_resource:unload(Idstring("unit"), old_weapon_name_ids, "packages/dyn_resources", false)
-		end
+		World:delete_unit(old_weapon_unit)
 		if self._equipped_selection == selection_index then
 			self._equipped_selection = nil
 		end
@@ -185,9 +98,6 @@ function PlayerInventory:clbk_weapon_unit_destroyed(weap_unit)
 		if sel_data.unit:key() == weapon_key then
 			if i_sel == self._equipped_selection then
 				self:_call_listeners("unequip")
-			end
-			if managers.dyn_resource:has_resource(Idstring("unit"), weap_unit:name(), "packages/dyn_resources") then
-				managers.dyn_resource:unload(Idstring("unit"), weap_unit:name(), "packages/dyn_resources", false)
 			end
 			self:remove_selection(i_sel, true)
 		else
@@ -227,7 +137,6 @@ end
 function PlayerInventory:add_unit_by_factory_name(factory_name, equip, instant, blueprint, texture_switches)
 	local factory_weapon = tweak_data.weapon.factory[factory_name]
 	local ids_unit_name = Idstring(factory_weapon.unit)
-	managers.dyn_resource:load(Idstring("unit"), ids_unit_name, "packages/dyn_resources", false)
 	local new_unit = World:spawn_unit(ids_unit_name, Vector3(), Rotation())
 	new_unit:base():set_factory_data(factory_name)
 	new_unit:base():set_texture_switches(texture_switches)
@@ -310,16 +219,14 @@ function PlayerInventory:equip_selection(selection_index, instant)
 	return false
 end
 function PlayerInventory:_send_equipped_weapon()
-	local eq_weap_name = self:equipped_unit():name()
-	local index = self:_get_weapon_sync_index_from_name(eq_weap_name)
+	local eq_weap_name = self:equipped_unit():base()._factory_id or self:equipped_unit():name()
+	local index = self._get_weapon_sync_index(eq_weap_name)
 	if not index then
 		debug_pause("[PlayerInventory:_send_equipped_weapon] cannot sync weapon", eq_weap_name, self._unit)
 		return
 	end
 	local blueprint_string = self:equipped_unit():base().blueprint_to_string and self:equipped_unit():base():blueprint_to_string() or ""
 	self._unit:network():send("set_equipped_weapon", index, blueprint_string)
-end
-function PlayerInventory:add_peer_blackmarket_outfit()
 end
 function PlayerInventory:unequip_selection(selection_index, instant)
 	if not selection_index or selection_index == self._equipped_selection then
@@ -380,12 +287,44 @@ function PlayerInventory:on_death_exit()
 		selection.unit:unlink()
 	end
 end
-function PlayerInventory:_get_weapon_sync_index_from_name(wanted_weap_name)
-	for i, weap_name in pairs(self._index_to_weapon_list) do
-		if (type(weap_name) == "string" and type(wanted_weap_name) == "string" or type(weap_name) ~= "string" and type(wanted_weap_name) ~= "string") and weap_name == wanted_weap_name then
-			return i
+function PlayerInventory._chk_create_w_factory_indexes()
+	if PlayerInventory._weapon_factory_indexed then
+		return
+	end
+	local weapon_factory_indexed = {}
+	PlayerInventory._weapon_factory_indexed = weapon_factory_indexed
+	for id, data in pairs(tweak_data.weapon.factory) do
+		if id ~= "parts" and data.unit then
+			table.insert(weapon_factory_indexed, id)
 		end
 	end
+	table.sort(weapon_factory_indexed, function(a, b)
+		return a < b
+	end)
+end
+function PlayerInventory._get_weapon_sync_index(wanted_weap_name)
+	if type_name(wanted_weap_name) == "Idstring" then
+		for i, test_weap_name in ipairs(tweak_data.character.weap_unit_names) do
+			if test_weap_name == wanted_weap_name then
+				return i
+			end
+		end
+	end
+	PlayerInventory._chk_create_w_factory_indexes()
+	local start_index = #tweak_data.character.weap_unit_names
+	for i, factory_id in ipairs(PlayerInventory._weapon_factory_indexed) do
+		if wanted_weap_name == factory_id then
+			return start_index + i
+		end
+	end
+end
+function PlayerInventory._get_weapon_name_from_sync_index(w_index)
+	if w_index <= #tweak_data.character.weap_unit_names then
+		return tweak_data.character.weap_unit_names[w_index]
+	end
+	w_index = w_index - #tweak_data.character.weap_unit_names
+	PlayerInventory._chk_create_w_factory_indexes()
+	return PlayerInventory._weapon_factory_indexed[w_index]
 end
 function PlayerInventory:hide_equipped_unit()
 	local unit = self._available_selections[self._equipped_selection].unit
@@ -407,8 +346,8 @@ function PlayerInventory:show_equipped_unit()
 end
 function PlayerInventory:save(data)
 	if self._equipped_selection then
-		local eq_weap_name = self:equipped_unit():base()._factory_id or self._available_selections[self._equipped_selection].unit:name()
-		local index = self:_get_weapon_sync_index_from_name(eq_weap_name) or self:_get_weapon_sync_index_from_name(self._available_selections[self._equipped_selection].unit:name())
+		local eq_weap_name = self:equipped_unit():base()._factory_id or self:equipped_unit():name()
+		local index = self._get_weapon_sync_index(eq_weap_name)
 		data.equipped_weapon_index = index
 		data.mask_visibility = self._mask_visibility
 		data.blueprint_string = self:equipped_unit():base().blueprint_to_string and self:equipped_unit():base():blueprint_to_string() or nil
@@ -417,7 +356,7 @@ function PlayerInventory:save(data)
 end
 function PlayerInventory:load(data)
 	if data.equipped_weapon_index then
-		local eq_weap_name = self._index_to_weapon_list[data.equipped_weapon_index]
+		local eq_weap_name = self._get_weapon_name_from_sync_index(data.equipped_weapon_index)
 		if type(eq_weap_name) == "string" then
 			self:add_unit_by_factory_name(eq_weap_name, true, true, data.blueprint_string)
 			self:synch_weapon_gadget_state(data.gadget_on)
@@ -440,6 +379,7 @@ function PlayerInventory:set_mask_visibility(state)
 	if not character_name then
 		return
 	end
+	self._mask_visibility = state
 	if alive(self._mask_unit) then
 		if not state then
 			for _, linked_unit in ipairs(self._mask_unit:children()) do
@@ -449,7 +389,6 @@ function PlayerInventory:set_mask_visibility(state)
 			self._mask_unit:unlink()
 			local name = self._mask_unit:name()
 			World:delete_unit(self._mask_unit)
-			managers.dyn_resource:unload(Idstring("unit"), name, DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 		end
 		return
 	end
@@ -457,14 +396,15 @@ function PlayerInventory:set_mask_visibility(state)
 		return
 	end
 	local mask_unit_name = managers.criminals:character_data_by_name(character_name).mask_obj
+	if not managers.dyn_resource:is_resource_ready(Idstring("unit"), mask_unit_name, managers.dyn_resource.DYN_RESOURCES_PACKAGE) then
+		return
+	end
 	mask_unit_name = mask_unit_name[Global.level_data.level_id] or mask_unit_name.default or mask_unit_name
 	local mask_align = self._unit:get_object(Idstring("Head"))
-	managers.dyn_resource:load(Idstring("unit"), Idstring(mask_unit_name), DynamicResourceManager.DYN_RESOURCES_PACKAGE, false)
 	local mask_unit = World:spawn_unit(Idstring(mask_unit_name), mask_align:position(), mask_align:rotation())
 	mask_unit:base():apply_blueprint(managers.criminals:character_data_by_name(character_name).mask_blueprint)
 	self._unit:link(mask_align:name(), mask_unit, mask_unit:orientation_object():name())
 	self._mask_unit = mask_unit
-	self._mask_unit_name = mask_unit:name()
 	local mask_id = managers.criminals:character_data_by_name(character_name).mask_id
 	if not mask_id or not tweak_data.blackmarket.masks[mask_id].type then
 		local backside = World:spawn_unit(Idstring("units/payday2/masks/msk_backside/msk_backside"), mask_align:position(), mask_align:rotation())

@@ -161,15 +161,13 @@ function GameSetup:load_packages()
 	if not PackageManager:loaded("packages/game_base") then
 		PackageManager:load("packages/game_base")
 	end
-	if not PackageManager:loaded("packages/game_base_streamed") then
-		PackageManager:load("packages/game_base_streamed")
-	end
 	local prefix = "packages/dlcs/"
 	local sufix = "/game_base"
 	local package = ""
 	for dlc_package, bundled in pairs(DLCManager.BUNDLED_DLC_PACKAGES) do
 		package = prefix .. tostring(dlc_package) .. sufix
-		if bundled and not PackageManager:loaded(package) then
+		Application:debug("[MenuSetup:load_packages] DLC package: " .. package, "Is package OK to load?: " .. tostring(bundled))
+		if bundled and (bundled == true or bundled == 2) and PackageManager:package_exists(package) and not PackageManager:loaded(package) then
 			PackageManager:load(package)
 		end
 	end
@@ -218,18 +216,12 @@ end
 function GameSetup:unload_packages()
 	Setup.unload_packages(self)
 	if not Global.load_level then
-		if PackageManager:loaded("packages/game_base") then
-			PackageManager:unload("packages/game_base")
-		end
-		if PackageManager:loaded("packages/game_base_streamed") then
-			PackageManager:unload("packages/game_base_streamed")
-		end
 		local prefix = "packages/dlcs/"
 		local sufix = "/game_base"
 		local package = ""
 		for dlc_package, bundled in pairs(DLCManager.BUNDLED_DLC_PACKAGES) do
 			package = prefix .. tostring(dlc_package) .. sufix
-			if bundled and PackageManager:loaded(package) then
+			if bundled and (bundled == true or bundled == 2) and PackageManager:package_exists(package) and PackageManager:loaded(package) then
 				PackageManager:unload(package)
 			end
 		end
@@ -403,6 +395,7 @@ function GameSetup:save(data)
 	managers.loot:sync_save(data)
 	managers.enemy:save(data)
 	managers.gage_assignment:sync_save(data)
+	managers.preplanning:sync_save(data)
 	managers.assets:sync_save(data)
 	managers.job:sync_save(data)
 end
@@ -421,6 +414,7 @@ function GameSetup:load(data)
 	managers.loot:sync_load(data)
 	managers.enemy:load(data)
 	managers.gage_assignment:sync_load(data)
+	managers.preplanning:sync_load(data)
 	managers.assets:sync_load(data)
 	managers.job:sync_load(data)
 	managers.menu_component:load(data)

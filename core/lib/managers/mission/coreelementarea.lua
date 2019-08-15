@@ -31,6 +31,7 @@ function ElementAreaTrigger:init(...)
 	self._inside = {}
 end
 function ElementAreaTrigger:on_script_activated()
+	self._on_script_activated_done = true
 	if self._values.use_shape_element_ids then
 		for _, id in ipairs(self._values.use_shape_element_ids) do
 			local element = self:get_mission_element(id)
@@ -125,6 +126,16 @@ function ElementAreaTrigger:project_instigators()
 end
 function ElementAreaTrigger:project_amount_all()
 	return nil
+end
+function ElementAreaTrigger:debug_draw()
+	for _, shape in ipairs(self._shapes) do
+		shape:draw(0, 0, self._values.enabled and 0 or 1, self._values.enabled and 1 or 0, 0, 0.2)
+	end
+	for _, shape_element in ipairs(self._shape_elements) do
+		for _, shape in ipairs(shape_element:get_shapes()) do
+			shape:draw(0, 0, self._values.enabled and 0 or 1, self._values.enabled and 1 or 0, 0, 0.2)
+		end
+	end
 end
 function ElementAreaTrigger:update_area()
 	if not self._values.enabled then
@@ -277,6 +288,9 @@ function ElementAreaTrigger:save(data)
 	data.use_disabled_shapes = self._values.use_disabled_shapes
 end
 function ElementAreaTrigger:load(data)
+	if not self._on_script_activated_done then
+		self:on_script_activated()
+	end
 	self:set_enabled(data.enabled)
 	self:operation_set_interval(data.interval)
 	self._values.use_disabled_shapes = data.use_disabled_shapes

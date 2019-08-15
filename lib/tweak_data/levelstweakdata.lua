@@ -676,9 +676,11 @@ function LevelsTweakData:init()
 		"Play_pln_bb1_end_03",
 		"Play_pln_bb1_end_04"
 	}
-	self.big.music = "heist"
+	self.big.music = "big_bank"
 	self.big.package = "packages/narr_big"
 	self.big.cube = "cube_apply_heist_bank"
+	self.big.ghost_bonus = 0.3
+	self.big.max_bags = 25
 	self.roberts = {}
 	self.roberts.name_id = "heist_roberts_hl"
 	self.roberts.briefing_id = "heist_roberts_briefing"
@@ -799,6 +801,7 @@ function LevelsTweakData:init()
 	self.kosugi.package = "packages/kosugi"
 	self.kosugi.cube = "cube_apply_heist_bank"
 	self.kosugi.ghost_bonus = 0.1
+	self.kosugi.max_bags = 25
 	self.test01 = {}
 	self.test01.name_id = "heist_test01_hl"
 	self.test01.briefing_id = "heist_test01"

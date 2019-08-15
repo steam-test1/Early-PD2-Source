@@ -139,6 +139,9 @@ function ConnectionNetworkHandler:spawn_dropin_penalty(dead, bleed_out, health, 
 		return
 	end
 	managers.player:spawn_dropin_penalty(dead, bleed_out, health, used_deployable, used_cable_ties, used_body_bags)
+	if not managers.groupai:state():whisper_mode() and (game_state_machine:last_queued_state_name() == "ingame_clean" or game_state_machine:last_queued_state_name() == "ingame_mask_off") then
+		managers.player:set_player_state("standard")
+	end
 end
 function ConnectionNetworkHandler:ok_to_load_level(sender)
 	print("ConnectionNetworkHandler:ok_to_load_level")
@@ -203,13 +206,14 @@ function ConnectionNetworkHandler:sync_game_settings(job_index, level_id_index, 
 	managers.job:activate_job(job_id)
 	Global.game_settings.level_id = level_id
 	Global.game_settings.mission = managers.job:current_mission()
+	Global.game_settings.world_setting = managers.job:current_world_setting()
 	Global.game_settings.difficulty = difficulty
 	if managers.menu_component then
 		managers.menu_component:on_job_updated()
 	end
 end
 function ConnectionNetworkHandler:sync_stage_settings(level_id_index, stage_num, alternative_stage, interupt_stage_level_id, sender)
-	print("ConnectionNetworkHandler:sync_game_settings", level_id_index, stage_num, alternative_stage, interupt_stage_level_id)
+	print("ConnectionNetworkHandler:sync_stage_settings", level_id_index, stage_num, alternative_stage, interupt_stage_level_id)
 	local peer = self._verify_sender(sender)
 	if not peer then
 		return
@@ -229,6 +233,7 @@ function ConnectionNetworkHandler:sync_stage_settings(level_id_index, stage_num,
 		managers.job:synced_interupt_stage(nil, true)
 	end
 	Global.game_settings.mission = managers.job:current_mission()
+	Global.game_settings.world_setting = managers.job:current_world_setting()
 end
 function ConnectionNetworkHandler:sync_on_retry_job_stage(sender)
 	local peer = self._verify_sender(sender)
@@ -391,27 +396,36 @@ function ConnectionNetworkHandler:dropin_progress(dropin_peer_id, progress_perce
 	end
 	managers.network:game():on_dropin_progress_received(dropin_peer_id, progress_percentage)
 end
-function ConnectionNetworkHandler:set_member_ready(ready, mode, sender)
-	if not self._verify_gamestate(self._gamestate_filter.any_ingame) then
+function ConnectionNetworkHandler:set_member_ready(peer_id, ready, mode, outfit_versions_str, sender)
+	if not self._verify_gamestate(self._gamestate_filter.any_ingame) or not self._verify_sender(sender) then
 		return
 	end
-	local peer = self._verify_sender(sender)
+	local peer = managers.network:session():peer(peer_id)
 	if not peer then
 		return
 	end
-	local peer_id = peer:id()
 	if mode == 1 then
 		ready = ready ~= 0 and true or false
 		local ready_state = peer:waiting_for_player_ready()
 		peer:set_waiting_for_player_ready(ready)
 		managers.network:game():on_set_member_ready(peer_id, ready, ready_state ~= ready)
-		if not Network:is_server() or game_state_machine:current_state().start_game_intro then
-		elseif ready then
-			managers.network:session():chk_spawn_member_unit(peer, peer_id)
+		managers.network:session():on_set_member_ready(peer_id, ready, ready_state ~= ready)
+		if Network:is_server() then
+			managers.network:session():send_to_peers_loaded_except(peer_id, "set_member_ready", peer_id, ready and 1 or 0, 1, "")
+			if game_state_machine:current_state().start_game_intro then
+			elseif ready then
+				managers.network:session():chk_spawn_member_unit(peer, peer_id)
+			end
 		end
 	elseif mode == 2 then
 		peer:set_streaming_status(ready)
 		managers.network:game():on_streaming_progress_received(peer, ready)
+	elseif mode == 3 then
+		if Network:is_server() then
+			managers.network:session():on_peer_finished_loading_outfit(peer, ready, outfit_versions_str)
+		end
+	elseif mode == 4 and Network:is_client() and peer == managers.network:session():server_peer() then
+		managers.network:session():notify_host_when_outfits_loaded(ready, outfit_versions_str)
 	end
 end
 function ConnectionNetworkHandler:send_chat_message(channel_id, message, sender)
@@ -422,13 +436,16 @@ function ConnectionNetworkHandler:send_chat_message(channel_id, message, sender)
 	print("send_chat_message peer", peer, peer:id())
 	managers.chat:receive_message_by_peer(channel_id, peer, message)
 end
-function ConnectionNetworkHandler:sync_outfit(outfit_string, sender)
+function ConnectionNetworkHandler:sync_outfit(outfit_string, outfit_version, sender)
 	local peer = self._verify_sender(sender)
 	if not peer then
 		return
 	end
-	print("[ConnectionNetworkHandler:sync_outfit]", "peer_id", peer:id(), "outfit_string", outfit_string)
-	peer:set_outfit_string(outfit_string)
+	print("[ConnectionNetworkHandler:sync_outfit]", "peer_id", peer:id(), "outfit_string", outfit_string, "outfit_version", outfit_version)
+	peer:set_outfit_string(outfit_string, outfit_version)
+	if managers.network:session():is_host() then
+		managers.network:session():chk_request_peer_outfit_load_status()
+	end
 	local local_peer = managers.network:session() and managers.network:session():local_peer()
 	local in_lobby = local_peer and local_peer:in_lobby() and game_state_machine:current_state_name() ~= "ingame_lobby_menu"
 	if managers.menu_scene and in_lobby then
@@ -518,25 +535,51 @@ function ConnectionNetworkHandler:choose_lootcard(card_id, sender)
 		managers.hud:confirm_choose_lootcard(peer:id(), card_id)
 	end
 end
-function ConnectionNetworkHandler:preplanning_reserved(type, id, peer_id, unreserve, sender)
-	if not self._verify_sender(sender) then
-		return
-	end
-	if unreserve then
-		managers.preplanning:client_unreserve_mission_element(id)
-	else
-		managers.preplanning:client_reserve_mission_element(type, id, peer_id)
-	end
-end
-function ConnectionNetworkHandler:reserve_preplanning(type, id, unreserve, sender)
-	print("A")
+function ConnectionNetworkHandler:sync_explosive_bullet(position, normal, damage, sender)
 	local peer = self._verify_sender(sender)
 	if not peer then
 		return
 	end
-	if unreserve then
-		managers.preplanning:server_unreserve_mission_element(id, peer:id())
-	else
-		managers.preplanning:server_reserve_mission_element(type, id, peer:id())
+	if InstantExplosiveBulletBase then
+		InstantExplosiveBulletBase:on_collision_client(position, normal, damage / 163.84, managers.criminals and managers.criminals:character_unit_by_peer_id(peer:id()))
 	end
+end
+function ConnectionNetworkHandler:preplanning_reserved(type, id, peer_id, state, sender)
+	if not self._verify_sender(sender) then
+		return
+	end
+	if state == 0 then
+		managers.preplanning:client_reserve_mission_element(type, id, peer_id)
+	elseif state == 1 then
+		managers.preplanning:client_unreserve_mission_element(id)
+	elseif state == 2 then
+		managers.preplanning:client_vote_on_plan(type, id, peer_id)
+	end
+end
+function ConnectionNetworkHandler:reserve_preplanning(type, id, state, sender)
+	local peer = self._verify_sender(sender)
+	if not peer then
+		return
+	end
+	if state == 0 then
+		managers.preplanning:server_reserve_mission_element(type, id, peer:id())
+	elseif state == 1 then
+		managers.preplanning:server_unreserve_mission_element(id, peer:id())
+	elseif state == 2 then
+		managers.preplanning:server_vote_on_plan(type, id, peer:id())
+	end
+end
+function ConnectionNetworkHandler:draw_preplanning_point(x, y, sender)
+	local peer = self._verify_sender(sender)
+	if not peer then
+		return
+	end
+	managers.menu_component:sync_preplanning_draw_point(peer:id(), x, y)
+end
+function ConnectionNetworkHandler:draw_preplanning_event(event_id, var1, var2, sender)
+	local peer = self._verify_sender(sender)
+	if not peer then
+		return
+	end
+	managers.menu_component:sync_preplanning_draw_event(peer:id(), event_id, var1, var2)
 end

@@ -670,16 +670,16 @@ function MoneyManager:get_mask_crafting_price(mask_id, global_value, blueprint, 
 		color = "colors"
 	}
 	bonus_global_values[global_value] = (bonus_global_values[global_value] or 0) + 1
-	blueprint = blueprint or managers.blackmarket:get_default_mask_blueprint()
+	blueprint = blueprint or default_blueprint
 	for id, data in pairs(blueprint) do
 		if not default_blueprint[id] or data.id ~= default_blueprint[id].id then
 			local part_pc = tweak_data.blackmarket[part_name_converter[id]] and self:_get_pc_entry(tweak_data.blackmarket[part_name_converter[id]][data.id]) or 1
 			local star_value = tweak_data.blackmarket[part_name_converter[id]] and tweak_data.blackmarket[part_name_converter[id]][data.id] and tweak_data.blackmarket[part_name_converter[id]][data.id].value or 1
 			if star_value > 0 then
-				local gv = data.global_value
-				local gv_tweak_data = tweak_data.lootdrop.global_values[gv or "normal"]
+				local gv = data.global_value or "normal"
+				local gv_tweak_data = tweak_data.lootdrop.global_values[gv]
 				local gv_multiplier = gv_tweak_data and gv_tweak_data.value_multiplier or 1
-				bonus_global_values[data.global_value] = (bonus_global_values[data.global_value] or 0) + 1
+				bonus_global_values[gv] = (bonus_global_values[gv] or 0) + 1
 				local pv = star_value > 0 and self:get_tweak_value("money_manager", "masks", id .. "_value", star_value) or 0
 				parts_value = parts_value + pv * gv_multiplier
 			end
@@ -727,6 +727,41 @@ function MoneyManager:get_tweak_value(...)
 		Application:stack_dump()
 	end
 	return value or 0
+end
+function MoneyManager:get_preplanning_type_cost(type)
+	local cost = self:get_tweak_value("preplanning", "types", type, "cost") or 0
+	local has_active_job = managers.job:has_active_job()
+	local difficulty_stars = (has_active_job and managers.job:current_difficulty_stars() or 0) + 1
+	cost = cost * (self:get_tweak_value("money_manager", "preplaning_asset_cost_multiplier_by_risk", difficulty_stars) or 1)
+	cost = cost * managers.player:upgrade_value("player", "assets_cost_multiplier", 1) * managers.player:upgrade_value("player", "assets_cost_multiplier_b", 1) * managers.player:upgrade_value("player", "passive_assets_cost_multiplier", 1) * managers.player:upgrade_value("player", "buy_cost_multiplier", 1) * managers.player:upgrade_value("player", "crime_net_deal", 1)
+	return math.round(cost)
+end
+function MoneyManager:can_afford_preplanning_type(type)
+	local cost = self:get_preplanning_type_cost(type)
+	local reserved_cost = managers.preplanning:get_reserved_local_cost()
+	return self:total() >= cost + reserved_cost
+end
+function MoneyManager:on_buy_preplanning_types()
+	local cost = self:get_preplanning_types_cost()
+	self:_deduct_from_total(cost)
+end
+function MoneyManager:get_preplanning_types_cost()
+	return managers.preplanning:get_reserved_local_cost() or 0
+end
+function MoneyManager:get_preplanning_votes_cost()
+	local total_cost = 0
+	local plans = managers.preplanning:get_current_majority_votes()
+	for plan, data in pairs(plans) do
+		total_cost = total_cost + self:get_preplanning_type_cost(data[1])
+	end
+	return total_cost
+end
+function MoneyManager:get_preplanning_total_cost()
+	return self:get_preplanning_types_cost() + self:get_preplanning_votes_cost()
+end
+function MoneyManager:on_buy_preplanning_votes()
+	local total_cost = self:get_preplanning_votes_cost()
+	self:_deduct_from_total(total_cost)
 end
 function MoneyManager:get_skillpoint_cost(tree, tier, points)
 	local respec_tweak_data = tweak_data.money_manager.skilltree.respec
@@ -794,9 +829,10 @@ function MoneyManager:get_cost_of_premium_contract(job_id, difficulty_id)
 	else
 	end
 	value = value + ((tweak_data.narrative.jobs[job_id].payout[difficulty_id - 1] or 0) / self:get_tweak_value("money_manager", "offshore_rate") or 0)
+	local total_value = value
 	local multiplier = 1 * managers.player:upgrade_value("player", "buy_cost_multiplier", 1) * managers.player:upgrade_value("player", "crime_net_deal", 1) * managers.player:upgrade_value("player", "premium_contract_cost_multiplier", 1)
-	local total_value = math.round(value * multiplier)
 	total_value = total_value + (tweak_data.narrative.jobs[job_id].contract_cost and tweak_data.narrative.jobs[job_id].contract_cost[difficulty_id - 1] / self:get_tweak_value("money_manager", "offshore_rate") or 0)
+	total_value = total_value * multiplier
 	return total_value
 end
 function MoneyManager:can_afford_buy_premium_contract(job_id, difficulty_id)

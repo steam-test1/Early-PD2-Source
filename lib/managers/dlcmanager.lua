@@ -1,12 +1,15 @@
 DLCManager = DLCManager or class()
 DLCManager.PLATFORM_CLASS_MAP = {}
 DLCManager.BUNDLED_DLC_PACKAGES = {
+	infamous = 1,
+	twitch_pack = 1,
 	dlc1 = true,
 	gage_pack = true,
 	gage_pack_lmg = true,
-	infamous = true,
-	gage_pack_jobs = true,
+	gage_pack_jobs = false,
 	gage_pack_snp = true,
+	big_bank = true,
+	gage_pack_shotgun = true,
 	season_pass = false,
 	animal = false
 }
@@ -63,6 +66,86 @@ function GenericDLCManager:give_dlc_package()
 		end
 	end
 end
+function GenericDLCManager:give_missing_package()
+	local name_converter = {
+		colors = "color",
+		materials = "material",
+		textures = "pattern"
+	}
+	local entry, global_value, passed, has_item, name
+	for package_id, data in pairs(tweak_data.dlc) do
+		if Global.dlc_save.packages[package_id] and (data.free or self[data.dlc](self, data)) then
+			for _, loot_drop in ipairs(data.content and data.content.loot_drops or {}) do
+				if #loot_drop == 0 then
+					entry = tweak_data.blackmarket[loot_drop.type_items][loot_drop.item_entry]
+					global_value = loot_drop.global_value and data.content.loot_global_value and package_id
+					passed = false
+					if loot_drop.type_items == "weapon_mods" and entry.is_a_unlockable then
+						has_item = 0 < managers.blackmarket:get_item_amount(global_value, loot_drop.type_items, loot_drop.item_entry, true)
+						passed = not has_item
+					elseif loot_drop.type_items ~= "weapon_mods" and entry.value == 0 then
+						has_item = 0 < managers.blackmarket:get_item_amount(global_value, loot_drop.type_items, loot_drop.item_entry, true)
+						if not has_item then
+							if loot_drop.type_items == "masks" then
+								for slot, crafted in pairs(Global.blackmarket_manager.crafted_items.masks) do
+									if slot ~= 1 and crafted.mask_id == loot_drop.item_entry and crafted.global_value == global_value then
+										has_item = true
+									else
+									end
+								end
+							elseif loot_drop.type_items == "materials" or loot_drop.type_items == "textures" or loot_drop.type_items == "colors" then
+								for slot, crafted in pairs(Global.blackmarket_manager.crafted_items.masks) do
+									if slot ~= 1 then
+										name = name_converter[loot_drop.type_items]
+										if crafted.blueprint[name].id == loot_drop.item_entry and crafted.blueprint[name].global_value == global_value then
+											has_item = true
+										end
+									else
+									end
+								end
+							end
+							passed = not has_item
+						end
+					end
+					if passed then
+						print("[GenericDLCManager:give_missing_package] Found missing Item!", loot_drop.amount, global_value, loot_drop.type_items, loot_drop.item_entry)
+						for i = 1, loot_drop.amount do
+							managers.blackmarket:add_to_inventory(global_value, loot_drop.type_items, loot_drop.item_entry)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+function GenericDLCManager:list_dlc_package(dlcs)
+	local t = {}
+	for package_id, data in pairs(tweak_data.dlc) do
+		if not dlcs or dlcs[package_id] or table.contains(dlcs, package_id) then
+			for _, loot_drop in ipairs(data.content.loot_drops or {}) do
+				t.items = t.items or {}
+				if #loot_drop > 0 then
+				else
+					local global_value = loot_drop.global_value or data.content.loot_global_value or package_id
+					local category = loot_drop.type_items
+					local entry = loot_drop.item_entry
+					local amount = loot_drop.amount
+					table.insert(t.items, {
+						global_value,
+						category,
+						entry,
+						amount
+					})
+				end
+			end
+			for _, upgrade in ipairs(data.content.upgrades or {}) do
+				t.upgrades = t.upgrades or {}
+				table.insert(t.upgrades, upgrade)
+			end
+		end
+	end
+	return t
+end
 function GenericDLCManager:save(data)
 	data.dlc_save = Global.dlc_save
 end
@@ -81,6 +164,8 @@ function GenericDLCManager:on_achievement_award_loot()
 	self:give_dlc_package()
 end
 function GenericDLCManager:on_signin_complete()
+end
+function GenericDLCManager:chk_dlc_purchase()
 end
 function GenericDLCManager:is_dlc_unlocked(dlc)
 	return tweak_data.dlc[dlc] and tweak_data.dlc[dlc].free or self:has_dlc(dlc)
@@ -149,8 +234,17 @@ end
 function GenericDLCManager:has_gage_pack_snp()
 	return Global.dlc_manager.all_dlc_data.gage_pack_snp and Global.dlc_manager.all_dlc_data.gage_pack_snp.verified
 end
+function GenericDLCManager:has_gage_pack_shotgun()
+	return Global.dlc_manager.all_dlc_data.gage_pack_shotgun and Global.dlc_manager.all_dlc_data.gage_pack_shotgun.verified
+end
+function GenericDLCManager:has_big_bank()
+	return Global.dlc_manager.all_dlc_data.big_bank and Global.dlc_manager.all_dlc_data.big_bank.verified
+end
 function GenericDLCManager:has_xmas_soundtrack()
 	return Global.dlc_manager.all_dlc_data.xmas_soundtrack and Global.dlc_manager.all_dlc_data.xmas_soundtrack.verified
+end
+function GenericDLCManager:has_twitch_pack()
+	return Global.dlc_manager.all_dlc_data.twitch_pack and Global.dlc_manager.all_dlc_data.twitch_pack.verified
 end
 function GenericDLCManager:has_achievement(data)
 	local achievement = managers.achievment and data and data.achievement_id and managers.achievment:get_info(data.achievement_id)
@@ -391,7 +485,10 @@ function WINDLCManager:init()
 			gage_pack_lmg = {app_id = "275590", no_install = true},
 			gage_pack_jobs = {app_id = "259381", no_install = true},
 			gage_pack_snp = {app_id = "259380", no_install = true},
+			gage_pack_shotgun = {app_id = "311050", no_install = true},
+			big_bank = {app_id = "306690", no_install = true},
 			xmas_soundtrack = {app_id = "267381", no_install = true},
+			twitch_pack = {app_id = "306110", no_install = true},
 			pd2_clan = {
 				source_id = "103582791433980119"
 			}
@@ -399,25 +496,36 @@ function WINDLCManager:init()
 		self:_verify_dlcs()
 	end
 end
+function WINDLCManager:_check_dlc_data(dlc_data)
+	if dlc_data.app_id then
+		if dlc_data.no_install then
+			if Steam:is_product_owned(dlc_data.app_id) then
+				return true
+			end
+		elseif Steam:is_product_installed(dlc_data.app_id) then
+			return true
+		end
+	elseif dlc_data.source_id then
+		if not Steam.is_user_in_source then
+			Application:error("EXE OUT OF DATE!")
+		end
+		if Steam:is_user_in_source(Steam:userid(), dlc_data.source_id) then
+			return true
+		end
+	end
+end
 function WINDLCManager:_verify_dlcs()
 	for dlc_name, dlc_data in pairs(Global.dlc_manager.all_dlc_data) do
-		if not dlc_data.verified then
-			if dlc_data.app_id then
-				if dlc_data.no_install then
-					if Steam:is_product_owned(dlc_data.app_id) then
-						dlc_data.verified = true
-					end
-				elseif Steam:is_product_installed(dlc_data.app_id) then
-					dlc_data.verified = true
-				end
-			elseif dlc_data.source_id then
-				if not Steam.is_user_in_source then
-					Application:error("EXE OUT OF DATE!")
-				end
-				if Steam:is_user_in_source(Steam:userid(), dlc_data.source_id) then
-					dlc_data.verified = true
-				end
-			end
+		if not dlc_data.verified and self:_check_dlc_data(dlc_data) then
+			dlc_data.verified = true
+		end
+	end
+end
+function WINDLCManager:chk_dlc_purchase()
+	for dlc_name, dlc_data in pairs(Global.dlc_manager.all_dlc_data) do
+		if not dlc_data.verified and self:_check_dlc_data(dlc_data) then
+			managers.menu:show_dlc_require_restart()
+		else
 		end
 	end
 end

@@ -426,6 +426,7 @@ function MissionAssetsManager:create_asset_textures()
 		self._asset_textures_in_loading[Idstring(texture):key()] = {asset_id, texture}
 		TextureCache:request(texture, "NORMAL", texture_loaded_clbk, 100)
 	end
+	self:check_all_textures_loaded()
 end
 function MissionAssetsManager:get_asset_texture(asset_id)
 	local texture = self._asset_textures_loaded[asset_id]
@@ -436,7 +437,6 @@ function MissionAssetsManager:get_asset_texture(asset_id)
 end
 function MissionAssetsManager:texture_loaded_clbk(texture_idstring)
 	if not self._asset_textures_in_loading[texture_idstring:key()] then
-		TextureCache:unretrieve(texture_idstring)
 		return
 	end
 	local asset_texture_data = self._asset_textures_in_loading[texture_idstring:key()]

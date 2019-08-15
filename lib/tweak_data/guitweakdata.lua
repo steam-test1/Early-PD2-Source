@@ -112,6 +112,30 @@ function GuiTweakData:init()
 		store = 259380,
 		image = "guis/textures/pd2/content_updates/gage_pack_snp"
 	}
+	local kosugi = {
+		id = "kosugi",
+		name_id = "menu_content_kosugi",
+		desc_id = "menu_content_kosugi_desc",
+		date_id = "menu_content_kosugi_date",
+		store = 267382,
+		image = "guis/textures/pd2/content_updates/kosugi"
+	}
+	local big_bank = {
+		id = "big_bank",
+		name_id = "menu_content_big_bank",
+		desc_id = "menu_content_big_bank_desc",
+		date_id = "menu_content_big_bank_date",
+		store = 306690,
+		image = "guis/dlcs/big_bank/textures/pd2/content_updates/big_bank"
+	}
+	local gage_pack_shotgun = {
+		id = "gage_pack_shotgun",
+		name_id = "menu_content_gage_pack_shotgun",
+		desc_id = "menu_content_gage_pack_shotgun_desc",
+		date_id = "menu_content_gage_pack_shotgun_date",
+		store = 311050,
+		image = "guis/dlcs/gage_pack_shotgun/textures/pd2/content_updates/gage_pack_shotgun"
+	}
 	self.content_updates = {
 		title_id = "menu_content_updates",
 		choice_id = "menu_content_updates_previous",
@@ -132,7 +156,10 @@ function GuiTweakData:init()
 			deathwish,
 			election_day,
 			gage_pack_jobs,
-			gage_pack_snp
+			gage_pack_snp,
+			kosugi,
+			big_bank,
+			gage_pack_shotgun
 		}
 	elseif SystemInfo:platform() == Idstring("PS3") then
 		self.content_updates.item_list = {
@@ -1188,18 +1215,6 @@ function GuiTweakData:init()
 			x = 912,
 			y = 905,
 			icon = "guis/textures/pd2/crimenet_marker_codex"
-		},
-		{
-			id = "casino",
-			name_id = "menu_cn_casino",
-			desc_id = "menu_cn_casino_desc",
-			menu_node = "crimenet_contract_casino",
-			x = 347,
-			y = 716,
-			icon = "guis/textures/pd2/crimenet_casino",
-			unlock = "unlock_level",
-			pulse = true,
-			pulse_color = Color(204, 255, 209, 32) / 255
 		}
 	}
 	self.crime_net.codex = {
@@ -1265,6 +1280,22 @@ function GuiTweakData:init()
 						"gage3"
 					},
 					post_event = "pln_contact_gage"
+				}
+			},
+			{
+				id = "the_dentist",
+				name_id = "heist_contact_the_dentist",
+				{
+					desc_id = "heist_contact_the_dentist_description",
+					videos = {
+						"the_dentist1",
+						"the_dentist2",
+						"the_dentist3",
+						"the_dentist4",
+						"the_dentist5",
+						"the_dentist6"
+					},
+					post_event = "dentist_quote_set_a"
 				}
 			}
 		},
@@ -1382,7 +1413,8 @@ function GuiTweakData:init()
 						"vlad",
 						"the_elephant",
 						"hector",
-						"bain"
+						"bain",
+						"the_dentist"
 					},
 					difficulties = {
 						"normal",

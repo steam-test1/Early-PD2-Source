@@ -104,12 +104,6 @@ function LootManager:sync_secure_loot(carry_id, multiplier, silent)
 	else
 	end
 end
-function LootManager:_multiplier_by_id(id)
-	if tweak_data.carry.small_loot[id] then
-		return "small_loot_value_multiplier"
-	end
-	return "value_multiplier"
-end
 function LootManager:secure_small_loot(type, multiplier)
 	self:secure(type, multiplier)
 end
@@ -206,9 +200,12 @@ function LootManager:is_bonus_bag(carry_id)
 	return false
 end
 function LootManager:get_real_value(carry_id, multiplier)
-	local has_active_job = managers.job:has_active_job()
-	local job_stars = has_active_job and managers.job:current_job_stars() or 1
-	local mul_value = tweak_data:get_value("carry", self:_multiplier_by_id(carry_id), job_stars)
+	local mul_value = 1
+	if not tweak_data.carry.small_loot[carry_id] then
+		local has_active_job = managers.job:has_active_job()
+		local job_stars = has_active_job and managers.job:current_job_stars() or 1
+		mul_value = tweak_data:get_value("carry", "value_multiplier", job_stars)
+	end
 	return managers.money:get_bag_value(carry_id, multiplier) * mul_value
 end
 function LootManager:get_real_total_value()

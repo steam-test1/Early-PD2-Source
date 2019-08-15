@@ -28,14 +28,18 @@ function get_editable_lights(unit)
 	end
 	return lights
 end
-function has_projection_light(unit)
+function has_any_projection_light(unit)
+	return has_projection_light(unit, "shadow_projection") or has_projection_light(unit, "projection")
+end
+function has_projection_light(unit, type)
+	type = type or "projection"
 	local object_file = CoreEngineAccess._editor_unit_data(unit:name():id()):model()
 	local node = DB:has("object", object_file) and DB:load_node("object", object_file)
 	if node then
 		for child in node:children() do
 			if child:name() == "lights" then
 				for light in child:children() do
-					if light:has_parameter("projection") and light:parameter("projection") == "true" then
+					if light:has_parameter(type) and light:parameter(type) == "true" then
 						return light:parameter("name")
 					end
 				end
@@ -44,14 +48,15 @@ function has_projection_light(unit)
 	end
 	return nil
 end
-function is_projection_light(unit, light)
+function is_projection_light(unit, light, type)
+	type = type or "projection"
 	local object_file = CoreEngineAccess._editor_unit_data(unit:name():id()):model()
 	local node = DB:has("object", object_file) and DB:load_node("object", object_file)
 	if node then
 		for child in node:children() do
 			if child:name() == "lights" then
 				for light_node in child:children() do
-					if light_node:has_parameter("projection") and light_node:parameter("projection") == "true" and light:name() == Idstring(light_node:parameter("name")) then
+					if light_node:has_parameter(type) and light_node:parameter(type) == "true" and light:name() == Idstring(light_node:parameter("name")) then
 						return true
 					end
 				end
@@ -105,9 +110,9 @@ function _get_sequence_file(unit_data, sequence_files)
 	table.insert(sequence_files, unit_data:sequence_manager_filename())
 end
 GrabInfo = GrabInfo or CoreClass.class()
-function GrabInfo:init(o)
-	self._pos = o:position()
-	self._rot = o:rotation()
+function GrabInfo:init(o, pos, rot)
+	self._pos = pos or o:position()
+	self._rot = rot or o:rotation()
 end
 function GrabInfo:rotation()
 	return self._rot

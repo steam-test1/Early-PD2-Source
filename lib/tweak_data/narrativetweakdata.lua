@@ -164,37 +164,36 @@ function NarrativeTweakData:init()
 	self.contacts.dallas = {}
 	self.contacts.dallas.name_id = "heist_contact_dallas"
 	self.contacts.dallas.description_id = "heist_contact_dallas_description"
-	self.contacts.dallas.image = "guis/textures/pd2/crimenet_portrait_dallas"
 	self.contacts.dallas.package = "packages/contact_dallas"
 	self.contacts.dallas.assets_gui = Idstring("guis/mission_briefing/preload_contact_dallas")
 	self.contacts.vlad = {}
 	self.contacts.vlad.name_id = "heist_contact_vlad"
 	self.contacts.vlad.description_id = "heist_contact_vlad_description"
-	self.contacts.vlad.image = "guis/textures/pd2/crimenet_portrait_vlad"
 	self.contacts.vlad.package = "packages/contact_vlad"
 	self.contacts.vlad.assets_gui = Idstring("guis/mission_briefing/preload_contact_vlad")
 	self.contacts.hector = {}
 	self.contacts.hector.name_id = "heist_contact_hector"
 	self.contacts.hector.description_id = "heist_contact_hector_description"
-	self.contacts.hector.image = "guis/textures/pd2/crimenet_portrait_hector"
 	self.contacts.hector.package = "packages/contact_hector"
 	self.contacts.hector.assets_gui = Idstring("guis/mission_briefing/preload_contact_hector")
 	self.contacts.the_elephant = {}
 	self.contacts.the_elephant.name_id = "heist_contact_the_elephant"
 	self.contacts.the_elephant.description_id = "heist_contact_the_elephant_description"
-	self.contacts.the_elephant.image = "guis/textures/pd2/crimenet_portrait_the_elephant"
 	self.contacts.the_elephant.package = "packages/contact_the_elephant"
 	self.contacts.the_elephant.assets_gui = Idstring("guis/mission_briefing/preload_contact_the_elephant")
 	self.contacts.bain = {}
 	self.contacts.bain.name_id = "heist_contact_bain"
 	self.contacts.bain.description_id = "heist_contact_bain_description"
-	self.contacts.bain.image = "guis/textures/pd2/crimenet_portrait_vlad"
 	self.contacts.bain.package = "packages/contact_bain"
 	self.contacts.bain.assets_gui = Idstring("guis/mission_briefing/preload_contact_bain")
+	self.contacts.the_dentist = {}
+	self.contacts.the_dentist.name_id = "heist_contact_the_dentist"
+	self.contacts.the_dentist.description_id = "heist_contact_the_dentist_description"
+	self.contacts.the_dentist.package = "packages/contact_the_dentist"
+	self.contacts.the_dentist.assets_gui = Idstring("guis/dlcs/big_bank/guis/preload_contact_the_dentist")
 	self.contacts.interupt = {}
 	self.contacts.interupt.name_id = "heist_contact_interupt"
 	self.contacts.interupt.description_id = "heist_contact_interupt_description"
-	self.contacts.interupt.image = "guis/textures/pd2/crimenet_portrait_vlad"
 	self.contacts.interupt.package = "packages/contact_interupt"
 	self.contacts.interupt.assets_gui = Idstring("guis/mission_briefing/preload_contact_interupt")
 	self.jobs = {}
@@ -1011,7 +1010,7 @@ function NarrativeTweakData:init()
 		420000,
 		500000
 	}
-	self.jobs.election_day_prof.heat = {this_job = -2, other_jobs = 2}
+	self.jobs.election_day_prof.heat = {this_job = -15, other_jobs = 20}
 	self.jobs.safehouse = {}
 	self.jobs.safehouse.name_id = "heist_safehouse"
 	self.jobs.safehouse.briefing_id = "heist_safehouse_crimenet"
@@ -1425,8 +1424,15 @@ function NarrativeTweakData:init()
 	self.jobs.big.name_id = "heist_big"
 	self.jobs.big.briefing_id = "heist_big_crimenet"
 	self.jobs.big.package = "packages/job_big"
-	self.jobs.big.contact = "bain"
+	self.jobs.big.contact = "the_dentist"
 	self.jobs.big.region = "street"
+	self.jobs.big.experience_mul = {
+		6.5,
+		6.5,
+		6.5,
+		6.5,
+		6.5
+	}
 	self.jobs.big.jc = 40
 	self.jobs.big.chain = {
 		{
@@ -1435,24 +1441,27 @@ function NarrativeTweakData:init()
 			type = "d"
 		}
 	}
-	self.jobs.big.briefing_event = "gus_bb1_cbf_01_01"
+	self.jobs.big.briefing_event = "gus_bb1_cbf_01"
 	self.jobs.big.debrief_event = "gus_bb1_debrief_01"
 	self.jobs.big.crimenet_callouts = {
-		"gus_bb1_cnc_01_01",
-		"gus_bb1_cnc_01_02"
+		"gus_bb1_cnc_01",
+		"gus_bb1_cnc_01",
+		"gus_bb1_cnc_01"
 	}
 	self.jobs.big.crimenet_videos = {
-		"cn_jewel1",
-		"cn_jewel2",
-		"cn_jewel3"
+		"cn_big1",
+		"cn_big2",
+		"cn_big3"
 	}
 	self.jobs.big.payout = {
-		37000,
-		43000,
-		60000,
-		70000,
-		140000
+		90000,
+		135000,
+		180000,
+		310000,
+		380000
 	}
+	self.jobs.big.heat = {this_job = -10, other_jobs = 20}
+	self.jobs.big.dlc = "big_bank"
 	self.jobs.big_prof = deep_clone(self.jobs.big)
 	self.jobs.big_prof.jc = 40
 	self.jobs.big_prof.professional = true
@@ -1670,7 +1679,14 @@ function NarrativeTweakData:init()
 	self.jobs.kosugi.briefing_id = "heist_kosugi_crimenet"
 	self.jobs.kosugi.contact = "bain"
 	self.jobs.kosugi.region = "street"
-	self.jobs.kosugi.jc = 70
+	self.jobs.kosugi.jc = 50
+	self.jobs.kosugi.experience_mul = {
+		0.7,
+		0.8,
+		1,
+		2,
+		2.75
+	}
 	self.jobs.kosugi.chain = {
 		{
 			level_id = "kosugi",
@@ -1911,14 +1927,16 @@ function NarrativeTweakData:init()
 		"branchbank_gold_prof",
 		"branchbank_prof",
 		"family",
-		"roberts",
-		"election_day_prof",
-		"election_day",
 		"arm_fac",
 		"arm_par",
 		"arm_hcm",
 		"arm_und",
-		"arm_cro"
+		"arm_cro",
+		"roberts",
+		"election_day_prof",
+		"election_day",
+		"kosugi",
+		"big"
 	}
 	self:set_job_wrappers()
 end

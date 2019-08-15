@@ -409,7 +409,7 @@ function HUDMissionBriefing:init(hud, workspace)
 	job_text:set_size(w, h)
 	local big_text = self._background_layer_three:text({
 		name = "job_text",
-		text = utf8.to_upper(managers.localization:text(self._current_job_data.name_id)),
+		text = utf8.to_upper(managers.localization:text(self._current_contact_data.name_id) .. ": " .. managers.localization:text(self._current_job_data.name_id)),
 		align = "left",
 		vertical = "top",
 		font_size = bg_font_size,
@@ -426,7 +426,7 @@ function HUDMissionBriefing:init(hud, workspace)
 end
 function HUDMissionBriefing:_apply_ghost_color(ghost, i, is_unknown)
 	local accumulated_ghost_bonus = managers.job:get_accumulated_ghost_bonus()
-	local agb = accumulated_ghost_bonus[i]
+	local agb = accumulated_ghost_bonus and accumulated_ghost_bonus[i]
 	if is_unknown then
 		ghost:set_color(Color(64, 255, 255, 255) / 255)
 	elseif i == managers.job:current_stage() then

@@ -606,7 +606,7 @@ function CopMovement:set_stance(new_stance_name, instant, execute_queued)
 end
 function CopMovement:set_stance_by_code(new_stance_code, instant, execute_queued)
 	if self._stance.code ~= new_stance_code then
-		self._ext_network:send("set_stance", new_stance_code, instant, execute_queued)
+		self._ext_network:send("set_stance", new_stance_code, instant or false, execute_queued or false)
 		self:_change_stance(new_stance_code, instant)
 	end
 end
@@ -783,7 +783,11 @@ function CopMovement:not_cool_t()
 end
 function CopMovement:synch_attention(attention)
 	if self._attention and self._attention.destroy_listener_key then
-		self._attention.unit:base():remove_destroy_listener(self._attention.destroy_listener_key)
+		if alive(self._attention.unit) and self._attention.unit:base() then
+			self._attention.unit:base():remove_destroy_listener(self._attention.destroy_listener_key)
+		else
+			debug_pause_unit(self._unit, "[CopMovement:synch_attention] destroyed unit", self._attention.debug_unit_name)
+		end
 		self._attention.destroy_listener_key = nil
 	end
 	if attention and attention.unit and attention.unit:base() and attention.unit:base().add_destroy_listener then

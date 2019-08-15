@@ -69,9 +69,7 @@ function IngameWaitingForPlayersState:sync_start(variant)
 	self._intro_event = level_data and (variant == 0 and level_data.intro_event or level_data.intro_event[variant])
 	self._blackscreen_started = true
 	managers.menu_component:close_asset_mission_briefing_gui()
-	if Network:is_server() then
-		managers.preplanning:execute_reserved_mission_elements()
-	end
+	managers.preplanning:on_execute_preplanning()
 	managers.dyn_resource:set_file_streaming_settings(managers.dyn_resource:max_streaming_chunk(), 1)
 	if self._intro_event then
 		self._delay_audio_t = Application:time() + 1
@@ -140,7 +138,7 @@ function IngameWaitingForPlayersState:update(t, dt)
 			end
 			local job_data = managers.job:current_job_data()
 			if job_data and managers.job:current_job_id() == "safehouse" and Global.mission_manager.saved_job_values.playedSafeHouseBefore then
-			else
+			elseif not managers.menu_component:is_preplanning_enabled() then
 				managers.briefing:post_event(briefing_dialog, {
 					show_subtitle = false,
 					listener = {
@@ -156,7 +154,7 @@ function IngameWaitingForPlayersState:update(t, dt)
 		self:_start_audio()
 	end
 	if self._delay_start_t then
-		if self._file_streamer_max_workload or not managers.network:session():are_peers_done_streaming() then
+		if self._file_streamer_max_workload or Network:is_server() and not managers.network:session():are_peers_done_streaming() or not managers.network:session():are_all_peer_assets_loaded() then
 			self._delay_start_t = Application:time() + 1
 		elseif t > self._delay_start_t then
 			self._delay_start_t = nil
@@ -244,12 +242,12 @@ function IngameWaitingForPlayersState:at_enter()
 	managers.music:post_event("loadout_music")
 	managers.dyn_resource:set_file_streaming_settings(managers.dyn_resource:max_streaming_chunk(), 2)
 	if managers.dyn_resource:is_file_streamer_idle() then
-		managers.network:session():send_to_peers_loaded("set_member_ready", 100, 2)
+		managers.network:session():send_to_peers_loaded("set_member_ready", managers.network:session():local_peer():id(), 100, 2, "")
 	else
 		self._last_sent_streaming_status = 0
 		self._file_streamer_max_workload = 0
 		managers.hud:set_blackscreen_loading_text_status(0)
-		managers.network:session():send_to_peers_loaded("set_member_ready", 0, 2)
+		managers.network:session():send_to_peers_loaded("set_member_ready", managers.network:session():local_peer():id(), 0, 2, "")
 		managers.dyn_resource:add_listener(self, {
 			DynamicResourceManager.listener_events.file_streamer_workload
 		}, callback(self, self, "clbk_file_streamer_status"))
@@ -269,7 +267,7 @@ function IngameWaitingForPlayersState:clbk_file_streamer_status(workload)
 	managers.network:game():on_streaming_progress_received(local_peer, progress)
 	managers.hud:set_blackscreen_loading_text_status(progress)
 	if self._last_sent_streaming_status ~= progress then
-		managers.network:session():send_to_peers_loaded("set_member_ready", progress, 2)
+		managers.network:session():send_to_peers_loaded("set_member_ready", managers.network:session():local_peer():id(), progress, 2, "")
 		self._last_sent_streaming_status = progress
 	end
 	if workload == 0 then
@@ -306,7 +304,6 @@ function IngameWaitingForPlayersState:check_is_dropin()
 	return not self._started_from_beginning
 end
 function IngameWaitingForPlayersState:at_exit()
-	print("[IngameWaitingForPlayersState:at_exit()]")
 	managers.dyn_resource:set_file_streaming_settings(managers.dyn_resource:max_streaming_chunk() * 0.25, 5)
 	if self._file_streamer_max_workload then
 		self._file_streamer_max_workload = nil
@@ -324,6 +321,7 @@ function IngameWaitingForPlayersState:at_exit()
 	World:delete_unit(self._cam_unit)
 	managers.menu_component:hide_game_chat_gui()
 	managers.menu_component:close_mission_briefing_gui()
+	managers.menu_component:kill_preplanning_map_gui()
 	managers.overlay_effect:play_effect(tweak_data.overlay_effects.level_fade_in)
 	managers.overlay_effect:stop_effect(self._fade_out_id)
 	if self._sound_listener then

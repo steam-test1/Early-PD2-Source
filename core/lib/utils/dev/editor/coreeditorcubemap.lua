@@ -5,7 +5,7 @@ function CoreEditor:create_projection_light(type)
 	if type == "all" then
 		local s_units = self:layer("Statics"):created_units()
 		for _, unit in ipairs(s_units) do
-			local light_name = CoreEditorUtils.has_projection_light(unit)
+			local light_name = CoreEditorUtils.has_projection_light(unit, "shadow_projection")
 			if light_name then
 				table.insert(units, {unit = unit, light_name = light_name})
 			end
@@ -13,7 +13,7 @@ function CoreEditor:create_projection_light(type)
 	elseif type == "selected" then
 		local s_units = self:current_selected_units()
 		for _, unit in ipairs(s_units) do
-			local light_name = CoreEditorUtils.has_projection_light(unit)
+			local light_name = CoreEditorUtils.has_projection_light(unit, "shadow_projection")
 			if light_name then
 				table.insert(units, {unit = unit, light_name = light_name})
 			end
