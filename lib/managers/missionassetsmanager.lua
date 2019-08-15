@@ -86,13 +86,14 @@ function MissionAssetsManager:_setup_mission_assets()
 				end
 			end
 			if asset.risk_lock then
-				requirements.risk_lock = current_stage ~= "safehouse" and managers.job:current_difficulty_stars() == asset.risk_lock
+				requirements.risk_lock = current_stage ~= "safehouse" and (asset.risk_lock == true or managers.job:current_difficulty_stars() == asset.risk_lock)
 				if current_stage == "safehouse" or not requirements.risk_lock or not can_unlock then
 					can_unlock = false
 				end
 			end
 			local needs_any = Idstring(require_to_unlock) == Idstring("any")
 			local unlocked = true
+			local local_only = asset.local_only
 			if needs_any and asset.money_lock then
 				can_unlock = true
 			end
@@ -110,17 +111,25 @@ function MissionAssetsManager:_setup_mission_assets()
 					end
 			end
 			local show = unlocked or can_unlock or asset.visible_if_locked
+			if local_only then
+				show = nil
+				unlocked = true
+				can_unlock = true
+			end
 			table.insert(self._global.assets, {
 				id = id,
 				unlocked = unlocked,
 				show = show,
 				can_unlock = can_unlock,
-				no_mystery = asset.no_mystery
+				no_mystery = asset.no_mystery,
+				local_only = local_only
 			})
 		end
 	end
 	table.sort(self._global.assets, function(x, y)
-		if x.show ~= y.show then
+		if x.local_only ~= y.local_only then
+			return x.local_only
+		elseif x.show ~= y.show then
 			return x.show
 		elseif x.unlocked ~= y.unlocked then
 			return x.unlocked
@@ -271,7 +280,9 @@ end
 function MissionAssetsManager:get_all_asset_ids(only_visible)
 	local asset_ids = {}
 	for _, asset in ipairs(self._global.assets) do
-		if not only_visible or asset.show then
+		local is_visible = not only_visible or asset.show
+		local is_local_only = asset.local_only and self:is_asset_unlockable(asset.id)
+		if is_visible or is_local_only then
 			table.insert(asset_ids, asset.id)
 		end
 	end
@@ -287,6 +298,33 @@ function MissionAssetsManager:_get_asset_by_id(id)
 		end
 	end
 end
+function MissionAssetsManager:is_asset_unlockable(id)
+	local asset_tweak_data = self:get_asset_tweak_data_by_id(id)
+	if not asset_tweak_data then
+		return false
+	end
+	local upgrade_lock, achievment_lock, dlc_lock
+	local can_unlock = true
+	if asset_tweak_data.upgrade_lock then
+		upgrade_lock = managers.player:has_category_upgrade(asset_tweak_data.upgrade_lock.category, asset_tweak_data.upgrade_lock.upgrade) or false
+		if not upgrade_lock or not can_unlock then
+			can_unlock = false
+		end
+	end
+	if asset_tweak_data.achievment_lock then
+		achievment_lock = managers.achievment:exists(asset_tweak_data.achievment_lock) and managers.achievment:get_info(asset_tweak_data.achievment_lock).awarded or false
+		if not achievment_lock or not can_unlock then
+			can_unlock = false
+		end
+	end
+	if asset_tweak_data.dlc_lock then
+		dlc_lock = managers.dlc:has_dlc(asset_tweak_data.dlc_lock) or false
+		if not dlc_lock or not can_unlock then
+			can_unlock = false
+		end
+	end
+	return can_unlock
+end
 function MissionAssetsManager:get_asset_can_unlock_by_id(id)
 	local is_host = Network:is_server() or Global.game_settings.single_player
 	local is_client = not is_host
@@ -300,27 +338,7 @@ function MissionAssetsManager:get_asset_can_unlock_by_id(id)
 			return true
 		end
 		if asset_tweak_data and asset_tweak_data.no_mystery and asset_tweak_data.money_lock then
-			local upgrade_lock, achievment_lock, dlc_lock
-			local can_unlock = true
-			if asset_tweak_data.upgrade_lock then
-				upgrade_lock = managers.player:has_category_upgrade(asset_tweak_data.upgrade_lock.category, asset_tweak_data.upgrade_lock.upgrade) or false
-				if not upgrade_lock or not can_unlock then
-					can_unlock = false
-				end
-			end
-			if asset_tweak_data.achievment_lock then
-				achievment_lock = managers.achievment:exists(asset_tweak_data.achievment_lock) and managers.achievment:get_info(asset_tweak_data.achievment_lock).awarded or false
-				if not achievment_lock or not can_unlock then
-					can_unlock = false
-				end
-			end
-			if asset_tweak_data.dlc_lock then
-				dlc_lock = managers.dlc:has_dlc(asset_tweak_data.dlc_lock) or false
-				if not dlc_lock or not can_unlock then
-					can_unlock = false
-				end
-			end
-			return can_unlock
+			return self:is_asset_unlockable(id)
 		end
 	elseif asset and asset.can_unlock then
 		return true

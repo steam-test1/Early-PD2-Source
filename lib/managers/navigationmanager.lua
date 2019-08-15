@@ -1748,6 +1748,7 @@ function NavigationManager:send_nav_field_to_engine()
 	end
 	local nav_field = World:quad_field()
 	nav_field:set_navfield(send_data, callback(self, self, "clbk_navfield"))
+	nav_field:set_nav_link_filter(NavigationManager.ACCESS_FLAGS)
 end
 function NavigationManager:_strip_nav_field_for_gameplay()
 	local all_doors = self._room_doors

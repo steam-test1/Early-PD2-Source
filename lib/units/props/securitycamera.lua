@@ -628,6 +628,7 @@ function SecurityCamera:_send_net_event(event_id)
 	managers.network:session():send_to_peers_synched("sync_unit_event_id_16", self._unit, "base", event_id)
 end
 function SecurityCamera:clbk_call_the_police()
+	managers.groupai:state():on_criminal_suspicion_progress(nil, self._unit, "called")
 	self._call_police_clbk_id = nil
 	managers.groupai:state():on_police_called(self._reason_called)
 end

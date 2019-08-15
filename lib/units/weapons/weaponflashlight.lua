@@ -1,4 +1,5 @@
 WeaponFlashLight = WeaponFlashLight or class(WeaponGadgetBase)
+WeaponFlashLight.GADGET_TYPE = "flashlight"
 function WeaponFlashLight:init(unit)
 	WeaponFlashLight.super.init(self, unit)
 	self._on_event = "gadget_flashlight_on"

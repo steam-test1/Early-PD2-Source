@@ -4,6 +4,7 @@ function AssetsTweakData:init(tweak_data)
 	self:_init_assets(tweak_data)
 	self:_init_risk_assets(tweak_data)
 	self:_init_safehouse_assets(tweak_data)
+	self:_init_gage_assets(tweak_data)
 end
 function AssetsTweakData:_init_empty_asset(tweak_data)
 	self.none = {}
@@ -49,6 +50,13 @@ function AssetsTweakData:_init_risk_assets(tweak_data)
 	self.risk_death_squad.texture = "guis/textures/pd2/mission_briefing/assets/assets_risklevel_3"
 	self.risk_death_squad.stages = "all"
 	self.risk_death_squad.risk_lock = 3
+end
+function AssetsTweakData:_init_gage_assets(tweak_data)
+	self.gage_assignment = {}
+	self.gage_assignment.name_id = "menu_asset_gage_assignment"
+	self.gage_assignment.texture = "guis/dlcs/gage_pack_jobs/textures/pd2/mission_briefing/assets/gage_assignment"
+	self.gage_assignment.stages = "all"
+	self.gage_assignment.risk_lock = true
 end
 function AssetsTweakData:_init_assets(tweak_data)
 	self.safe_escape = {}
@@ -147,7 +155,9 @@ function AssetsTweakData:_init_assets(tweak_data)
 		"election_day_1",
 		"election_day_3",
 		"election_day_3_skip1",
-		"election_day_3_skip2"
+		"election_day_3_skip2",
+		"mia",
+		"big"
 	}
 	self.grenade_crate.visible_if_locked = true
 	self.grenade_crate.unlock_desc_id = "menu_asset_grenade_crate_desc"
@@ -165,7 +175,9 @@ function AssetsTweakData:_init_assets(tweak_data)
 		"election_day_2",
 		"election_day_3",
 		"election_day_3_skip1",
-		"election_day_3_skip2"
+		"election_day_3_skip2",
+		"mia",
+		"big"
 	}
 	self.ammo_bag.visible_if_locked = true
 	self.ammo_bag.unlock_desc_id = "menu_asset_ammo_desc"
@@ -180,7 +192,9 @@ function AssetsTweakData:_init_assets(tweak_data)
 		"election_day_2",
 		"election_day_3",
 		"election_day_3_skip1",
-		"election_day_3_skip2"
+		"election_day_3_skip2",
+		"mia",
+		"big"
 	}
 	self.health_bag.visible_if_locked = true
 	self.health_bag.unlock_desc_id = "menu_asset_health_desc"
@@ -830,14 +844,6 @@ function AssetsTweakData:_init_assets(tweak_data)
 	self.big_thermite.unlock_desc_id = "menu_asset_big_thermite_desc"
 	self.big_thermite.no_mystery = true
 	self.big_thermite.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
-	self.big_escape_helicopter = {}
-	self.big_escape_helicopter.name_id = "menu_asset_big_escape_helicopter"
-	self.big_escape_helicopter.texture = "guis/textures/pd2/mission_briefing/assets/roberts/asset_pilot_amateur"
-	self.big_escape_helicopter.stages = {"big"}
-	self.big_escape_helicopter.visible_if_locked = true
-	self.big_escape_helicopter.unlock_desc_id = "menu_asset_big_escape_helicopter_desc"
-	self.big_escape_helicopter.no_mystery = true
-	self.big_escape_helicopter.money_lock = tweak_data:get_value("money_manager", "mission_asset_cost_small", 3)
 	self.big_escape_elevator = {}
 	self.big_escape_elevator.name_id = "menu_asset_big_escape_elevator"
 	self.big_escape_elevator.texture = "guis/dlcs/dlc1/textures/pd2/mission_briefing/assets/train_03"
@@ -904,4 +910,38 @@ function AssetsTweakData:_init_debug_assets(tweak_data)
 	self.debug_7.stages = {"safehouse"}
 	self.debug_7.money_lock = 700
 	self.debug_7.visible_if_locked = true
+end
+function AssetsTweakData:debug_assets()
+	local levels = {}
+	for i, level_id in ipairs(tweak_data.levels:get_level_index()) do
+		levels[level_id] = 0
+	end
+	local function f(id)
+		if id == "all" then
+			for i, d in pairs(levels) do
+				levels[i] = levels[i] + 1
+			end
+		else
+			levels[id] = levels[id] + 1
+		end
+	end
+	for id, asset in pairs(self) do
+		if id ~= "none" then
+			local stages = asset.stages
+			if not stages or type(stages) == "string" then
+				f(stages)
+			else
+				for _, lid in ipairs(stages) do
+					f(lid)
+				end
+			end
+		end
+	end
+	local asset_levels = {}
+	for i, d in pairs(levels) do
+		if d > 0 then
+			asset_levels[i] = d
+		end
+	end
+	print(inspect(asset_levels))
 end

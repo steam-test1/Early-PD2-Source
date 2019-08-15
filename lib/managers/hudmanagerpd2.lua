@@ -1103,9 +1103,9 @@ function HUDManager:set_statistics_endscreen_hud(criminals_completed, success)
 		self._hud_stage_endscreen:set_statistics(criminals_completed, success)
 	end
 end
-function HUDManager:set_ghost_bonus_endscreen_hud(bonus)
+function HUDManager:set_special_packages_endscreen_hud(params)
 	if self._hud_stage_endscreen then
-		self._hud_stage_endscreen:set_ghost_bonus(bonus)
+		self._hud_stage_endscreen:set_special_packages(params)
 	end
 end
 function HUDManager:set_group_statistics_endscreen_hud(best_kills, best_kills_score, best_special_kills, best_special_kills_score, best_accuracy, best_accuracy_score, most_downs, most_downs_score, total_kills, total_specials_kills, total_head_shots, group_accuracy, group_downs)

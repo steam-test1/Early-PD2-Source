@@ -1,4 +1,5 @@
 WeaponLaser = WeaponLaser or class(WeaponGadgetBase)
+WeaponLaser.GADGET_TYPE = "laser"
 function WeaponLaser:init(unit)
 	WeaponLaser.super.init(self, unit)
 	self._on_event = "gadget_laser_aim_on"

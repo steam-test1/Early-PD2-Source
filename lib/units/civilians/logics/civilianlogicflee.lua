@@ -92,6 +92,9 @@ function CivilianLogicFlee.exit(data, new_logic_name, enter_params)
 	if my_data.enemy_weapons_hot_listen_id then
 		managers.groupai:state():remove_listener(my_data.enemy_weapons_hot_listen_id)
 	end
+	if my_data.calling_the_police then
+		managers.groupai:state():on_criminal_suspicion_progress(nil, data.unit, "call_interrupted")
+	end
 end
 function CivilianLogicFlee.update(data)
 	local exit_state
@@ -225,6 +228,9 @@ function CivilianLogicFlee.action_complete_clbk(data, action)
 		end
 	elseif action:type() == "act" and my_data.calling_the_police then
 		my_data.calling_the_police = nil
+		if not my_data.called_the_police then
+			managers.groupai:state():on_criminal_suspicion_progress(nil, data.unit, "call_interrupted")
+		end
 	end
 end
 function CivilianLogicFlee.on_alert(data, alert_data)
@@ -789,6 +795,7 @@ function CivilianLogicFlee.clbk_chk_call_the_police(ignore_this, data)
 		my_data.calling_the_police = data.unit:movement():action_request(action)
 		if my_data.calling_the_police then
 			CivilianLogicFlee._say_call_the_police(data, my_data)
+			managers.groupai:state():on_criminal_suspicion_progress(nil, data.unit, "calling")
 		end
 	end
 	my_data.call_police_clbk_id = "civ_call_police" .. tostring(data.key)
@@ -796,4 +803,7 @@ function CivilianLogicFlee.clbk_chk_call_the_police(ignore_this, data)
 end
 function CivilianLogicFlee._say_call_the_police(data, my_data)
 	data.unit:sound():say("911_call", true, false)
+end
+function CivilianLogicFlee.on_police_call_success(data)
+	data.internal_data.called_the_police = true
 end

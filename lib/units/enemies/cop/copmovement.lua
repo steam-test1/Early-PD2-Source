@@ -753,6 +753,9 @@ function CopMovement:set_cool(state, giveaway)
 			self._unit:unit_data().alerted_event_called = true
 			self._unit:unit_data().mission_element:event("alerted", self._unit)
 		end
+		if Network:is_server() and not managers.groupai:state():all_criminals()[self._unit:key()] then
+			managers.groupai:state():on_criminal_suspicion_progress(nil, self._unit, true)
+		end
 	end
 	self._unit:brain():on_cool_state_changed(state)
 	if not state and old_state and self._unit:unit_data().mission_element then
@@ -1106,13 +1109,18 @@ function CopMovement:anim_clbk_ik_change(unit)
 	end
 end
 function CopMovement:anim_clbk_police_called(unit)
-	if Network:is_server() and not managers.groupai:state():is_ecm_jammer_active("call") then
-		local group_state = managers.groupai:state()
-		local cop_type = tostring(group_state.blame_triggers[self._ext_base._tweak_table])
-		if cop_type == "civ" then
-			group_state:on_police_called(self:coolness_giveaway())
+	if Network:is_server() then
+		if not managers.groupai:state():is_ecm_jammer_active("call") then
+			local group_state = managers.groupai:state()
+			local cop_type = tostring(group_state.blame_triggers[self._ext_base._tweak_table])
+			managers.groupai:state():on_criminal_suspicion_progress(nil, self._unit, "called")
+			if cop_type == "civ" then
+				group_state:on_police_called(self:coolness_giveaway())
+			else
+				group_state:on_police_called(self:coolness_giveaway())
+			end
 		else
-			group_state:on_police_called(self:coolness_giveaway())
+			managers.groupai:state():on_criminal_suspicion_progress(nil, self._unit, "call_interrupted")
 		end
 	end
 end
@@ -1300,9 +1308,8 @@ function CopMovement:save(save_data)
 		if self._attention.pos then
 			my_save_data.attention = self._attention
 		elseif self._attention.unit:id() == -1 then
-			my_save_data.attention = {
-				pos = self._attention.unit:movement():m_com()
-			}
+			local attention_pos = self._attention.handler and self._attention.handler:get_detection_m_pos() or self._attention.unit:movement() and self._attention.unit:movement():m_com() or self._unit:position()
+			my_save_data.attention = {pos = attention_pos}
 		else
 			managers.enemy:add_delayed_clbk("clbk_sync_attention" .. tostring(self._unit:key()), callback(self, self, "clbk_sync_attention", self._attention), TimerManager:game():time() + 0.1)
 		end
@@ -1583,7 +1590,7 @@ function CopMovement:sync_pose(pose_code)
 	local new_action_data = {type = pose, body_part = 4}
 	self:action_request(new_action_data)
 end
-function CopMovement:sync_action_act_start(index, blocks_hurt, start_rot, start_pos)
+function CopMovement:sync_action_act_start(index, blocks_hurt, clamp_to_graph, start_rot, start_pos)
 	if self._ext_damage:dead() then
 		return
 	end
@@ -1599,7 +1606,8 @@ function CopMovement:sync_action_act_start(index, blocks_hurt, start_rot, start_
 			idle = -1
 		},
 		start_rot = start_rot,
-		start_pos = start_pos
+		start_pos = start_pos,
+		clamp_to_graph = clamp_to_graph
 	}
 	if blocks_hurt then
 		action_data.blocks.light_hurt = -1

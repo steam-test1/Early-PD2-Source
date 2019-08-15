@@ -103,7 +103,7 @@ function MissionBriefingTabItem:select(no_sound)
 	if no_sound then
 		return
 	end
-	managers.menu_component:post_event("highlight")
+	managers.menu_component:post_event("menu_enter")
 end
 function MissionBriefingTabItem:deselect()
 	if not self._selected then

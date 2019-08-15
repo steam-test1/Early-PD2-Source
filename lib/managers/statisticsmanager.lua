@@ -1094,15 +1094,16 @@ function StatisticsManager:debug_print_stats(global_flag, days)
 		glo = account:get_global_stat("payday2", days)
 	})
 	print("----------------------------------")
-	if (days ~= 1 or not "TODAY") and (days or not "ALLTIME") then
+	if (days ~= 1 or not "TODAY") and (days ~= -1 or not "YESTERDAY") and (days or not "ALLTIME") then
 	end
-	print((global_flag and "GLOBAL" or "LOCAL") .. " STEAM STATISTICS FOR " .. "LAST " .. days .. " DAYS\n")
+	print((global_flag and "GLOBAL" or "LOCAL") .. " STEAM STATISTICS FOR " .. "LAST " .. days .. " DAYS")
+	print("----------------------------------")
 	for key, data in pairs(stats) do
 		print(data.name, global_flag and data.glo or data.loc)
 	end
 	if global_flag then
 		print("----------------------------------")
-		print("Unique Players: " .. managers.money:add_decimal_marks_to_string(tostring(num_players)))
+		print("Average Players Per Day: " .. managers.money:add_decimal_marks_to_string(tostring(num_players)))
 	end
 	print("----------------------------------")
 end

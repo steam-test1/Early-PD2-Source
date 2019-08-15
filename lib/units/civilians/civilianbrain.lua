@@ -45,6 +45,9 @@ function CivilianBrain:is_available_for_assignment(objective)
 	return self._current_logic.is_available_for_assignment(self._logic_data, objective)
 end
 function CivilianBrain:cancel_trade()
+	if not self._active then
+		return
+	end
 	self:set_logic("surrender")
 end
 function CivilianBrain:on_rescue_allowed_state(state)

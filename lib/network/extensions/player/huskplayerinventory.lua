@@ -187,12 +187,11 @@ function HuskPlayerInventory:add_unit_by_factory_blueprint(factory_name, equip, 
 	self:add_unit(new_unit, equip, instant)
 end
 function HuskPlayerInventory:synch_weapon_gadget_state(state)
-	if self:equipped_unit():base().gadget_on then
-		if state then
-			self:equipped_unit():base():gadget_on()
+	if self:equipped_unit():base().set_gadget_on then
+		self:equipped_unit():base():set_gadget_on(state)
+		if state and state > 0 then
 			self._unit:movement():set_cbt_permanent(true)
 		else
-			self:equipped_unit():base():gadget_off()
 			self._unit:movement():set_cbt_permanent(false)
 		end
 	end

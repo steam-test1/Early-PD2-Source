@@ -69,6 +69,9 @@ function CopLogicArrest.exit(data, new_logic_name, enter_params)
 		local action_data = {type = "idle", body_part = 3}
 		data.unit:brain():action_request(action_data)
 	end
+	if my_data.calling_the_police then
+		managers.groupai:state():on_criminal_suspicion_progress(nil, data.unit, "call_interrupted")
+	end
 end
 function CopLogicArrest.queued_update(data)
 	data.t = TimerManager:game():time()
@@ -359,6 +362,9 @@ function CopLogicArrest.action_complete_clbk(data, action)
 			my_data.gesture_arrest = nil
 		elseif my_data.calling_the_police then
 			my_data.calling_the_police = nil
+			if not my_data.called_the_police then
+				managers.groupai:state():on_criminal_suspicion_progress(nil, data.unit, "call_interrupted")
+			end
 		end
 		my_data.next_action_delay_t = TimerManager:game():time() + math.lerp(2, 2.5, math.random())
 	end
@@ -414,6 +420,9 @@ function CopLogicArrest._call_the_police(data, my_data, paniced)
 		}
 	}
 	my_data.calling_the_police = data.unit:movement():action_request(action)
+	if my_data.calling_the_police then
+		managers.groupai:state():on_criminal_suspicion_progress(nil, data.unit, "calling")
+	end
 	CopLogicArrest._say_call_the_police(data, my_data)
 end
 function CopLogicArrest._get_priority_attention(data, attention_objects, reaction_func)
@@ -684,6 +693,9 @@ function CopLogicArrest._chk_say_discovery(data, my_data, attention_obj)
 	end
 end
 function CopLogicArrest._chk_say_approach(data, my_data, attention_obj)
+end
+function CopLogicArrest.on_police_call_success(data)
+	data.internal_data.called_the_police = true
 end
 function CopLogicArrest._say_call_the_police(data, my_data)
 	local blame_list = {

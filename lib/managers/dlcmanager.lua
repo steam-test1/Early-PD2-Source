@@ -5,7 +5,7 @@ DLCManager.BUNDLED_DLC_PACKAGES = {
 	gage_pack = true,
 	gage_pack_lmg = true,
 	infamous = true,
-	gage_pack_jobs = false,
+	gage_pack_jobs = true,
 	season_pass = false,
 	animal = false
 }
@@ -132,6 +132,9 @@ function GenericDLCManager:has_gage_pack()
 end
 function GenericDLCManager:has_gage_pack_lmg()
 	return Global.dlc_manager.all_dlc_data.gage_pack_lmg and Global.dlc_manager.all_dlc_data.gage_pack_lmg.verified
+end
+function GenericDLCManager:has_gage_pack_jobs()
+	return Global.dlc_manager.all_dlc_data.gage_pack_jobs and Global.dlc_manager.all_dlc_data.gage_pack_jobs.verified
 end
 function GenericDLCManager:has_xmas_soundtrack()
 	return Global.dlc_manager.all_dlc_data.xmas_soundtrack and Global.dlc_manager.all_dlc_data.xmas_soundtrack.verified
@@ -372,6 +375,7 @@ function WINDLCManager:init()
 			armored_transport = {app_id = "264610", no_install = true},
 			gage_pack = {app_id = "267380", no_install = true},
 			gage_pack_lmg = {app_id = "275590", no_install = true},
+			gage_pack_jobs = {app_id = "259381", no_install = true},
 			xmas_soundtrack = {app_id = "267381", no_install = true},
 			pd2_clan = {
 				source_id = "103582791433980119"
