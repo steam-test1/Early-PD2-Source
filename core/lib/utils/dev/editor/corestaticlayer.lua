@@ -64,6 +64,7 @@ function StaticLayer:do_spawn_unit(name, pos, rot)
 	local unit = StaticLayer.super.do_spawn_unit(self, name, pos, rot)
 	if unit then
 		table.insert(self._created_units, unit)
+		self._created_units_pairs[unit:unit_data().unit_id] = unit
 		self:set_bodies_keyframed(unit)
 	end
 	return unit
@@ -129,6 +130,9 @@ function StaticLayer:_on_unit_moved(unit, pos)
 	if unit:ladder() then
 		unit:set_position(pos)
 		unit:ladder():set_config()
+	end
+	if unit:zipline() then
+		unit:zipline():set_start_pos(pos)
 	end
 end
 function StaticLayer:_on_unit_rotated(unit, rot)

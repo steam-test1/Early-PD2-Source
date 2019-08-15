@@ -12,6 +12,7 @@ require("lib/managers/menu/MenuSceneGui")
 require("lib/managers/menu/PlayerProfileGuiObject")
 require("lib/managers/menu/IngameContractGui")
 require("lib/managers/menu/IngameManualGui")
+require("lib/managers/menu/PrePlanningMapGui")
 require("lib/managers/hud/HUDLootScreen")
 MenuComponentManager = MenuComponentManager or class()
 function MenuComponentManager:init()
@@ -132,6 +133,10 @@ function MenuComponentManager:init()
 	self._active_components.inventory_list = {
 		create = callback(self, self, "_create_inventory_list_gui"),
 		close = callback(self, self, "close_inventory_list_gui")
+	}
+	self._active_components.preplanning_map = {
+		create = callback(self, self, "create_preplanning_map_gui"),
+		close = callback(self, self, "close_preplanning_map_gui")
 	}
 end
 function MenuComponentManager:save(data)
@@ -324,6 +329,9 @@ function MenuComponentManager:update(t, dt)
 	if self._ingame_manual_gui then
 		self._ingame_manual_gui:update(t, dt)
 	end
+	if self._preplanning_map then
+		self._preplanning_map:update(t, dt)
+	end
 end
 function MenuComponentManager:get_left_controller_axis()
 	if managers.menu:is_pc_controller() or not self._left_axis_vector then
@@ -356,7 +364,7 @@ function MenuComponentManager:input_focus()
 	if self._game_chat_gui then
 		local input_focus = self._game_chat_gui:input_focus()
 		if input_focus == true then
-			return self._lobby_chat_gui_active or false
+			return true
 		elseif input_focus == 1 then
 			return 1
 		end
@@ -366,6 +374,9 @@ function MenuComponentManager:input_focus()
 	end
 	if self._infamytree_gui and self._infamytree_gui:input_focus() then
 		return 1
+	end
+	if self._preplanning_map then
+		return self._preplanning_map:input_focus()
 	end
 	if self._blackmarket_gui then
 		return self._blackmarket_gui:input_focus()
@@ -390,6 +401,9 @@ function MenuComponentManager:input_focus()
 	end
 end
 function MenuComponentManager:scroll_up()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if not self._weapon_text_box then
 		return
 	end
@@ -408,6 +422,9 @@ function MenuComponentManager:scroll_up()
 	end
 end
 function MenuComponentManager:scroll_down()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if not self._weapon_text_box then
 		return
 	end
@@ -426,6 +443,9 @@ function MenuComponentManager:scroll_down()
 	end
 end
 function MenuComponentManager:move_up()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:move_up() then
 		return true
 	end
@@ -449,6 +469,9 @@ function MenuComponentManager:move_up()
 	end
 end
 function MenuComponentManager:move_down()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:move_down() then
 		return true
 	end
@@ -472,6 +495,9 @@ function MenuComponentManager:move_down()
 	end
 end
 function MenuComponentManager:move_left()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:move_left() then
 		return true
 	end
@@ -495,6 +521,9 @@ function MenuComponentManager:move_left()
 	end
 end
 function MenuComponentManager:move_right()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:move_right() then
 		return true
 	end
@@ -518,6 +547,9 @@ function MenuComponentManager:move_right()
 	end
 end
 function MenuComponentManager:next_page()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:next_page(true) then
 		return true
 	end
@@ -533,6 +565,9 @@ function MenuComponentManager:next_page()
 	if self._crimenet_gui and self._crimenet_gui:next_page() then
 		return true
 	end
+	if self._preplanning_map and self._preplanning_map:next_page() then
+		return true
+	end
 	if self._lootdrop_gui and self._lootdrop_gui:next_page() then
 		return true
 	end
@@ -544,6 +579,9 @@ function MenuComponentManager:next_page()
 	end
 end
 function MenuComponentManager:previous_page()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:previous_page(true) then
 		return true
 	end
@@ -559,6 +597,9 @@ function MenuComponentManager:previous_page()
 	if self._crimenet_gui and self._crimenet_gui:previous_page() then
 		return true
 	end
+	if self._preplanning_map and self._preplanning_map:previous_page() then
+		return true
+	end
 	if self._lootdrop_gui and self._lootdrop_gui:previous_page() then
 		return true
 	end
@@ -570,6 +611,9 @@ function MenuComponentManager:previous_page()
 	end
 end
 function MenuComponentManager:confirm_pressed()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._skilltree_gui and self._skilltree_gui:confirm_pressed() then
 		return true
 	end
@@ -588,6 +632,9 @@ function MenuComponentManager:confirm_pressed()
 	if self._crimenet_gui and self._crimenet_gui:confirm_pressed() then
 		return true
 	end
+	if self._preplanning_map and self._preplanning_map:confirm_pressed() then
+		return true
+	end
 	if self._lootdrop_gui and self._lootdrop_gui:confirm_pressed() then
 		return true
 	end
@@ -599,6 +646,9 @@ function MenuComponentManager:confirm_pressed()
 	end
 end
 function MenuComponentManager:back_pressed()
+	if self._game_chat_gui and self._game_chat_gui:input_focus() == true then
+		return true
+	end
 	if self._mission_briefing_gui and self._mission_briefing_gui:back_pressed() then
 		return true
 	end
@@ -802,6 +852,9 @@ function MenuComponentManager:mouse_pressed(o, button, x, y)
 	if self._crimenet_gui and self._crimenet_gui:mouse_pressed(o, button, x, y) then
 		return true
 	end
+	if self._preplanning_map and self._preplanning_map:mouse_pressed(button, x, y) then
+		return true
+	end
 	if self._minimized_list and button == Idstring("0") then
 		for i, data in ipairs(self._minimized_list) do
 			if data.panel:inside(x, y) then
@@ -883,6 +936,9 @@ function MenuComponentManager:mouse_released(o, button, x, y)
 		return true
 	end
 	if self._crimenet_gui and self._crimenet_gui:mouse_released(o, button, x, y) then
+		return true
+	end
+	if self._preplanning_map and self._preplanning_map:mouse_released(button, x, y) then
 		return true
 	end
 	if self._blackmarket_gui then
@@ -976,6 +1032,13 @@ function MenuComponentManager:mouse_moved(o, x, y)
 	end
 	if self._crimenet_gui then
 		local used, pointer = self._crimenet_gui:mouse_moved(o, x, y)
+		wanted_pointer = pointer or wanted_pointer
+		if used then
+			return true, wanted_pointer
+		end
+	end
+	if self._preplanning_map then
+		local used, pointer = self._preplanning_map:mouse_moved(o, x, y)
 		wanted_pointer = pointer or wanted_pointer
 		if used then
 			return true, wanted_pointer
@@ -1330,9 +1393,10 @@ function MenuComponentManager:_create_chat_gui()
 		self._crimenet_chat_gui_active = false
 		if self._game_chat_gui then
 			self:show_game_chat_gui()
-			return
+		else
+			self:add_game_chat()
 		end
-		self:add_game_chat()
+		self._game_chat_gui:set_params("default")
 	end
 end
 function MenuComponentManager:_create_lobby_chat_gui()
@@ -1357,6 +1421,18 @@ function MenuComponentManager:_create_crimenet_chats_gui()
 			self:add_game_chat()
 		end
 		self._game_chat_gui:set_params("crimenet")
+	end
+end
+function MenuComponentManager:_create_preplanning_chats_gui()
+	if SystemInfo:platform() == Idstring("WIN32") and MenuCallbackHandler:is_multiplayer() and managers.network:session() then
+		self._crimenet_chat_gui_active = true
+		self._lobby_chat_gui_active = false
+		if self._game_chat_gui then
+			self:show_game_chat_gui()
+		else
+			self:add_game_chat()
+		end
+		self._game_chat_gui:set_params("preplanning")
 	end
 end
 function MenuComponentManager:create_chat_gui()
@@ -2157,6 +2233,52 @@ function MenuComponentManager:close_newsfeed_gui()
 		self._newsfeed_gui = nil
 	end
 end
+function MenuComponentManager:create_preplanning_map_gui()
+	self._preplanning_map = self._preplanning_map or self:_create_preplanning_map_gui()
+	self._preplanning_map:set_enabled(true)
+end
+function MenuComponentManager:_create_preplanning_map_gui()
+	return PrePlanningMapGui:new(self._ws, self._fullscreen_ws)
+end
+function MenuComponentManager:close_preplanning_map_gui()
+	self:_close_preplanning_map_gui()
+end
+function MenuComponentManager:_close_preplanning_map_gui()
+	if self._preplanning_map then
+		self._preplanning_map:close()
+		self._preplanning_map = nil
+	end
+end
+function MenuComponentManager:set_preplanning_type_filter(type)
+	if self._preplanning_map then
+		self._preplanning_map:set_type_filter(type)
+	end
+end
+function MenuComponentManager:get_preplanning_filter()
+	if self._preplanning_map then
+		return self._preplanning_map:current_type_filter()
+	end
+end
+function MenuComponentManager:set_preplanning_selected_element_item(item)
+	if self._preplanning_map then
+		return self._preplanning_map:set_selected_element_item(item)
+	end
+end
+function MenuComponentManager:set_preplanning_map_position_to_item(item)
+	if self._preplanning_map then
+		return self._preplanning_map:set_map_position_to_item(item)
+	end
+end
+function MenuComponentManager:set_preplanning_map_position(x, y, location)
+	if self._preplanning_map then
+		return self._preplanning_map:set_map_position(x, y, location)
+	end
+end
+function MenuComponentManager:update_preplanning_element(type, id)
+	if self._preplanning_map then
+		return self._preplanning_map:update_element(type, id)
+	end
+end
 function MenuComponentManager:_create_debug_fonts_gui()
 	if self._debug_fonts_gui then
 		self._debug_fonts_gui:set_enabled(true)
@@ -2378,7 +2500,7 @@ function MenuComponentManager:request_texture(texture, done_cb)
 		self._requested_index[key] = count
 		self._requested_textures[key][count] = done_cb
 		if not is_removing then
-			TextureCache:request(texture, "NORMAL", callback(self, self, "_request_done_callback"))
+			TextureCache:request(texture, "NORMAL", callback(self, self, "_request_done_callback"), 100)
 		else
 			Application:debug("[MenuComponentManager] request_texture(): This code should no longer be used.")
 		end
@@ -2591,53 +2713,20 @@ function MenuComponentManager:create_test_gui()
 		layer = 1000,
 		color = Color.black
 	})
-	local a = panel:bitmap({
-		texture = "guis/textures/pd2/lootscreen/loot_cards",
-		layer = 1001,
-		texture_rect = {
-			0,
-			0,
-			128,
-			180
-		}
-	})
-	local b = panel:bitmap({
-		texture = "guis/textures/pd2/lootscreen/loot_cards",
-		layer = 1001,
-		texture_rect = {
-			0,
-			0,
-			128,
-			180
-		}
-	})
-	local c = panel:bitmap({
-		texture = "guis/textures/pd2/lootscreen/loot_cards2",
-		layer = 1001,
-		texture_rect = {
-			0,
-			0,
-			64,
-			90
-		}
-	})
-	local d = panel:bitmap({
-		texture = "guis/textures/pd2/lootscreen/loot_cards2",
-		layer = 1001,
-		texture_rect = {
-			0,
-			0,
-			64,
-			90
-		}
-	})
-	b:set_top(a:bottom() + 10)
-	b:set_size(64, 90)
-	c:set_left(a:right() + 10)
-	c:set_top(a:top())
-	d:set_left(c:left())
-	d:set_top(b:top())
-	d:set_size(64, 90)
+	local size = 48
+	local x = 0
+	for i = 3, 3 do
+		local bitmap = panel:bitmap({
+			name = "bitmap",
+			layer = 1001,
+			render_template = "TextDistanceField",
+			texture = "guis/dlcs/big_bank/textures/pd2/pre_planning/mezzanine_test",
+			rotation = 360
+		})
+		bitmap:set_size(bitmap:texture_width() * i, bitmap:texture_height() * i)
+		bitmap:set_position(x, 0)
+		x = bitmap:right() + 10
+	end
 end
 function MenuComponentManager:destroy_test_gui()
 	if alive(Global.test_gui) then

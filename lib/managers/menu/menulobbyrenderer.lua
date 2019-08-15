@@ -140,8 +140,8 @@ end
 function MenuLobbyRenderer:set_slot_ready(peer, peer_id)
 	managers.hud:set_slot_ready(peer, peer_id)
 end
-function MenuLobbyRenderer:set_dropin_progress(peer_id, progress_percentage)
-	managers.hud:set_dropin_progress(peer_id, progress_percentage)
+function MenuLobbyRenderer:set_dropin_progress(peer_id, progress_percentage, mode)
+	managers.hud:set_dropin_progress(peer_id, progress_percentage, mode)
 end
 function MenuLobbyRenderer:set_slot_not_ready(peer, peer_id)
 	managers.hud:set_slot_not_ready(peer, peer_id)
@@ -155,6 +155,7 @@ function MenuLobbyRenderer:set_slot_outfit(slot, criminal_name, outfit_string)
 		local outfit = managers.blackmarket:unpack_outfit_from_string(outfit_string)
 		self._player_slots[slot].outfit = outfit
 		managers.menu_component:set_slot_outfit_mission_briefing_gui(slot, criminal_name, outfit)
+		managers.hud:set_slot_outfit(slot, criminal_name, outfit)
 	end
 end
 function MenuLobbyRenderer:set_kit_selection(peer_id, category, id, slot)
@@ -229,7 +230,7 @@ function MenuLobbyRenderer:on_request_lobby_slot_reply()
 		character = character,
 		progress = progress
 	})
-	managers.network:session():send_to_peers_loaded("lobby_info", local_peer_id, level, rank, character, mask_set, progress[1], progress[2], progress[3], progress[4] or -1)
+	managers.network:session():send_to_peers_loaded("lobby_info", level, rank, character, mask_set)
 	managers.network:session():send_to_peers_loaded("sync_profile", level, rank)
 	managers.network:session():send_to_peers_loaded("sync_outfit", managers.blackmarket:outfit_string())
 end

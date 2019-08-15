@@ -15,6 +15,7 @@ require("lib/units/weapons/MenuSawWeaponBase")
 require("lib/units/weapons/WeaponGadgetBase")
 require("lib/units/weapons/WeaponFlashLight")
 require("lib/units/weapons/WeaponLaser")
+require("lib/units/weapons/WeaponSecondSight")
 core:import("SequenceManager")
 MenuSetup = MenuSetup or class(Setup)
 MenuSetup.IS_START_MENU = true
@@ -32,6 +33,9 @@ function MenuSetup:load_packages()
 		if bundled and not PackageManager:loaded(package) then
 			PackageManager:load(package)
 		end
+	end
+	if not PackageManager:loaded("packages/game_base_streamed") then
+		PackageManager:load("packages/game_base_streamed")
 	end
 end
 function MenuSetup:unload_packages()
@@ -131,6 +135,9 @@ function MenuSetup:init_finalize()
 	end
 	if managers.music then
 		managers.music:init_finalize()
+	end
+	if not Application:editor() then
+		TextureCache:set_streaming_enabled(true)
 	end
 end
 function MenuSetup:update_wait_for_savegame_info(t, dt)

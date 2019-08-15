@@ -35,6 +35,7 @@ do
 		"civ_female_casual_4",
 		"civ_female_casual_5",
 		"civ_female_casual_6",
+		"civ_female_casual_7",
 		"civ_female_crackwhore_1",
 		"civ_female_hostess_apron_1",
 		"civ_female_hostess_jacket_1",
@@ -49,6 +50,7 @@ do
 		"civ_male_bank_2",
 		"civ_male_bank_manager_1",
 		"civ_male_bank_manager_3",
+		"civ_male_bank_manager_4",
 		"civ_male_business_1",
 		"civ_male_business_2",
 		"civ_male_casual_1",
@@ -60,6 +62,8 @@ do
 		"civ_male_casual_7",
 		"civ_male_casual_8",
 		"civ_male_casual_9",
+		"civ_male_casual_12",
+		"civ_male_casual_14",
 		"civ_male_dj_1",
 		"civ_male_italian_robe_1",
 		"civ_male_janitor_1",
@@ -85,6 +89,8 @@ do
 		"ene_city_swat_1",
 		"ene_city_swat_2",
 		"ene_city_swat_3",
+		"ene_murkywater_1",
+		"ene_murkywater_2",
 		"ene_cop_1",
 		"ene_cop_2",
 		"ene_cop_3",
@@ -109,6 +115,7 @@ do
 		"ene_gang_russian_4",
 		"ene_gang_russian_5",
 		"ene_guard_national_1",
+		"ene_murkywater_2",
 		"ene_secret_service_1",
 		"ene_secret_service_2",
 		"ene_security_1",
@@ -276,17 +283,25 @@ function CopBase:load(data)
 		self._unit:interaction():set_tweak_data("hostage_convert")
 	end
 end
-function CopBase:swap_material_config()
+function CopBase:swap_material_config(material_applied_clbk)
 	local new_material = self._material_translation_map[tostring(self._unit:material_config():key())]
 	if new_material then
 		self._is_in_original_material = not self._is_in_original_material
-		self._unit:set_material_config(new_material, true)
-		if self._unit:interaction() then
-			self._unit:interaction():refresh_material()
+		self._unit:set_material_config(new_material, true, material_applied_clbk and callback(self, self, "on_material_applied", material_applied_clbk))
+		if not material_applied_clbk then
+			self:on_material_applied()
 		end
 	else
 		print("[CopBase:swap_material_config] fail", self._unit:material_config(), self._unit)
 		Application:stack_dump()
+	end
+end
+function CopBase:on_material_applied(material_applied_clbk)
+	if self._unit:interaction() then
+		self._unit:interaction():refresh_material()
+	end
+	if material_applied_clbk then
+		material_applied_clbk()
 	end
 end
 function CopBase:is_in_original_material()

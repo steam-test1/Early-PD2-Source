@@ -950,10 +950,11 @@ function NavigationManager:_unregister_cover_units()
 	self._covers = {}
 end
 function NavigationManager:_safe_remove_unit(unit)
-	if Application:editor() and unit:unit_data().continent then
-		unit:unit_data().continent:remove_unit(unit)
+	if Application:editor() then
+		managers.editor:delete_unit(unit)
+	else
+		unit:set_slot(0)
 	end
-	unit:set_slot(0)
 end
 function NavigationManager:remove_AI_blocker_units()
 	local all_units = World:find_units_quick("all", 15)

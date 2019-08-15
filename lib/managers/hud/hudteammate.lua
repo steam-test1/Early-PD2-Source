@@ -833,10 +833,14 @@ function HUDTeammate:remove_panel()
 	cable_ties_panel:child("amount"):set_visible(false)
 	self._player_panel:child("carry_panel"):set_visible(false)
 	self._player_panel:child("carry_panel"):child("value"):set_text("")
+	self:set_cheater(false)
 	self:stop_timer()
 	self:teammate_progress(false, false, false, false)
 	self._peer_id = nil
 	self._ai = nil
+end
+function HUDTeammate:peer_id()
+	return self._peer_id
 end
 function HUDTeammate:set_peer_id(peer_id)
 	self._peer_id = peer_id
@@ -949,6 +953,9 @@ function HUDTeammate:set_name(teammate_name)
 	managers.hud:make_fine_text(name)
 	name:set_h(h)
 	name_bg:set_w(name:w() + 4)
+end
+function HUDTeammate:set_cheater(state)
+	self._panel:child("name"):set_color(state and tweak_data.screen_colors.pro_color or Color.white)
 end
 function HUDTeammate:set_callsign(id)
 	local teammate_panel = self._panel

@@ -16,6 +16,11 @@ function CarryTweakData:init(tweak_data)
 	self.types.mega_heavy.jump_modifier = 0.25
 	self.types.mega_heavy.can_run = false
 	self.types.mega_heavy.throw_distance_multiplier = 0.125
+	self.types.very_heavy = {}
+	self.types.very_heavy.move_speed_modifier = 0.25
+	self.types.very_heavy.jump_modifier = 0.25
+	self.types.very_heavy.can_run = false
+	self.types.very_heavy.throw_distance_multiplier = 0.3
 	self.types.heavy = {}
 	self.types.heavy.move_speed_modifier = 0.5
 	self.types.heavy.jump_modifier = 0.5
@@ -71,6 +76,7 @@ function CarryTweakData:init(tweak_data)
 	self.painting = {}
 	self.painting.type = "light"
 	self.painting.name_id = "hud_carry_painting"
+	self.painting.bag_value = "painting"
 	self.painting.visual_object = "g_canvas_bag"
 	self.painting.unit = "units/payday2/pickups/gen_pku_canvasbag/gen_pku_canvasbag"
 	self.painting.AI_carry = {SO_category = "enemies"}
@@ -91,6 +97,12 @@ function CarryTweakData:init(tweak_data)
 	self.lance_bag.visual_object = "g_toolsbag"
 	self.lance_bag.unit = "units/payday2/pickups/gen_pku_toolbag/gen_pku_toolbag"
 	self.lance_bag.AI_carry = {SO_category = "enemies"}
+	self.lance_bag_large = {}
+	self.lance_bag_large.type = "heavy"
+	self.lance_bag_large.name_id = "hud_carry_lance_bag"
+	self.lance_bag_large.skip_exit_secure = true
+	self.lance_bag_large.visual_object = "g_toolsbag_large"
+	self.lance_bag_large.unit = "units/payday2/pickups/gen_pku_toolbag_large/gen_pku_toolbag_large"
 	self.cage_bag = {}
 	self.cage_bag.type = "medium"
 	self.cage_bag.name_id = "hud_carry_cage_bag"
@@ -130,6 +142,7 @@ function CarryTweakData:init(tweak_data)
 	self.circuit = {}
 	self.circuit.type = "heavy"
 	self.circuit.name_id = "hud_carry_circuit"
+	self.circuit.bag_value = "circuit"
 	self.engine_01 = {}
 	self.engine_01.type = "mega_heavy"
 	self.engine_01.name_id = "hud_carry_engine_1"
@@ -202,6 +215,16 @@ function CarryTweakData:init(tweak_data)
 	self.ammo.visual_object = "g_explosives_bag"
 	self.ammo.unit = "units/pd2_dlc1/pickups/gen_pku_explosivesbag/gen_pku_explosivesbag"
 	self.ammo.AI_carry = {SO_category = "enemies"}
+	self.artifact_statue = {}
+	self.artifact_statue.type = "very_heavy"
+	self.artifact_statue.name_id = "hud_carry_artifact"
+	self.artifact_statue.bag_value = "artifact_statue"
+	self.artifact_statue.AI_carry = {SO_category = "enemies"}
+	self.samurai_suit = {}
+	self.samurai_suit.type = "medium"
+	self.samurai_suit.name_id = "hud_carry_samurai"
+	self.samurai_suit.bag_value = "samurai_suit"
+	self.samurai_suit.AI_carry = {SO_category = "enemies"}
 end
 function CarryTweakData:get_carry_ids()
 	local t = {}
@@ -211,4 +234,13 @@ function CarryTweakData:get_carry_ids()
 		end
 	end
 	return t
+end
+function CarryTweakData:get_zipline_offset(carry_id)
+	local unit_name = tweak_data.carry[carry_id].unit or "units/payday2/pickups/gen_pku_lootbag/gen_pku_lootbag"
+	if unit_name == "units/payday2/pickups/gen_pku_bodybag/gen_pku_bodybag" then
+		return Vector3(0, 0, 163)
+	elseif unit_name == "units/payday2/pickups/gen_pku_canvasbag/gen_pku_canvasbag" then
+		return Vector3(0, 0, 180)
+	end
+	return Vector3(15, 0, 172)
 end

@@ -364,6 +364,11 @@ function BlackMarketManager:equip_weapon(category, slot)
 		if equipped.weapon_id == tweak_data.achievement.vote_for_change then
 			managers.achievment:award("bob_1")
 		end
+	elseif category == "primaries" then
+		local equipped = self:equipped_primary()
+		if equipped.weapon_id == tweak_data.achievement.steam_500k then
+			managers.achievment:award("gage3_1")
+		end
 	end
 	if managers.menu_scene then
 		local data = category == "primaries" and self:equipped_primary() or self:equipped_secondary()
@@ -1223,6 +1228,30 @@ end
 function BlackMarketManager:get_weapon_data(weapon_id)
 	return self._global.weapons[weapon_id]
 end
+function BlackMarketManager:get_crafted_custom_name(category, slot, add_quotation)
+	local crafted_slot = self:get_crafted_category_slot(category, slot)
+	local custom_name = crafted_slot and crafted_slot.custom_name
+	if custom_name then
+		if add_quotation then
+			return "\"" .. custom_name .. "\""
+		end
+		return custom_name
+	end
+end
+function BlackMarketManager:set_crafted_custom_name(category, slot, custom_name)
+	local crafted_slot = self:get_crafted_category_slot(category, slot)
+	crafted_slot.custom_name = custom_name ~= "" and custom_name
+end
+function BlackMarketManager:get_mask_name_by_category_slot(category, slot)
+	local crafted_slot = self:get_crafted_category_slot(category, slot)
+	if crafted_slot then
+		if crafted_slot.custom_name then
+			return "\"" .. crafted_slot.custom_name .. "\""
+		end
+		return managers.localization:text(tweak_data.blackmarket.masks[crafted_slot.mask_id].name_id)
+	end
+	return ""
+end
 function BlackMarketManager:get_weapon_name_by_category_slot(category, slot)
 	local crafted_slot = self:get_crafted_category_slot(category, slot)
 	if crafted_slot then
@@ -1328,11 +1357,12 @@ function BlackMarketManager:_calculate_weapon_concealment(weapon)
 	local weapon_id = weapon.weapon_id or managers.weapon_factory:get_weapon_id_by_factory_id(factory_id)
 	local blueprint = weapon.blueprint
 	local base_stats = tweak_data.weapon[weapon_id].stats
+	local modifiers_stats = tweak_data.weapon[weapon_id].stats_modifiers
 	if not base_stats or not base_stats.concealment then
 		return 0
 	end
 	local parts_stats = managers.weapon_factory:get_stats(factory_id, blueprint)
-	return base_stats.concealment + (parts_stats.concealment or 0)
+	return (base_stats.concealment + (parts_stats.concealment or 0)) * (modifiers_stats and modifiers_stats.concealment or 1)
 end
 function BlackMarketManager:_calculate_armor_concealment(armor)
 	local armor_data = tweak_data.blackmarket.armors[armor]
@@ -1350,6 +1380,9 @@ function BlackMarketManager:_get_concealment(primary, secondary, armor, modifier
 end
 function BlackMarketManager:_get_concealment_from_local_player()
 	return self:_get_concealment(self:equipped_primary(), self:equipped_secondary(), self:equipped_armor(), self:visibility_modifiers())
+end
+function BlackMarketManager:_get_concealment_from_outfit_string(outfit_string)
+	return self:_get_concealment(outfit_string.primary, outfit_string.secondary, outfit_string.armor, -outfit_string.concealment_modifier)
 end
 function BlackMarketManager:_get_concealment_from_peer(peer)
 	local outfit = peer:blackmarket_outfit()
@@ -1381,6 +1414,9 @@ end
 function BlackMarketManager:get_concealment_of_peer(peer)
 	return self:_get_concealment_from_peer(peer)
 end
+function BlackMarketManager:_get_concealment_of_outfit_string(outfit_string)
+	return self:_get_concealment_from_outfit_string(outfit_string)
+end
 function BlackMarketManager:_calculate_suspicion_offset(index, lerp)
 	local con_val = tweak_data.weapon.stats.concealment[index]
 	local min_val = tweak_data.weapon.stats.concealment[1]
@@ -1389,6 +1425,10 @@ function BlackMarketManager:_calculate_suspicion_offset(index, lerp)
 	local mul_ratio = math.max(1, con_val / min_val)
 	local susp_lerp = math.clamp(1 - (con_val - min_val) / (max_val - min_val), 0, 1)
 	return math.lerp(0, lerp, susp_lerp)
+end
+function BlackMarketManager:get_suspicion_offset_of_outfit_string(outfit_string, lerp)
+	local con_mul, index = self:_get_concealment_of_outfit_string(outfit_string)
+	return self:_calculate_suspicion_offset(index, lerp), index == 1
 end
 function BlackMarketManager:get_suspicion_offset_of_peer(peer, lerp)
 	local con_mul, index = self:get_concealment_of_peer(peer)
@@ -1990,12 +2030,17 @@ function BlackMarketManager:modify_weapon(category, slot, global_value, part_id,
 	craft_data.global_values = craft_data.global_values or {}
 	local old_gv = "" .. (craft_data.global_values[part_id] or "normal")
 	craft_data.global_values[part_id] = global_value or "normal"
+	local parts_tweak_data = tweak_data.blackmarket.weapon_mods
 	local removed_parts = {}
 	for _, part in pairs(replaces) do
-		table.insert(removed_parts, part)
+		if parts_tweak_data[part] and (parts_tweak_data[part].pcs or parts_tweak_data[part].pc) and not parts_tweak_data[part].is_a_unlockable then
+			table.insert(removed_parts, part)
+		end
 	end
 	for _, part in pairs(removes) do
-		table.insert(removed_parts, part)
+		if parts_tweak_data[part] and (parts_tweak_data[part].pcs or parts_tweak_data[part].pc) and not parts_tweak_data[part].is_a_unlockable then
+			table.insert(removed_parts, part)
+		end
 	end
 	local default_blueprint = managers.weapon_factory:get_default_blueprint_by_factory_id(craft_data.factory_id)
 	for _, default_part in ipairs(default_blueprint) do
@@ -2014,7 +2059,7 @@ function BlackMarketManager:modify_weapon(category, slot, global_value, part_id,
 	end
 	self:_on_modified_weapon(category, slot)
 end
-function BlackMarketManager:buy_and_modify_weapon(category, slot, global_value, part_id, free_of_charge)
+function BlackMarketManager:buy_and_modify_weapon(category, slot, global_value, part_id, free_of_charge, no_consume)
 	if not self._global.crafted_items[category] or not self._global.crafted_items[category][slot] then
 		Application:error("[BlackMarketManager:modify_weapon] Trying to buy and modify weapon that doesn't exist", category, slot)
 		return
@@ -2022,10 +2067,12 @@ function BlackMarketManager:buy_and_modify_weapon(category, slot, global_value, 
 	self:modify_weapon(category, slot, global_value, part_id)
 	if not free_of_charge then
 		managers.money:on_buy_weapon_modification(self._global.crafted_items[category][slot].weapon_id, part_id, global_value)
+		managers.achievment:award("would_you_like_your_receipt")
+	end
+	if not no_consume then
 		self:remove_item(global_value, "weapon_mods", part_id)
 		self:alter_global_value_item(global_value, "weapon_mods", slot, part_id, INV_REMOVE)
 		self:alter_global_value_item(global_value, category, slot, part_id, CRAFT_ADD)
-		managers.achievment:award("would_you_like_your_receipt")
 	else
 	end
 end
@@ -2120,6 +2167,28 @@ function BlackMarketManager:preview_melee_weapon(melee_weapon_id)
 end
 function BlackMarketManager:get_melee_weapon_data(melee_weapon_id)
 	return tweak_data.blackmarket.melee_weapons[melee_weapon_id]
+end
+function BlackMarketManager:get_hold_crafted_item()
+	return self._hold_crafted_item
+end
+function BlackMarketManager:drop_hold_crafted_item()
+	self._hold_crafted_item = nil
+end
+function BlackMarketManager:pickup_crafted_item(category, slot)
+	self._hold_crafted_item = {category = category, slot = slot}
+end
+function BlackMarketManager:place_crafted_item(category, slot)
+	if not self._hold_crafted_item then
+		return
+	end
+	if self._hold_crafted_item.category ~= category then
+		return
+	end
+	local tmp = self:get_crafted_category_slot(category, slot)
+	self._global.crafted_items[category][slot] = self:get_crafted_category_slot(self._hold_crafted_item.category, self._hold_crafted_item.slot)
+	self._global.crafted_items[self._hold_crafted_item.category][self._hold_crafted_item.slot] = tmp
+	tmp = nil
+	self._hold_crafted_item = nil
 end
 function BlackMarketManager:on_aquired_armor(upgrade, id, loading)
 	if not self._global.armors[upgrade.armor_id] then
@@ -3318,7 +3387,7 @@ function BlackMarketManager:_cleanup_blackmarket()
 			if crafted_category[data.slot] then
 				Application:error("BlackMarketManager:_cleanup_blackmarket() Removing invalid Weapon part", "slot", data.slot, "part_id", data.part_id, "inspect", inspect(crafted_category[data.slot]), inspect(data))
 				if data.default_mod then
-					self:buy_and_modify_weapon(category, data.slot, data.global_value, data.default_mod, true)
+					self:buy_and_modify_weapon(category, data.slot, data.global_value, data.default_mod, true, true)
 				else
 					self:remove_weapon_part(category, data.slot, data.global_value, data.part_id)
 				end
@@ -3453,7 +3522,7 @@ function BlackMarketManager:_verify_dlc_items()
 									end
 								end
 								if default_mod then
-									self:buy_and_modify_weapon("primaries", slot, "normal", default_mod, true)
+									self:buy_and_modify_weapon("primaries", slot, "normal", default_mod, true, true)
 								else
 									self:remove_weapon_part("primaries", slot, package_id, part_id)
 								end
@@ -3483,7 +3552,7 @@ function BlackMarketManager:_verify_dlc_items()
 									end
 								end
 								if default_mod then
-									self:buy_and_modify_weapon("secondaries", slot, "normal", default_mod, true)
+									self:buy_and_modify_weapon("secondaries", slot, "normal", default_mod, true, true)
 								else
 									self:remove_weapon_part("secondaries", slot, package_id, part_id)
 								end

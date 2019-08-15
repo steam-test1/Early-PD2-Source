@@ -960,10 +960,12 @@ function WorldCameraLayer:add_triggers()
 	vc:add_trigger(Idstring("set_world_camera_near_dof"), callback(self, self, "set_near_dof"))
 end
 function WorldCameraLayer:activate()
+	managers.editor:layer("Mission"):hide_all()
 	WorldCameraLayer.super.activate(self)
 	self:set_gui_visible(true)
 end
 function WorldCameraLayer:deactivate()
+	managers.editor:layer("Mission"):unhide_all()
 	WorldCameraLayer.super.deactivate(self)
 	self:set_gui_visible(false)
 	managers.editor:set_camera_fov(managers.editor:default_camera_fov())

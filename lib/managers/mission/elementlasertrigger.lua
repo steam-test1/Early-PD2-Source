@@ -186,7 +186,6 @@ function ElementLaserTrigger:_check_state(unit)
 				end
 			end
 		else
-			local id = Profiler:start("laser")
 			local oobb = unit:oobb()
 			for i, connection in ipairs(self._connections) do
 				if connection.enabled then
@@ -199,7 +198,6 @@ function ElementLaserTrigger:_check_state(unit)
 				else
 				end
 			end
-			Profiler:stop(id)
 		end
 		if table.contains(self._inside, unit) then
 			if not inside or not rule_ok then
@@ -266,12 +264,14 @@ function ElementLaserTrigger:_client_check_state(unit)
 	local rule_ok = self:_check_instigator_rules(unit)
 	local inside
 	local mover = unit:mover()
-	for i, connection in ipairs(self._connections) do
-		if connection.enabled then
-			inside = mover:line_intersection(connection.from.pos, connection.to.pos)
-			if inside then
+	if mover then
+		for i, connection in ipairs(self._connections) do
+			if connection.enabled then
+				inside = mover:line_intersection(connection.from.pos, connection.to.pos)
+				if inside then
+				end
+			else
 			end
-		else
 		end
 	end
 	if table.contains(self._inside, unit) then

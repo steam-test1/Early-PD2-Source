@@ -82,6 +82,7 @@ require("lib/managers/mission/ElementLaserTrigger")
 require("lib/managers/mission/ElementSpawnGrenade")
 require("lib/managers/mission/ElementSpotter")
 require("lib/managers/mission/ElementSpawnGageAssignment")
+require("lib/managers/mission/ElementPrePlanning")
 require("lib/managers/mission/ElementPlayerSpawner")
 require("lib/managers/mission/ElementAreaTrigger")
 require("lib/managers/mission/ElementSpawnEnemyDummy")
@@ -119,7 +120,10 @@ function MissionManager:init(...)
 		"pku_toolbag",
 		"pku_atm",
 		"pku_folder",
-		"pku_poster"
+		"pku_poster",
+		"pku_artifact_statue",
+		"pku_server",
+		"pku_samurai"
 	})
 	self._mission_filter = {}
 	if not Global.mission_manager then

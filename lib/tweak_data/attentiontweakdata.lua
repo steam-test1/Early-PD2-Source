@@ -205,7 +205,7 @@ function AttentionTweakData:_init_civilian()
 		filter = "all_enemy",
 		max_range = 8000,
 		uncover_range = 300,
-		notice_delay_mul = 0.6,
+		notice_delay_mul = 1,
 		verification_interval = 0.1,
 		release_delay = 6,
 		duration = {3, 6},
@@ -645,6 +645,16 @@ function AttentionTweakData:_init_prop()
 		uncover_range = 100,
 		suspicion_range = 1000,
 		max_range = 1200,
+		release_delay = 1,
+		notice_requires_FOV = true
+	}
+	self.settings.open_vault_ene_ntl = {
+		reaction = "REACT_AIM",
+		filter = "law_enforcer",
+		verification_interval = 0.4,
+		uncover_range = 100,
+		suspicion_range = 500,
+		max_range = 600,
 		release_delay = 1,
 		notice_requires_FOV = true
 	}

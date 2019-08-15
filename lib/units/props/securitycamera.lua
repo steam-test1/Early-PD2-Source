@@ -13,7 +13,8 @@ SecurityCamera._NET_EVENTS = {
 	start_tape_loop_1 = 9,
 	start_tape_loop_2 = 10,
 	request_start_tape_loop_1 = 11,
-	request_start_tape_loop_2 = 12
+	request_start_tape_loop_2 = 12,
+	deactivate_tape_loop = 13
 }
 function SecurityCamera:init(unit)
 	self._unit = unit
@@ -96,7 +97,7 @@ function SecurityCamera:set_detection_enabled(state, settings, mission_element)
 		self._suspicion_lvl_sync = nil
 		if not self._destroying then
 			self:_stop_all_sounds()
-			self:_deactivate_tape_loop_restart()
+			self:_deactivate_tape_loop()
 		end
 	end
 	if settings then
@@ -311,22 +312,6 @@ function SecurityCamera:generate_cooldown(amount)
 		self._access_camera_mission_element:access_camera_operation_destroy()
 	end
 	self._destroyed = true
-	if SecurityCamera.active_tape_loop_unit and SecurityCamera.active_tape_loop_unit == self._unit then
-		SecurityCamera.active_tape_loop_unit = nil
-		self._unit:contour():remove("mark_unit_friendly")
-	end
-	if self._tape_loop_expired_clbk_id then
-		managers.enemy:remove_delayed_clbk(self._tape_loop_expired_clbk_id)
-		self._tape_loop_expired_clbk_id = nil
-	end
-	if self._camera_wrong_image_sound then
-		self._camera_wrong_image_sound:stop()
-		self._camera_wrong_image_sound = nil
-	end
-	if self._tape_loop_restarting_t then
-		self:_deactivate_tape_loop_restart()
-	end
-	self._unit:interaction():set_active(false)
 end
 function SecurityCamera:set_access_camera_mission_element(access_camera_mission_element)
 	self._access_camera_mission_element = access_camera_mission_element
@@ -622,6 +607,8 @@ function SecurityCamera:sync_net_event(event_id)
 		self:_request_start_tape_loop_by_upgrade_level(1)
 	elseif event_id == net_events.request_start_tape_loop_2 then
 		self:_request_start_tape_loop_by_upgrade_level(2)
+	elseif event_id == net_events.deactivate_tape_loop then
+		self:_deactivate_tape_loop()
 	end
 end
 function SecurityCamera:_send_net_event(event_id)
@@ -673,7 +660,9 @@ function SecurityCamera:_start_tape_loop(tape_loop_t)
 	self._tape_loop_end_t = Application:time() + tape_loop_t
 	SecurityCamera.active_tape_loop_unit = self._unit
 	self._unit:contour():add("mark_unit_friendly")
-	self._unit:interaction():set_active(false)
+	if self._unit:interaction() then
+		self._unit:interaction():set_active(false)
+	end
 	if self._camera_wrong_image_sound then
 		self._camera_wrong_image_sound:stop()
 	end
@@ -689,7 +678,9 @@ function SecurityCamera:_clbk_tape_loop_expired(...)
 	self._tape_loop_expired_clbk_id = nil
 	self._tape_loop_end_t = nil
 	self._unit:contour():remove("mark_unit_friendly")
-	self._unit:interaction():set_active(true)
+	if self._unit:interaction() then
+		self._unit:interaction():set_active(true)
+	end
 	if self._destroyed then
 		return
 	end
@@ -707,6 +698,30 @@ function SecurityCamera:_activate_tape_loop_restart(restart_t)
 	self._tape_loop_restarting_t = Application:time() + restart_t
 	if not Network:is_server() then
 		self:set_update_enabled(true)
+	end
+end
+function SecurityCamera:_deactivate_tape_loop()
+	if Network:is_server() then
+		self:_send_net_event(self._NET_EVENTS.deactivate_tape_loop)
+	end
+	if SecurityCamera.active_tape_loop_unit and SecurityCamera.active_tape_loop_unit == self._unit then
+		SecurityCamera.active_tape_loop_unit = nil
+		self._unit:contour():remove("mark_unit_friendly")
+	end
+	if self._tape_loop_expired_clbk_id then
+		managers.enemy:remove_delayed_clbk(self._tape_loop_expired_clbk_id)
+		self._tape_loop_end_t = nil
+		self._tape_loop_expired_clbk_id = nil
+	end
+	if self._camera_wrong_image_sound then
+		self._camera_wrong_image_sound:stop()
+		self._camera_wrong_image_sound = nil
+	end
+	if self._tape_loop_restarting_t then
+		self:_deactivate_tape_loop_restart()
+	end
+	if self._unit:interaction() then
+		self._unit:interaction():set_active(false)
 	end
 end
 function SecurityCamera:_deactivate_tape_loop_restart()
@@ -730,7 +745,9 @@ function SecurityCamera:on_unit_set_enabled(enabled)
 	if self._destroyed then
 		return
 	end
-	self._unit:interaction():set_active(enabled)
+	if self._unit:interaction() then
+		self._unit:interaction():set_active(enabled)
+	end
 end
 function SecurityCamera:save(data)
 	if self._alarm_sound then

@@ -61,7 +61,7 @@ function GenericUserManager:setup_setting_map()
 	self:setup_setting(17, "hold_to_duck", false)
 	self:setup_setting(18, "video_color_grading", "color_off")
 	self:setup_setting(19, "video_anti_alias", "AA")
-	self:setup_setting(20, "video_animation_lod", 2)
+	self:setup_setting(20, "video_animation_lod", not is_ps3 and not is_x360 and 3 or 2)
 	self:setup_setting(21, "video_streaks", true)
 	self:setup_setting(22, "mask_set", "clowns")
 	self:setup_setting(23, "use_lightfx", false)
@@ -81,6 +81,8 @@ function GenericUserManager:setup_setting_map()
 	self:setup_setting(37, "southpaw", false)
 	self:setup_setting(38, "dof_setting", "standard")
 	self:setup_setting(39, "fps_cap", 135)
+	self:setup_setting(40, "use_headbob", true)
+	self:setup_setting(41, "max_streaming_chunk", 4096)
 end
 function GenericUserManager:setup_setting(id, name, default_value)
 	assert(not Global.user_manager.setting_data_map[name], "[UserManager] Setting name \"" .. tostring(name) .. "\" already exists.")
@@ -473,6 +475,7 @@ function GenericUserManager:load(data, cache_version)
 	else
 		Global.debug_post_effects_enabled = true
 	end
+	managers.dyn_resource:set_max_streaming_chunk(self:get_setting("max_streaming_chunk"))
 end
 Xbox360UserManager = Xbox360UserManager or class(GenericUserManager)
 Xbox360UserManager.NOT_SIGNED_IN_STATE = "not_signed_in"

@@ -974,6 +974,17 @@ function SequenceEnvironment.object_local_rot_z(object_name)
 		return Vector3()
 	end
 end
+function SequenceEnvironment.object_rot_y_flat(object_name)
+	local obj = object_name and SequenceEnvironment.self.dest_unit:get_object(object_name:id())
+	if obj then
+		local y_dir = obj:rotation():y()
+		mvector3.set_z(y_dir, 0)
+		return Rotation(y_dir, math.UP)
+	else
+		SequenceEnvironment.element:print_error("Invalid object name \"" .. tostring(object_name) .. "\" in domain function \"object_rot_y\".", true, SequenceEnvironment.self)
+		return Rotation()
+	end
+end
 function SequenceEnvironment.Z()
 	return math.Z
 end
@@ -3443,17 +3454,14 @@ function MaterialConfigElement:activate_callback(env)
 	if not name then
 		self:print_attribute_error("name", name, nil, true, env)
 	else
-		env.dest_unit:set_material_config(Idstring(name), true)
+		managers.dyn_resource:change_material_config(Idstring(name), env.dest_unit)
 		if self.SAVE_STATE then
 			self:set_cat_state(env.dest_unit, "material", Idstring(name))
 		end
 	end
 end
 function MaterialConfigElement.load(unit, data)
-	unit:set_material_config(data.material, true)
-	if unit:interaction() then
-		unit:interaction():refresh_material()
-	end
+	managers.dyn_resource:change_material_config(data.material, unit)
 end
 MaterialElement = MaterialElement or class(BaseElement)
 MaterialElement.NAME = "material"

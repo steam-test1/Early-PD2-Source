@@ -26,6 +26,9 @@ end
 function MissionScriptElement:editor_name()
 	return self._editor_name
 end
+function MissionScriptElement:id()
+	return self._id
+end
 function MissionScriptElement:values()
 	return self._values
 end

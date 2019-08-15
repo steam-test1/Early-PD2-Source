@@ -89,7 +89,9 @@ CopActionAct._act_redirects.enemy_spawn = {
 	"e_sp_clk_up_water",
 	"e_sp_clk_over_2_5m",
 	"e_sp_clk_jump_dwn_5m_heli_l",
-	"e_sp_clk_4_5m_dwn_vent"
+	"e_sp_clk_4_5m_dwn_vent",
+	"e_sp_unarmed_helicopter_step_out1",
+	"e_sp_unarmed_helicopter_step_out2"
 }
 CopActionAct._act_redirects.civilian_spawn = {
 	"cm_sp_dj_loop",
@@ -204,6 +206,8 @@ CopActionAct._act_redirects.SO = {
 	"e_nl_down_2_7_fwd_2m",
 	"e_nl_up_3_down_1m",
 	"e_nl_up_6m",
+	"e_nl_up_12m",
+	"e_nl_up_rats_roof",
 	"e_nl_up_6m_var2",
 	"e_nl_up_6m_var3",
 	"e_nl_down_12m",
@@ -290,6 +294,8 @@ CopActionAct._act_redirects.SO = {
 	"e_so_hide_2_5m_vent_enter",
 	"e_so_hide_behind_door_enter",
 	"e_so_hide_ledge_enter",
+	"e_so_unarmed_shake_fence",
+	"e_so_unarmed_scrape_foot_truck",
 	"cmf_so_lean_r_wall",
 	"cmf_so_lean_bar",
 	"cmf_so_call_police",
@@ -302,7 +308,9 @@ CopActionAct._act_redirects.SO = {
 	"cmf_so_stand_type",
 	"cmf_so_window_observer",
 	"cmf_so_sit_table_right",
+	"cmf_so_sit_table_right2",
 	"cmf_so_sit_table_left",
+	"cmf_so_sit_table_left2",
 	"cmf_so_sit_high_chair",
 	"cmf_so_talk",
 	"cmf_so_idle",
@@ -630,6 +638,9 @@ function CopActionAct:_play_anim()
 		self._unit:movement():set_position(self._unit:movement():m_pos():with_z(self._action_desc.pos_z))
 	else
 		redir_name = self._action_desc.variant
+		if redir_name == "idle" and self._common_data.stance.code == 1 then
+			redir_name = "exit"
+		end
 		redir_res = self._ext_movement:play_redirect(redir_name, self._action_desc.start_anim_time)
 	end
 	if not redir_res then

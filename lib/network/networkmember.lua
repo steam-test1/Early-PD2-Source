@@ -54,6 +54,28 @@ function NetworkMember:_get_old_entry()
 	end
 	return member_downed, member_dead, health, used_deployable, used_cable_ties, used_body_bags, old_plr_entry
 end
+function NetworkMember:_get_drop_in_spawn_on_unit()
+	if Global.local_member and alive(Global.local_member:unit()) then
+		if Global.local_member:unit():movement():zipline_unit() then
+			return Global.local_member:unit():movement():zipline_unit()
+		end
+		return Global.local_member:unit()
+	end
+	for u_key, u_data in pairs(managers.groupai:state():all_player_criminals()) do
+		if u_data and alive(u_data.unit) then
+			if u_data.unit:movement():zipline_unit() then
+				return u_data.unit:movement():zipline_unit()
+			end
+			return u_data.unit
+		end
+	end
+	for u_key, u_data in pairs(managers.groupai:state():all_AI_criminals()) do
+		if u_data and alive(u_data.unit) then
+			return u_data.unit
+		end
+	end
+	return nil
+end
 function NetworkMember:spawn_unit(spawn_point_id, is_drop_in, spawn_as)
 	if self._unit then
 		return
@@ -65,16 +87,7 @@ function NetworkMember:spawn_unit(spawn_point_id, is_drop_in, spawn_as)
 	self._spawn_unit_called = true
 	local pos_rot
 	if is_drop_in then
-		local spawn_on
-		if Global.local_member and alive(Global.local_member:unit()) then
-			spawn_on = Global.local_member:unit()
-		end
-		if not spawn_on then
-			local u_key, u_data = next(managers.groupai:state():all_char_criminals())
-			if u_data and alive(u_data.unit) then
-				spawn_on = u_data.unit
-			end
-		end
+		local spawn_on = self:_get_drop_in_spawn_on_unit()
 		if spawn_on then
 			local pos = spawn_on:position()
 			local rot = spawn_on:rotation()
@@ -177,7 +190,7 @@ function NetworkMember:sync_lobby_data(peer)
 	local menu_state_index = tweak_data:menu_sync_state_to_index(menu_state)
 	cat_print("multiplayer_base", "NetworkMember:sync_lobby_data to", peer:id(), " : ", peer_id, level)
 	local_peer:set_outfit_string(managers.blackmarket:outfit_string())
-	peer:send_after_load("lobby_info", peer_id, level, rank, character, mask_set, progress[1], progress[2], progress[3], progress[4] or -1)
+	peer:send_after_load("lobby_info", level, rank, character, mask_set)
 	peer:send_after_load("sync_profile", level, rank)
 	peer:send_after_load("sync_outfit", managers.blackmarket:outfit_string())
 	if menu_state_index then
@@ -217,4 +230,76 @@ function NetworkMember:set_drop_in_progress(dropin_progress)
 end
 function NetworkMember:character_name()
 	return self._peer:character()
+end
+function NetworkMember:place_deployable(id)
+	if tweak_data.equipments.max_amount[id] then
+		if not self._deployable then
+			self._deployable = id
+			self._depolyable_count = 1
+			return true
+		elseif self._deployable == id and self._depolyable_count < tweak_data.equipments.max_amount[id] then
+			self._depolyable_count = self._depolyable_count + 1
+			return true
+		end
+	end
+	local peer = Network:is_server() and self._peer or managers.network:session():server_peer()
+	if self._deployable ~= id then
+		managers.chat:feed_system_message(ChatManager.GAME, managers.localization:text(Network:is_server() and "menu_chat_peer_cheated_wrong_equipment_server" or "menu_chat_peer_cheated_wrong_equipment", {
+			name = peer:name()
+		}))
+	else
+		managers.chat:feed_system_message(ChatManager.GAME, managers.localization:text(Network:is_server() and "menu_chat_peer_cheated_many_equipments_server" or "menu_chat_peer_cheated_many_equipments", {
+			name = peer:name()
+		}))
+	end
+	peer:mark_cheater()
+	print("[NetworkMember:place_deployable]: Failed to deploy equipment", self._peer:id(), id, self._deployable, self._depolyable_count)
+	return false
+end
+function NetworkMember:place_bag(carry_id, amount)
+	local cheating = false
+	if amount < 0 then
+		if self._carry_id ~= carry_id then
+			cheating = true
+		else
+			self._carry_id = nil
+		end
+	elseif self._carry_id then
+		cheating = true
+	else
+		self._carry_id = carry_id
+	end
+	if cheating then
+		if Network:is_client() and amount < 0 and not self._skipped_first_cheat then
+			self._skipped_first_cheat = true
+			return true
+		end
+		local peer = Network:is_server() and self._peer or managers.network:session():server_peer()
+		if amount < 0 then
+			managers.chat:feed_system_message(ChatManager.GAME, managers.localization:text(Network:is_server() and "menu_chat_peer_cheated_many_bags_server" or "menu_chat_peer_cheated_many_bags", {
+				name = peer:name()
+			}))
+		else
+			managers.chat:feed_system_message(ChatManager.GAME, managers.localization:text(Network:is_server() and "menu_chat_peer_cheated_many_bags_pickup_server" or "menu_chat_peer_cheated_many_bags_pickup", {
+				name = peer:name()
+			}))
+		end
+		peer:mark_cheater()
+		print("[NetworkMember:place_bag]: Failed to place bag", self._peer:id(), self._carry_id, carry_id, amount)
+		return false
+	end
+	return true
+end
+function NetworkMember:set_grenade(value)
+	if self._grenades and self._grenades + value > tweak_data.equipments.max_amount.grenades then
+		local peer = Network:is_server() and self._peer or managers.network:session():server_peer()
+		managers.chat:feed_system_message(ChatManager.GAME, managers.localization:text(Network:is_server() and "menu_chat_peer_cheated_many_grenades_server" or "menu_chat_peer_cheated_many_grenades", {
+			name = peer:name()
+		}))
+		peer:mark_cheater()
+		print("[NetworkMember:set_grenade]: Failed to use grenade", self._peer:id(), self._grenades, value)
+		return false
+	end
+	self._grenades = self._grenades and self._grenades + value or value
+	return true
 end

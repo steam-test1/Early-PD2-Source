@@ -59,6 +59,10 @@ function MoneyTweakData:init()
 	self.bag_values.meth = 1000
 	self.bag_values.weapon = 950
 	self.bag_values.weapons = 950
+	self.bag_values.painting = 900
+	self.bag_values.samurai_suit = 1750
+	self.bag_values.artifact_statue = 1750
+	self.bag_values.circuit = 1000
 	self.bag_values.shells = 2100
 	self.bag_values.turret = 10000
 	self.bag_value_multiplier = self._create_value_table(self.cut_lootbag_bonus / 5 / self.offshore_rate / self.bag_values.default, self.cut_lootbag_bonus / self.offshore_rate / self.bag_values.default, 7, true, 0.85)
@@ -126,9 +130,11 @@ function MoneyTweakData:init()
 	self.global_value_multipliers.gage_pack = 1.4
 	self.global_value_multipliers.gage_pack_lmg = 1.8
 	self.global_value_multipliers.gage_pack_jobs = 0
+	self.global_value_multipliers.gage_pack_snp = 0.8
 	self.global_value_multipliers.xmas_soundtrack = 1
 	self.global_value_multipliers.sweettooth = 1
 	self.global_value_multipliers.legendary = 1
+	self.global_value_multipliers.poetry_soundtrack = 0
 	self.global_value_bonus_multiplier = {}
 	self.global_value_bonus_multiplier.normal = 0
 	self.global_value_bonus_multiplier.superior = 0.1
@@ -144,9 +150,11 @@ function MoneyTweakData:init()
 	self.global_value_bonus_multiplier.gage_pack = 0.5
 	self.global_value_bonus_multiplier.gage_pack_lmg = 0.5
 	self.global_value_bonus_multiplier.gage_pack_jobs = 0
+	self.global_value_bonus_multiplier.gage_pack_snp = 0.2
 	self.global_value_bonus_multiplier.xmas_soundtrack = 0
 	self.global_value_bonus_multiplier.sweettooth = 0
 	self.global_value_bonus_multiplier.legendary = 0
+	self.global_value_bonus_multiplier.poetry_soundtrack = 0
 	local smallest_cashout = (self.stage_completion[1] + self.job_completion[1]) * self.offshore_rate
 	local biggest_mask_cost = self.biggest_cashout * 40
 	local biggest_mask_cost_deinfamous = math.round(biggest_mask_cost / self.global_value_multipliers.infamous)
@@ -210,6 +218,7 @@ function MoneyTweakData:init()
 	self.small_loot.vault_loot_ring = 15
 	self.small_loot.vault_loot_jewels = 25
 	self.small_loot.vault_loot_macka = 0.01
+	self.max_small_loot_value = 500000
 	self.skilltree = {}
 	self.skilltree.respec = {}
 	self.skilltree.respec.base_cost = 200

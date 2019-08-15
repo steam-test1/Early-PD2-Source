@@ -2,9 +2,9 @@ TripMineBase = TripMineBase or class(UnitBase)
 TripMineBase.EVENT_IDS = {}
 TripMineBase.EVENT_IDS.sensor_beep = 1
 TripMineBase.EVENT_IDS.explosion_beep = 2
-function TripMineBase.spawn(pos, rot, sensor_upgrade)
+function TripMineBase.spawn(pos, rot, sensor_upgrade, peer_id)
 	local unit = World:spawn_unit(Idstring("units/payday2/equipment/gen_equipment_tripmine/gen_equipment_tripmine"), pos, rot)
-	managers.network:session():send_to_peers_synched("sync_trip_mine_setup", unit, sensor_upgrade)
+	managers.network:session():send_to_peers_synched("sync_trip_mine_setup", unit, sensor_upgrade, peer_id or 0)
 	unit:base():setup(sensor_upgrade)
 	return unit
 end
@@ -35,6 +35,20 @@ function TripMineBase:init(unit)
 		self._laser_brush = Draw:brush(self._laser_color)
 		self._laser_brush:set_blend_mode("opacity_add")
 	end
+	if Network:is_client() then
+		self._validate_clbk_id = "trip_mine_validate" .. tostring(unit:key())
+		managers.enemy:add_delayed_clbk(self._validate_clbk_id, callback(self, self, "_clbk_validate"), Application:time() + 60)
+	end
+end
+function TripMineBase:_clbk_validate()
+	self._validate_clbk_id = nil
+	if not self._was_dropin then
+		local peer = managers.network:session():server_peer()
+		managers.chat:feed_system_message(ChatManager.GAME, managers.localization:text("menu_chat_peer_cheated_many_assets", {
+			name = peer:name()
+		}))
+		peer:mark_cheater()
+	end
 end
 function TripMineBase:get_name_id()
 	return "trip_mine"
@@ -43,6 +57,10 @@ function TripMineBase:interaction_text_id()
 	return self._sensor_upgrade and "hud_int_equipment_sensor_trip_mine" or "debug_interact_trip_mine"
 end
 function TripMineBase:sync_setup(sensor_upgrade)
+	if self._validate_clbk_id then
+		managers.enemy:remove_delayed_clbk(self._validate_clbk_id)
+		self._validate_clbk_id = nil
+	end
 	self:setup(sensor_upgrade)
 end
 function TripMineBase:setup(sensor_upgrade)
@@ -410,10 +428,15 @@ function TripMineBase:load(data)
 		self._unit:set_extension_update_enabled(Idstring("base"), self._use_draw_laser)
 	end
 	self:sync_trip_mine_set_armed(state.armed, state.length)
+	self._was_dropin = true
 end
 function TripMineBase:_debug_draw(from, to)
 	local brush = Draw:brush(Color.red:with_alpha(0.5))
 	brush:cylinder(from, to, 1)
 end
 function TripMineBase:destroy()
+	if self._validate_clbk_id then
+		managers.enemy:remove_delayed_clbk(self._validate_clbk_id)
+		self._validate_clbk_id = nil
+	end
 end

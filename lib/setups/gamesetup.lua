@@ -93,7 +93,7 @@ require("lib/units/player_team/TeamAIMovement")
 require("lib/network/extensions/player_team/HuskTeamAIMovement")
 require("lib/units/player_team/TeamAISound")
 require("lib/network/extensions/player_team/HuskTeamAIBase")
-require("lib/units/vehicles/helicopter/AnimatedHeliBase")
+require("lib/units/vehicles/AnimatedVehicleBase")
 require("lib/units/interactions/InteractionExt")
 require("lib/units/DramaExt")
 require("lib/units/pickups/Pickup")
@@ -135,6 +135,7 @@ require("lib/units/weapons/SentryGunWeapon")
 require("lib/units/weapons/WeaponGadgetBase")
 require("lib/units/weapons/WeaponFlashLight")
 require("lib/units/weapons/WeaponLaser")
+require("lib/units/weapons/WeaponSecondSight")
 require("lib/network/NetworkSpawnPointExt")
 require("lib/units/props/MissionDoor")
 require("lib/units/props/SecurityCamera")
@@ -150,14 +151,18 @@ require("lib/units/props/SmallLootBase")
 require("lib/units/props/SafehouseMoneyStack")
 require("lib/units/props/OffshoreGui")
 require("lib/units/props/Ladder")
-require("lib/units/props/DigitalGui")
 require("lib/units/vehicles/SimpleVehicle")
+require("lib/units/props/ZipLine")
+require("lib/units/props/TextTemplateBase")
 require("lib/managers/menu/FadeoutGuiObject")
 GameSetup = GameSetup or class(Setup)
 function GameSetup:load_packages()
 	Setup.load_packages(self)
 	if not PackageManager:loaded("packages/game_base") then
 		PackageManager:load("packages/game_base")
+	end
+	if not PackageManager:loaded("packages/game_base_streamed") then
+		PackageManager:load("packages/game_base_streamed")
 	end
 	local prefix = "packages/dlcs/"
 	local sufix = "/game_base"
@@ -215,6 +220,9 @@ function GameSetup:unload_packages()
 	if not Global.load_level then
 		if PackageManager:loaded("packages/game_base") then
 			PackageManager:unload("packages/game_base")
+		end
+		if PackageManager:loaded("packages/game_base_streamed") then
+			PackageManager:unload("packages/game_base_streamed")
 		end
 		local prefix = "packages/dlcs/"
 		local sufix = "/game_base"

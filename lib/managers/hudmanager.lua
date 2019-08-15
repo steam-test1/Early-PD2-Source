@@ -600,8 +600,9 @@ function HUDManager:_update_name_labels(t, dt)
 				end
 			end
 		end
+		local offset = data.panel:child("cheater"):h() / 2
 		if label_panel:visible() then
-			label_panel:set_center(nl_pos.x, nl_pos.y)
+			label_panel:set_center(nl_pos.x, nl_pos.y - offset)
 		end
 	end
 end
@@ -1510,9 +1511,10 @@ function HUDManager:add_mugshot_by_unit(unit)
 			end
 		end
 	end
-	local peer_id
+	local peer, peer_id
 	if is_husk_player then
-		peer_id = unit:network():peer():id()
+		peer = unit:network():peer()
+		peer_id = peer:id()
 	end
 	local mask_name = managers.criminals:character_data_by_name(character_name_id).mask_icon
 	local mask_icon, mask_texture_rect = tweak_data.hud_icons:get_icon_data(mask_name)
@@ -1527,6 +1529,9 @@ function HUDManager:add_mugshot_by_unit(unit)
 		location_text = location_text
 	})
 	unit:unit_data().mugshot_id = mugshot_id
+	if peer and peer:is_cheater() then
+		self:mark_cheater(peer_id)
+	end
 	return mugshot_id
 end
 function HUDManager:add_mugshot_without_unit(char_name, ai, peer_id, name)
@@ -2194,23 +2199,7 @@ function HUDManager:update_name_label_by_peer(peer)
 				name = name .. " (" .. experience .. ")"
 			end
 			data.text:set_text(utf8.to_upper(name))
-			local _, _, w, h = data.text:text_rect()
-			local infamy_size = h
-			local radius = data.interact:radius()
-			h = math.max(h, radius * 2)
-			data.panel:set_size(w + 4 + radius * 2, h)
-			data.text:set_size(data.panel:size())
-			data.panel:child("action"):set_size(data.panel:size())
-			data.panel:child("action"):set_x(data.interact:radius() * 2 + 4)
-			if data.panel:child("infamy") then
-				data.panel:set_w(data.panel:w() + infamy_size)
-				data.panel:child("text"):set_size(data.panel:size())
-				data.panel:child("infamy"):set_x(data.panel:w() - w - infamy_size)
-			end
-			local bag = data.panel:child("bag")
-			data.panel:set_w(data.panel:w() + bag:w() + 4)
-			bag:set_right(data.panel:w())
-			bag:set_y(4)
+			self:align_teammate_name_label(data.panel, data.interact)
 		else
 		end
 	end

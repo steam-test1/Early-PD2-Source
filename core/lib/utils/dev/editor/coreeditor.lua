@@ -27,6 +27,7 @@ require("core/lib/utils/dev/editor/ews_classes/EditSettings")
 require("core/lib/utils/dev/editor/ews_classes/EditVariation")
 require("core/lib/utils/dev/editor/ews_classes/EditEditableGui")
 require("core/lib/utils/dev/editor/ews_classes/EditLadder")
+require("core/lib/utils/dev/editor/ews_classes/EditZipLine")
 require("core/lib/utils/dev/editor/ews_classes/Continents")
 require("core/lib/utils/dev/editor/ews_classes/UnhideByName")
 require("core/lib/utils/dev/editor/ews_classes/CreateWorldSettingFile")
@@ -333,6 +334,7 @@ function CoreEditor:_init_edit_unit_dialog()
 	EditUnitEditableGui:new(self)
 	EditUnitSettings:new(self)
 	EditLadder:new(self)
+	EditZipLine:new(self)
 end
 function CoreEditor:_populate_replace_unit_categories_from_layer_types()
 	for layer_name, types in pairs(CoreEditorUtils.get_layer_types()) do
@@ -2396,13 +2398,18 @@ function CoreEditor:add_to_sound_package(params)
 	end
 end
 function CoreEditor:_save_packages(dir)
+	local streaming_options = {
+		win32 = {"texture"},
+		ps3 = {"texture"},
+		x360 = {"texture"}
+	}
 	local package = SystemFS:open(dir .. "\\world.package", "w")
-	self:_save_package(package, self._world_package_table)
+	self:_save_package(package, self._world_package_table, streaming_options)
 	local init_package = SystemFS:open(dir .. "\\world_init.package", "w")
 	self:_save_package(init_package, self._world_init_package_table)
 	for continent, package_table in pairs(self._continent_package_table) do
 		local file = SystemFS:open(dir .. "\\" .. continent .. "\\" .. continent .. ".package", "w")
-		self:_save_package(file, package_table)
+		self:_save_package(file, package_table, streaming_options)
 	end
 	for continent, package_table in pairs(self._continent_init_package_table) do
 		local file = SystemFS:open(dir .. "\\" .. continent .. "\\" .. continent .. "_init.package", "w")
@@ -2434,8 +2441,31 @@ function CoreEditor:_check_package_duplicity(params)
 	end
 	return found
 end
-function CoreEditor:_save_package(file, package_table)
+function CoreEditor:_save_package(file, package_table, streaming_options)
 	file:puts("<package>")
+	if streaming_options then
+		do
+			local streaming_element = "\t<streaming"
+			local function fill_platform_streaming_params(platform)
+				if streaming_options[platform] and next(streaming_options[platform]) then
+					local platform_param = " " .. platform .. "=\""
+					for i, asset_type in ipairs(streaming_options[platform]) do
+						if i ~= 1 then
+							platform_param = platform_param .. " "
+						end
+						platform_param = platform_param .. asset_type
+					end
+					platform_param = platform_param .. "\""
+					streaming_element = streaming_element .. platform_param
+				end
+			end
+			fill_platform_streaming_params("win32")
+			fill_platform_streaming_params("ps3")
+			fill_platform_streaming_params("x360")
+			streaming_element = streaming_element .. "/>"
+			file:puts(streaming_element)
+		end
+	end
 	for category, names in pairs(package_table) do
 		local entry
 		if category == "units" then

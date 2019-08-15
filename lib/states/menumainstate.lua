@@ -77,6 +77,7 @@ function MenuMainState:at_enter(old_state)
 		print("BACKUP SAVE")
 		managers.savefile:save_progress("local_hdd")
 	end
+	managers.dyn_resource:set_file_streaming_settings(managers.dyn_resource:max_streaming_chunk() * 0.5, 3)
 end
 function MenuMainState:at_exit(new_state)
 	if new_state:name() ~= "freeflight" then
